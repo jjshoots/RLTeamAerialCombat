@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "dogfighter"
+version = "0.1.0"
+description = ""
+authors = ["Jet <taijunjet@hotmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-dotenv = "^1.0.1"
+torch = "^2.3.1"
+jj-wingman = "^0.9.0"
+gymnasium = "^0.29.1"
+pydantic = "^2.7.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.2.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
