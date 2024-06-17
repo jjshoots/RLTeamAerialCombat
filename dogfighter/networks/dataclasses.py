@@ -21,5 +21,6 @@ class LearningParams(BaseModel):
     alpha_learning_rate: StrictFloat = Field(0.01)
     target_entropy: None | StrictFloat = Field(None)
     discount_factor: StrictFloat = Field(0.99)
+    update_ratio: StrictInt = Field(1)
     actor_update_ratio: StrictInt = Field(1)
     critic_update_ratio: StrictInt = Field(1)

@@ -12,8 +12,8 @@ from dogfighter.networks.gaussian_actor import GaussianActor
 from dogfighter.networks.qu_ensemble import QUEnsemble
 
 
-class SAC(nn.Module):
-    """Soft Actor Critic."""
+class CCGE(nn.Module):
+    """Critic Confidence Guided Exploration."""
 
     def __init__(
         self,
@@ -71,7 +71,7 @@ class SAC(nn.Module):
             [self.log_alpha], lr=learning_params.alpha_learning_rate, amsgrad=True
         )
 
-    def update_q_target(self, tau=0.02):
+    def _update_q_target(self, tau=0.02):
         """update_q_target.
 
         Args:
@@ -112,8 +112,6 @@ class SAC(nn.Module):
         Returns:
             tuple[torch.Tensor, dict]:
         """
-        # TODO: make uncertainty component
-
         terms = 1.0 - terms
 
         # current q and u
@@ -137,23 +135,35 @@ class SAC(nn.Module):
             # ...take the min among ensembles
             # shape is [B, 1]
             next_q, _ = torch.min(next_q, dim=-1, keepdim=True)
+            next_u, _ = torch.min(next_u, dim=-1, keepdim=True)
 
-            # q_target = reward + next_q
-            # shape is [B, 1]
-            target_q = (
-                rew
-                + (-self.log_alpha.exp().detach() * log_probs + self.gamma * next_q)
-                * terms
-            )
+        # compute target q and loss
+        # target_q is [B, 1]
+        # q_loss is [B, num_ensemble]
+        target_q = (
+            rew
+            + (-self.log_alpha.exp().detach() * log_probs + self.gamma * next_q) * terms
+        )
+        q_loss = (current_q - target_q) ** 2
 
-        # calculate bellman loss and take expectation over all networks
-        q_loss = ((current_q - target_q) ** 2).mean()
-        critic_loss = q_loss
+        # compute the target u and loss
+        # target_u is [B, 1]
+        # u_loss is [B, num_ensemble]
+        target_u = (
+            q_loss.mean(dim=-1, keepdim=True).detach()
+            + (self.gamma * next_u * terms) ** 2
+        ).sqrt()
+        u_loss = (current_u - target_u) ** 2
+
+        # sum the losses
+        critic_loss = q_loss.mean() + u_loss.mean()
 
         # some logging parameters
         log = dict()
         log["target_q"] = target_q.mean().detach()
+        log["target_u"] = target_u.mean().detach()
         log["q_loss"] = q_loss.mean().detach()
+        log["u_loss"] = u_loss.mean().detach()
         log["critic_loss"] = critic_loss.mean().detach()
 
         return critic_loss, log
@@ -299,7 +309,7 @@ class SAC(nn.Module):
             )
             loss.backward()
             self.critic_optim.step()
-            self.update_q_target()
+            self._update_q_target()
             all_logs = {**all_logs, **log}
 
         # update actor
@@ -327,3 +337,41 @@ class SAC(nn.Module):
             all_logs = {**all_logs, **log}
 
         return all_logs
+
+    def pick_best_action(
+        self,
+        obs: torch.Tensor,
+        obs_mask: torch.Tensor,
+        att: torch.Tensor,
+        act_sets: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """pick_best_action.
+
+        Args:
+            obs (torch.Tensor): Observation of shape [B, N, obs_shape]
+            obs_mask (torch.Tensor): Observation mask of shape [B, N, 1]
+            att (torch.Tensor): Attitude of shape [B, att_size]
+            act_sets (torch.Tensor): Set of actions of shape [num_actions, B, act_size]
+
+        Returns:
+            tuple[torch.FloatTensor, torch.FloatTensor]:
+            - [B, act_size] array for best actions
+            - [B, ] integer array specifying which action in the batch dimension came from which action set index
+        """
+        # pass things through the critic
+        # both here are [num_actions, B, num_ensemble]
+        q: torch.Tensor
+        u: torch.Tensor
+        q, u = self.critic(obs=obs, obs_mask=obs_mask, att=att, act=act_sets)
+
+        # total upperbound is just mean Q plus maximum uncertainty
+        # shape here is [num_actions, B]
+        prospective_q = q.mean(dim=-1, keepdim=False) + u.max(dim=-1, keepdim=False)
+
+        # pick the indices with the highest prospective q
+        # shape here is [batch]
+        _, indices = torch.max(prospective_q, dim=0, keepdim=False)
+
+        # pick the best actions, shape is [B, act_size]
+        best_actions = act_sets[indices, torch.arange(obs.shape[0])]
+        return best_actions, indices
