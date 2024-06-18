@@ -6,10 +6,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from dogfighter.networks.dataclasses import (EnvParams, LearningParams,
-                                             ModelParams)
-from dogfighter.networks.gaussian_actor import GaussianActor
-from dogfighter.networks.qu_ensemble import QUEnsemble
+from dogfighter.models.bases import (Action, BaseActor, BaseCritic, EnvParams,
+                                     LearningParams, ModelParams, Observation)
 
 
 class CCGE(nn.Module):
@@ -20,14 +18,9 @@ class CCGE(nn.Module):
         env_params: EnvParams,
         model_params: ModelParams,
         learning_params: LearningParams,
+        actor_lambda: type[BaseActor],
+        critic_lambda: type[BaseCritic],
     ):
-        """__init__.
-
-        Args:
-            env_params (EnvParams): env_params
-            model_params (ModelParams): model_params
-            learning_params (LearningParams): learning_params
-        """
         super().__init__()
         self.gamma = learning_params.discount_factor
         self.target_entropy = learning_params.target_entropy
@@ -35,11 +28,11 @@ class CCGE(nn.Module):
         self.critic_update_ratio = learning_params.critic_update_ratio
 
         # actor head
-        self.actor = GaussianActor(env_params=env_params, model_params=model_params)
+        self.actor = actor_lambda(env_params=env_params, model_params=model_params)
 
         # twin delayed Q networks
-        self.critic = QUEnsemble(env_params=env_params, model_params=model_params)
-        self.critic_target = QUEnsemble(
+        self.critic = critic_lambda(env_params=env_params, model_params=model_params)
+        self.critic_target = critic_lambda(
             env_params=env_params, model_params=model_params
         )
 
@@ -86,51 +79,28 @@ class CCGE(nn.Module):
     @torch.jit.script
     def _calc_critic_loss(
         self,
-        obs: torch.Tensor,
-        obs_mask: torch.Tensor,
-        att: torch.Tensor,
-        act: torch.Tensor,
+        obs: Observation,
+        act: Action,
         rew: torch.Tensor,
-        next_obs: torch.Tensor,
-        next_obs_mask: torch.Tensor,
-        next_att: torch.Tensor,
-        terms: torch.Tensor,
+        next_obs: Observation,
+        term: torch.Tensor,
     ) -> tuple[torch.Tensor, dict[str, Any]]:
-        """calc_critic_loss.
-
-        Args:
-            obs (torch.Tensor): Observation of shape [B, N, obs_shape]
-            obs_mask (torch.Tensor): Observation mask of shape [B, N, 1]
-            att (torch.Tensor): Attitude of shape [B, att_size]
-            act (torch.Tensor): Action of shape [B, act_size]
-            rew (torch.Tensor): Reward of shape [B, 1]
-            next_obs (torch.Tensor):
-            next_obs_mask (torch.Tensor):
-            next_att (torch.Tensor):
-            terms (torch.Tensor): Terminations of shape [B, 1]
-
-        Returns:
-            tuple[torch.Tensor, dict]:
-        """
-        terms = 1.0 - terms
+        term = 1.0 - term
 
         # current q and u
         # shape is [B, num_ensemble] for both
-        current_q, current_u = self.critic(obs=obs, obs_mask=obs_mask, att=att, act=act)
+        current_q, current_u = self.critic(obs=obs, act=act)
 
         # compute next q and target_q
         with torch.no_grad():
             # sample the next actions based on the current policy
-            # next_actions is of shape [B, act_size]
             # log_probs is of shape [B, 1]
-            output = self.actor(obs=obs, obs_mask=obs_mask, att=att)
-            next_actions, log_probs = self.actor.sample(*output)
+            output = self.actor(obs=obs)
+            next_act, log_probs = self.actor.sample(*output)
 
             # get the next q and u lists and get the value, then...
             # shape is [B, num_ensemble] for both
-            next_q, next_u = self.critic_target(
-                obs=next_obs, obs_mask=next_obs_mask, att=next_att, act=next_actions
-            )
+            next_q, next_u = self.critic_target(obs=next_obs, act=next_act)
 
             # ...take the min among ensembles
             # shape is [B, 1]
@@ -142,7 +112,7 @@ class CCGE(nn.Module):
         # q_loss is [B, num_ensemble]
         target_q = (
             rew
-            + (-self.log_alpha.exp().detach() * log_probs + self.gamma * next_q) * terms
+            + (-self.log_alpha.exp().detach() * log_probs + self.gamma * next_q) * term
         )
         q_loss = (current_q - target_q) ** 2
 
@@ -151,7 +121,7 @@ class CCGE(nn.Module):
         # u_loss is [B, num_ensemble]
         target_u = (
             q_loss.mean(dim=-1, keepdim=True).detach()
-            + (self.gamma * next_u * terms) ** 2
+            + (self.gamma * next_u * term) ** 2
         ).sqrt()
         u_loss = (current_u - target_u) ** 2
 
@@ -171,35 +141,19 @@ class CCGE(nn.Module):
     @torch.jit.script
     def _calc_actor_loss(
         self,
-        obs: torch.Tensor,
-        obs_mask: torch.Tensor,
-        att: torch.Tensor,
-        terms: torch.Tensor,
+        obs: Observation,
+        term: torch.Tensor,
     ) -> tuple[torch.Tensor, dict[str, Any]]:
-        """_calc_actor_loss
-
-        Args:
-            obs (torch.Tensor): Observation of shape [B, N, obs_shape]
-            obs_mask (torch.Tensor): Observation mask of shape [B, N, 1]
-            att (torch.Tensor): Attitude of shape [B, att_size]
-            terms (torch.Tensor): Terminations of shape [B, 1]
-
-        Returns:
-            tuple[torch.Tensor, dict]:
-        """
-        terms = 1.0 - terms
+        term = 1.0 - term
 
         # We re-sample actions to calculate expectations of Q.
-        # actions is of shape [B, act_size]
         # log_probs is of shape [B, 1]
-        output = self.actor(obs=obs, obs_mask=obs_mask, att=att)
-        actions, log_probs = self.actor.sample(*output)
+        output = self.actor(obs=obs)
+        act, log_probs = self.actor.sample(*output)
 
         # expected q for actions
         # shape is [B, num_ensemble] for both
-        expected_q, expected_u = self.critic(
-            obs=obs, obs_mask=obs_mask, att=att, act=actions
-        )
+        expected_q, expected_u = self.critic(obs=obs, act=act)
 
         """ REINFORCEMENT LOSS """
         # take minimum q
@@ -207,11 +161,11 @@ class CCGE(nn.Module):
         expected_q, _ = torch.min(expected_q, dim=-1, keepdim=True)
 
         # reinforcement target is maximization of Q * done
-        rnf_loss = -(expected_q * terms).mean()
+        rnf_loss = -(expected_q * term).mean()
 
         """ ENTROPY LOSS"""
         # entropy calculation
-        ent_loss = self.log_alpha.exp().detach() * log_probs * terms
+        ent_loss = self.log_alpha.exp().detach() * log_probs * term
         ent_loss = ent_loss.mean()
 
         """ TOTAL LOSS DERIVATION"""
@@ -226,25 +180,13 @@ class CCGE(nn.Module):
     @torch.jit.script
     def _calc_alpha_loss(
         self,
-        obs: torch.Tensor,
-        obs_mask: torch.Tensor,
-        att: torch.Tensor,
+        obs: Observation,
     ) -> tuple[torch.Tensor, dict[str, Any]]:
-        """_calc_alpha_loss
-
-        Args:
-            obs (torch.Tensor): Observation of shape [B, N, obs_shape]
-            obs_mask (torch.Tensor): Observation mask of shape [B, N, 1]
-            att (torch.Tensor): Attitude of shape [B, att_size]
-
-        Returns:
-            tuple[torch.Tensor, dict]:
-        """
         if not self.entropy_tuning:
             return torch.zeros(1), {}
 
         # log_probs is shape [B, 1]
-        output = self.actor(obs=obs, obs_mask=obs_mask, att=att)
+        output = self.actor(obs=obs)
         _, log_probs = self.actor.sample(*output)
 
         # Intuitively, we increase alpha when entropy is less than target entropy, vice versa.
@@ -262,32 +204,12 @@ class CCGE(nn.Module):
     @torch.jit.script
     def update(
         self,
-        obs: torch.Tensor,
-        obs_mask: torch.Tensor,
-        att: torch.Tensor,
-        act: torch.Tensor,
+        obs: Observation,
+        act: Action,
+        next_obs: Observation,
+        term: torch.Tensor,
         rew: torch.Tensor,
-        next_obs: torch.Tensor,
-        next_obs_mask: torch.Tensor,
-        next_att: torch.Tensor,
-        terms: torch.Tensor,
     ) -> dict[str, Any]:
-        """Update the entire model.
-
-        Args:
-            obs (torch.Tensor): obs
-            obs_mask (torch.Tensor): obs_mask
-            att (torch.Tensor): att
-            act (torch.Tensor): act
-            rew (torch.Tensor): rew
-            next_obs (torch.Tensor): next_obs
-            next_obs_mask (torch.Tensor): next_obs_mask
-            next_att (torch.Tensor): next_att
-            terms (torch.Tensor): terms
-
-        Returns:
-            dict[str, Any]:
-        """
         if not self.training:
             raise AssertionError("Model should be in training mode.")
 
@@ -298,14 +220,10 @@ class CCGE(nn.Module):
             self.critic_optim.zero_grad()
             loss, log = self._calc_critic_loss(
                 obs=obs,
-                obs_mask=obs_mask,
-                att=att,
                 act=act,
                 rew=rew,
                 next_obs=next_obs,
-                next_obs_mask=next_obs_mask,
-                next_att=next_att,
-                terms=terms,
+                term=term,
             )
             loss.backward()
             self.critic_optim.step()
@@ -315,23 +233,14 @@ class CCGE(nn.Module):
         # update actor
         for _ in range(self.actor_update_ratio):
             self.actor_optim.zero_grad()
-            loss, log = self._calc_actor_loss(
-                obs=obs,
-                obs_mask=obs_mask,
-                att=att,
-                terms=terms,
-            )
+            loss, log = self._calc_actor_loss(obs=obs, term=term)
             loss.backward()
             self.actor_optim.step()
             all_logs = {**all_logs, **log}
 
             # also update alpha for entropy
             self.alpha_optim.zero_grad()
-            loss, log = self._calc_alpha_loss(
-                obs=obs,
-                obs_mask=obs_mask,
-                att=att,
-            )
+            loss, log = self._calc_alpha_loss(obs=obs)
             loss.backward()
             self.alpha_optim.step()
             all_logs = {**all_logs, **log}
@@ -340,29 +249,14 @@ class CCGE(nn.Module):
 
     def pick_best_action(
         self,
-        obs: torch.Tensor,
-        obs_mask: torch.Tensor,
-        att: torch.Tensor,
-        act_sets: torch.Tensor,
+        obs: Observation,
+        act_sets: Action,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """pick_best_action.
-
-        Args:
-            obs (torch.Tensor): Observation of shape [B, N, obs_shape]
-            obs_mask (torch.Tensor): Observation mask of shape [B, N, 1]
-            att (torch.Tensor): Attitude of shape [B, att_size]
-            act_sets (torch.Tensor): Set of actions of shape [num_actions, B, act_size]
-
-        Returns:
-            tuple[torch.FloatTensor, torch.FloatTensor]:
-            - [B, act_size] array for best actions
-            - [B, ] integer array specifying which action in the batch dimension came from which action set index
-        """
         # pass things through the critic
         # both here are [num_actions, B, num_ensemble]
         q: torch.Tensor
         u: torch.Tensor
-        q, u = self.critic(obs=obs, obs_mask=obs_mask, att=att, act=act_sets)
+        q, u = self.critic(obs=obs, act=act_sets)
 
         # total upperbound is just mean Q plus maximum uncertainty
         # shape here is [num_actions, B]
@@ -373,5 +267,5 @@ class CCGE(nn.Module):
         _, indices = torch.max(prospective_q, dim=0, keepdim=False)
 
         # pick the best actions, shape is [B, act_size]
-        best_actions = act_sets[indices, torch.arange(obs.shape[0])]
+        best_actions = act_sets[indices, torch.arange(act_sets.shape[1])]
         return best_actions, indices

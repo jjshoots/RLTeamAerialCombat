@@ -2,16 +2,17 @@ import torch
 import torch.nn as nn
 from wingman import NeuralBlocks
 
-from dogfighter.networks.dataclasses import EnvParams, ModelParams
+from dogfighter.models.transformer.transformer_bases import (
+    TransformerEnvParams, TransformerModelParams)
 
 
-class Backbone(nn.Module):
+class TransformerBackbone(nn.Module):
     """This takes the observation and attitude and converts it into an embedding representation."""
 
     def __init__(
         self,
-        env_params: EnvParams,
-        model_params: ModelParams,
+        env_params: TransformerEnvParams,
+        model_params: TransformerModelParams,
     ) -> None:
         """A backbone model for encoding the observation and attitude of the current UAV.
 
@@ -19,8 +20,8 @@ class Backbone(nn.Module):
         Attitude is a [B, att_size,] tensor.
 
         Args:
-            env_params (EnvParams): env_params
-            model_params (ModelParams): model_params
+            env_params (TransformerEnvParams): env_params
+            model_params (TransformerModelParams): model_params
 
         Returns:
             None:

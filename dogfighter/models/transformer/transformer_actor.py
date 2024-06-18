@@ -4,29 +4,34 @@ import torch.nn as nn
 import torch.nn.functional as func
 from wingman import NeuralBlocks
 
-from dogfighter.networks.backbone import Backbone
-from dogfighter.networks.dataclasses import EnvParams, ModelParams
+from dogfighter.models.bases import BaseActor
+from dogfighter.models.transformer.transformer_backbone import \
+    TransformerBackbone
+from dogfighter.models.transformer.transformer_bases import (
+    TransformerEnvParams, TransformerModelParams, TransformerObservation)
 
 
-class GaussianActor(nn.Module):
+class TransformerActor(nn.Module, BaseActor[TransformerObservation]):
     """Actor with Gaussian prediction head."""
 
     def __init__(
         self,
-        env_params: EnvParams,
-        model_params: ModelParams,
+        env_params: TransformerEnvParams,
+        model_params: TransformerModelParams,
     ) -> None:
         """__init__.
 
         Args:
-            env_params (EnvParams): env_params
-            model_params (ModelParams): model_params
+            env_params (TransformerEnvParams): env_params
+            model_params (TransformerModelParams): model_params
 
         Returns:
             None:
         """
+        super().__init__()
+
         # the basic backbone
-        self.backbone = Backbone(
+        self.backbone = TransformerBackbone(
             env_params=env_params,
             model_params=model_params,
         )
@@ -42,31 +47,30 @@ class GaussianActor(nn.Module):
 
     @torch.jit.script
     def forward(
-        self, obs: torch.Tensor, obs_mask: torch.Tensor, att: torch.Tensor
+        self,
+        obs: TransformerObservation,
     ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (torch.Tensor): Observation of shape [B, N, obs_shape]
-            obs_mask (torch.Tensor): Observation mask of shape [B, N, 1]
-            att (torch.Tensor): Attitude of shape [B, att_size]
+            obs (TransformerObservation): obs
 
         Returns:
-            torch.Tensor: Action of shape [mean_var, B, act_size]
+            torch.Tensor:
         """
         # embedding here is shape [B, embed_dim]
-        embedding = self.backbone(obs=obs, obs_mask=obs_mask, att=att)
+        embedding = self.backbone(obs=obs.obs, obs_mask=obs.obs_mask, att=obs.att)
 
-        # actions here is shape [B, act_size]
+        # output here is shape [B, act_size * 2]
         output = self.head(embedding)
 
         # split the actions into mean and variance
-        # output here is shape [2, B, act_size]
+        # shape is [B, act_size, 2]
         output = output.reshape(*output.shape[:-1], -1, 2)
-        output = torch.moveaxis(output, 0, -1)
 
-        if len(output.shape) > 2:
-            output = output.moveaxis(-2, 0)
+        # move the mean_var axis to the front
+        # output here is shape [2, B, act_size]
+        output = torch.moveaxis(output, -1, 0)
 
         return output
 
