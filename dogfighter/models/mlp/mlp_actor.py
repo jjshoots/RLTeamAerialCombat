@@ -1,40 +1,40 @@
 import torch
+import torch.distributions as dist
+import torch.nn as nn
+import torch.nn.functional as func
 from wingman import NeuralBlocks
 
 from dogfighter.models.bases import BaseActor
-from dogfighter.models.transformer.transformer_backbone import \
-    TransformerBackbone
-from dogfighter.models.transformer.transformer_bases import (
-    TransformerEnvParams, TransformerModelParams, TransformerObservation)
+from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
+                                             MlpObservation)
 
 
-class TransformerActor(BaseActor[TransformerObservation]):
+class MlpActor(nn.Module, BaseActor[MlpObservation]):
     """Actor with Gaussian prediction head."""
 
     def __init__(
         self,
-        env_params: TransformerEnvParams,
-        model_params: TransformerModelParams,
+        env_params: MlpEnvParams,
+        model_params: MlpModelParams,
     ) -> None:
         """__init__.
 
         Args:
-            env_params (TransformerEnvParams): env_params
-            model_params (TransformerModelParams): model_params
+            env_params (MlpEnvParams): env_params
+            model_params (MlpModelParams): model_params
 
         Returns:
             None:
         """
-        super().__init__(env_params=env_params, model_params=model_params)
-
-        # the basic backbone
-        self.backbone = TransformerBackbone(
-            env_params=env_params,
-            model_params=model_params,
-        )
+        super().__init__()
 
         # outputs the action after all the compute before it
-        _features_description = [model_params.embed_dim, env_params.act_size * 2]
+        _features_description = [
+            env_params.obs_size,
+            model_params.embed_dim,
+            model_params.embed_dim,
+            env_params.act_size * 2,
+        ]
         _activation_description = ["relu"] * (len(_features_description) - 2) + [
             "identity"
         ]
@@ -45,21 +45,18 @@ class TransformerActor(BaseActor[TransformerObservation]):
     @torch.jit.script
     def forward(
         self,
-        obs: TransformerObservation,
+        obs: MlpObservation,
     ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (TransformerObservation): obs
+            obs (MlpObservation): Observation of shape [B, obs_size]
 
         Returns:
             torch.Tensor:
         """
-        # embedding here is shape [B, embed_dim]
-        embedding = self.backbone(obs=obs.obs, obs_mask=obs.obs_mask, att=obs.att)
-
         # output here is shape [B, act_size * 2]
-        output = self.head(embedding)
+        output = self.head(obs)
 
         # split the actions into mean and variance
         # shape is [B, act_size, 2]

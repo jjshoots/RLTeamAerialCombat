@@ -8,7 +8,7 @@ from dogfighter.models.transformer.transformer_qu_network import \
     TransformerQUNetwork
 
 
-class QUEnsemble(nn.Module, BaseCritic[TransformerObservation]):
+class QUEnsemble(BaseCritic[TransformerObservation]):
     """Q U Ensemble."""
 
     def __init__(
@@ -25,7 +25,7 @@ class QUEnsemble(nn.Module, BaseCritic[TransformerObservation]):
         Returns:
             None:
         """
-        super().__init__()
+        super().__init__(env_params=env_params, model_params=model_params)
 
         self.networks = nn.ModuleList(
             [

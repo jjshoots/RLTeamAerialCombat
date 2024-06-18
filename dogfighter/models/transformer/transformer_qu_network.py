@@ -9,7 +9,7 @@ from dogfighter.models.transformer.transformer_bases import (
     TransformerEnvParams, TransformerModelParams, TransformerObservation)
 
 
-class TransformerQUNetwork(nn.Module, BaseCritic[TransformerObservation]):
+class TransformerQUNetwork(BaseCritic[TransformerObservation]):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(
@@ -26,7 +26,7 @@ class TransformerQUNetwork(nn.Module, BaseCritic[TransformerObservation]):
         Returns:
             None:
         """
-        super().__init__()
+        super().__init__(env_params=env_params, model_params=model_params)
 
         # the basic backbone
         self.backbone = TransformerBackbone(
