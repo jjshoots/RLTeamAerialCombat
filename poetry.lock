@@ -286,7 +286,7 @@ test = ["pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
 name = "numpy"
-version = "2.0.0"
+version = "1.26.4"
 description = "Fundamental package for array computing in Python"
 category = "main"
 optional = false
@@ -742,7 +742,7 @@ workspaces = ["wandb-workspaces"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5e2c7a224b3a75694241715c4ac55d583b7b1a926be57e4bf78e8627659e2b32"
+content-hash = "f4719262b783eb651c8c30b0b175c2c3524d194402fcc78029d97379c0af4db0"
 
 [metadata.files]
 annotated-types = []

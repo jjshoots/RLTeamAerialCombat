@@ -11,6 +11,7 @@ torch = "^2.3.1"
 jj-wingman = "^0.9.0"
 gymnasium = "^0.29.1"
 pydantic = "^2.7.4"
+numpy = "<2.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.2.2"

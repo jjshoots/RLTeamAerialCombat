@@ -34,6 +34,7 @@ class CCGE(nn.Module):
         env_params: EnvParams,
         model_params: ModelParams,
         algorithm_params: CCGEParams = CCGEParams(),
+        device: torch.device = torch.device("cpu"),
         jit: bool = True,
     ):
         """__init__.
@@ -60,6 +61,11 @@ class CCGE(nn.Module):
         self._critic_target = critic_type(
             env_params=env_params, model_params=model_params
         )
+
+        # move the models to the right device
+        self._actor.to(device)
+        self._critic.to(device)
+        self._critic_target.to(device)
 
         # copy weights and disable gradients for the target network
         self._critic_target.load_state_dict(self._critic.state_dict())
