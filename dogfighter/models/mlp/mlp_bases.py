@@ -26,4 +26,5 @@ class MlpLearningParams(LearningParams):
 
 
 class MlpObservation(torch.Tensor, Observation):
-    pass
+    # shape is [B, obs_size]
+    obs: torch.Tensor

@@ -35,7 +35,7 @@ class TransformerObservation(Observation):
     # shape is [B, num_other_agents, obs_size]
     obs: torch.Tensor
     # other agent mask
-    # TODO
+    # TODO: Figure out size
     obs_mask: torch.Tensor
     # current agent attitude
     # shape is [B, att_size]

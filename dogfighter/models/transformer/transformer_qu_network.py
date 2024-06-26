@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 from wingman import NeuralBlocks
 
 from dogfighter.models.bases import Action, BaseCritic

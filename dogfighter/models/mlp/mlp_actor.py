@@ -1,7 +1,4 @@
 import torch
-import torch.distributions as dist
-import torch.nn as nn
-import torch.nn.functional as func
 from wingman import NeuralBlocks
 
 from dogfighter.models.bases import BaseActor
@@ -9,7 +6,7 @@ from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
                                              MlpObservation)
 
 
-class MlpActor(nn.Module, BaseActor[MlpObservation]):
+class MlpActor(BaseActor[MlpObservation]):
     """Actor with Gaussian prediction head."""
 
     def __init__(
@@ -26,7 +23,7 @@ class MlpActor(nn.Module, BaseActor[MlpObservation]):
         Returns:
             None:
         """
-        super().__init__()
+        super().__init__(env_params=env_params, model_params=model_params)
 
         # outputs the action after all the compute before it
         _features_description = [
