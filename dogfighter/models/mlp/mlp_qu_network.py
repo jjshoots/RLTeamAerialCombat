@@ -1,11 +1,12 @@
 import torch
 from wingman import NeuralBlocks
 
-from dogfighter.models.bases import Action, BaseCritic
-from dogfighter.models.mlp.mlp_bases import MlpEnvParams, MlpModelParams, MlpObservation
+from dogfighter.models.bases import Action, BaseQUEnsemble
+from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
+                                             MlpObservation)
 
 
-class MlpQUNetwork(BaseCritic[MlpObservation]):
+class MlpQUNetwork(BaseQUEnsemble[MlpObservation]):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(
@@ -43,7 +44,6 @@ class MlpQUNetwork(BaseCritic[MlpObservation]):
             "uncertainty_bias", torch.tensor(1) * 999.9, persistent=True
         )
 
-    @torch.jit.script
     def forward(
         self,
         obs: MlpObservation,

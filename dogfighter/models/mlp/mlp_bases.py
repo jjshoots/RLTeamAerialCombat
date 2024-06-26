@@ -1,7 +1,7 @@
 import torch
 from pydantic import Field, StrictFloat, StrictInt
 
-from dogfighter.models.bases import (EnvParams, LearningParams, ModelParams,
+from dogfighter.models.bases import (AlgorithmParams, EnvParams, ModelParams,
                                      Observation)
 
 
@@ -15,7 +15,7 @@ class MlpModelParams(ModelParams):
     embed_dim: StrictInt = Field(128)
 
 
-class MlpLearningParams(LearningParams):
+class MlpLearningParams(AlgorithmParams):
     learning_rate: StrictFloat = Field(0.003)
     alpha_learning_rate: StrictFloat = Field(0.01)
     target_entropy: None | StrictFloat = Field(None)

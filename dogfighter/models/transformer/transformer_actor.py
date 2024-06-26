@@ -42,7 +42,6 @@ class TransformerActor(BaseActor[TransformerObservation]):
             _features_description, _activation_description
         )
 
-    @torch.jit.script
     def forward(
         self,
         obs: TransformerObservation,

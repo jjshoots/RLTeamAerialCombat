@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
 
-from dogfighter.models.bases import Action, BaseCritic
+from dogfighter.models.bases import Action, BaseQUEnsemble
 from dogfighter.models.transformer.transformer_bases import (
     TransformerEnvParams, TransformerModelParams, TransformerObservation)
 from dogfighter.models.transformer.transformer_qu_network import \
     TransformerQUNetwork
 
 
-class QUEnsemble(BaseCritic[TransformerObservation]):
+class TransformerQUEnsemble(BaseQUEnsemble[TransformerObservation]):
     """Q U Ensemble."""
 
     def __init__(
@@ -37,7 +37,6 @@ class QUEnsemble(BaseCritic[TransformerObservation]):
             ]
         )
 
-    @torch.jit.script
     def forward(
         self,
         obs: TransformerObservation,

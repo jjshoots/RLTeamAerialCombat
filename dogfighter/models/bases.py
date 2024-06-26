@@ -5,7 +5,7 @@ import torch
 import torch.distributions as dist
 import torch.nn as nn
 import torch.nn.functional as func
-from pydantic import BaseModel, Field, StrictFloat, StrictInt
+from pydantic import BaseModel
 
 
 class EnvParams(BaseModel):
@@ -16,7 +16,7 @@ class ModelParams(BaseModel):
     pass
 
 
-class LearningParams(BaseModel):
+class AlgorithmParams(BaseModel):
     pass
 
 
@@ -30,7 +30,7 @@ ObservationType = TypeVar("ObservationType", bound=Observation)
 Action = torch.Tensor
 
 
-class BaseCritic(nn.Module, Generic[ObservationType]):
+class BaseQUEnsemble(nn.Module, Generic[ObservationType]):
     def __init__(self, env_params: EnvParams, model_params: ModelParams) -> None:
         super().__init__()
 
@@ -53,7 +53,6 @@ class BaseActor(nn.Module, Generic[ObservationType]):
     def forward(self, obs: ObservationType) -> torch.Tensor:
         raise NotImplementedError
 
-    @torch.jit.script
     @staticmethod
     def sample(
         mean: torch.Tensor, var: torch.Tensor
@@ -80,7 +79,6 @@ class BaseActor(nn.Module, Generic[ObservationType]):
 
         return actions, log_probs
 
-    @torch.jit.script
     @staticmethod
     def infer(mean: torch.Tensor, var: torch.Tensor) -> torch.Tensor:
         """infer.

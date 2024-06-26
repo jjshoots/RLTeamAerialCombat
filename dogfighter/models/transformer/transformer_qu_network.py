@@ -1,14 +1,14 @@
 import torch
 from wingman import NeuralBlocks
 
-from dogfighter.models.bases import Action, BaseCritic
+from dogfighter.models.bases import Action, BaseQUEnsemble
 from dogfighter.models.transformer.transformer_backbone import \
     TransformerBackbone
 from dogfighter.models.transformer.transformer_bases import (
     TransformerEnvParams, TransformerModelParams, TransformerObservation)
 
 
-class TransformerQUNetwork(BaseCritic[TransformerObservation]):
+class TransformerQUNetwork(BaseQUEnsemble[TransformerObservation]):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(
@@ -54,7 +54,6 @@ class TransformerQUNetwork(BaseCritic[TransformerObservation]):
             "uncertainty_bias", torch.tensor(1) * 999.9, persistent=True
         )
 
-    @torch.jit.script
     def forward(
         self,
         obs: TransformerObservation,

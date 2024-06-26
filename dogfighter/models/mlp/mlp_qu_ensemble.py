@@ -1,14 +1,13 @@
 import torch
 import torch.nn as nn
 
-from dogfighter.models.bases import Action, BaseCritic
-from dogfighter.models.mlp.mlp_bases import (
-    MlpEnvParams, MlpModelParams, MlpObservation)
-from dogfighter.models.mlp.mlp_qu_network import \
-        MlpQUNetwork
+from dogfighter.models.bases import Action, BaseQUEnsemble
+from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
+                                             MlpObservation)
+from dogfighter.models.mlp.mlp_qu_network import MlpQUNetwork
 
 
-class QUEnsemble(BaseCritic[MlpObservation]):
+class MlpQUEnsemble(BaseQUEnsemble[MlpObservation]):
     """Q U Ensemble."""
 
     def __init__(
@@ -28,7 +27,6 @@ class QUEnsemble(BaseCritic[MlpObservation]):
             ]
         )
 
-    @torch.jit.script
     def forward(
         self,
         obs: MlpObservation,

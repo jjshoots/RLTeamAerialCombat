@@ -58,7 +58,6 @@ class TransformerBackbone(nn.Module):
             batch_first=True,
         )
 
-    @torch.jit.script
     def forward(
         self, obs: torch.Tensor, obs_mask: torch.Tensor, att: torch.Tensor
     ) -> torch.Tensor:

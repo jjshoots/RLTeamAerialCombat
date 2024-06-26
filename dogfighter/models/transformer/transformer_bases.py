@@ -1,7 +1,7 @@
 import torch
 from pydantic import Field, StrictFloat, StrictInt
 
-from dogfighter.models.bases import (EnvParams, LearningParams, ModelParams,
+from dogfighter.models.bases import (AlgorithmParams, EnvParams, ModelParams,
                                      Observation)
 
 
@@ -20,7 +20,7 @@ class TransformerModelParams(ModelParams):
     att_num_decoder_layers: StrictInt = Field(2)
 
 
-class TransformerLearningParams(LearningParams):
+class TransformerLearningParams(AlgorithmParams):
     learning_rate: StrictFloat = Field(0.003)
     alpha_learning_rate: StrictFloat = Field(0.01)
     target_entropy: None | StrictFloat = Field(None)

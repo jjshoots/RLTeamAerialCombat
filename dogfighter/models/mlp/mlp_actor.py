@@ -39,7 +39,6 @@ class MlpActor(BaseActor[MlpObservation]):
             _features_description, _activation_description
         )
 
-    @torch.jit.script
     def forward(
         self,
         obs: MlpObservation,
