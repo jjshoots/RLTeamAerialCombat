@@ -4,6 +4,7 @@ import math
 from signal import SIGINT, signal
 
 import gymnasium as gym
+import numpy as np
 import torch
 from gymnasium.wrappers import record_episode_statistics
 from wingman import ReplayBuffer, Wingman
@@ -11,9 +12,9 @@ from wingman.utils import cpuize, gpuize, shutdown_handler
 
 from dogfighter.algorithms import CCGE
 from dogfighter.algorithms.ccge import CCGEParams
+from dogfighter.models.bases import BaseActor
 from dogfighter.models.mlp import MlpActor, MlpEnvParams, MlpQUEnsemble
 from dogfighter.models.mlp.mlp_bases import MlpModelParams
-from model_evaluator import evaluate_model
 
 
 def train(wm: Wingman) -> None:
@@ -42,7 +43,7 @@ def train(wm: Wingman) -> None:
             next_eval_step = (
                 int(memory.count / cfg.eval_steps_ratio) + 1
             ) * cfg.eval_steps_ratio
-            wm.log["eval_perf"] = evaluate_model(wm=wm, actor=alg.actor, env=env)
+            wm.log["eval_perf"] = evaluate(wm=wm, actor=alg.actor, env=env)
             wm.log["max_eval_perf"] = max(
                 [float(wm.log["max_eval_perf"]), float(wm.log["eval_perf"])]
             )
@@ -86,6 +87,37 @@ def train(wm: Wingman) -> None:
 
             # for logging
             wm.log["episode_cumulative_reward"] = info["episode"]["r"][0]
+
+
+def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
+    # setup the environment and actor
+    env = setup_environment(wm)
+    actor = actor or setup_algorithm(wm).actor
+
+    # start the evaluation loops
+    cumulative_rewards: list[float] = []
+    for _ in range(wm.cfg.eval_num_episodes):
+        term, trunc = False, False
+        obs, info = env.reset()
+
+        # step for one episode
+        while not term and not trunc:
+            # get an action from the actor
+            # this is a tensor
+            act, _ = actor.sample(*actor(gpuize(obs, wm.device).unsqueeze(0)))
+
+            # convert the action to cpu, and remove the batch dim
+            act = cpuize(act.squeeze(0))
+
+            # step the transition
+            next_obs, rew, term, trunc, info = env.step(act)
+
+            # new observation is the next observation
+            obs = next_obs
+
+        cumulative_rewards.append(info["episode"]["r"][0])
+
+    return float(np.mean(cumulative_rewards))
 
 
 def setup_environment(wm: Wingman) -> gym.Env:
