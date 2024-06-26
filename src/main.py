@@ -7,6 +7,7 @@ import gymnasium as gym
 import numpy as np
 import torch
 from gymnasium.wrappers import record_episode_statistics
+from tqdm import tqdm
 from wingman import ReplayBuffer, Wingman
 from wingman.utils import cpuize, gpuize, shutdown_handler
 
@@ -14,7 +15,7 @@ from dogfighter.algorithms import CCGE
 from dogfighter.algorithms.ccge import CCGEParams
 from dogfighter.models.bases import BaseActor
 from dogfighter.models.mlp import MlpActor, MlpEnvParams, MlpQUEnsemble
-from dogfighter.models.mlp.mlp_bases import MlpModelParams
+from dogfighter.models.mlp.mlp_bases import MlpModelParams, MlpObservation
 
 
 def train(wm: Wingman) -> None:
@@ -43,10 +44,11 @@ def train(wm: Wingman) -> None:
             next_eval_step = (
                 int(memory.count / cfg.eval_steps_ratio) + 1
             ) * cfg.eval_steps_ratio
-            wm.log["eval_perf"] = evaluate(wm=wm, actor=alg.actor, env=env)
+            wm.log["eval_perf"] = evaluate(wm=wm, actor=alg.actor)
             wm.log["max_eval_perf"] = max(
                 [float(wm.log["max_eval_perf"]), float(wm.log["eval_perf"])]
             )
+            print(f"Eval @ {memory.count} transitions: {wm.log['eval_perf']}")
 
         """ENVIRONMENT ROLLOUT"""
         alg.eval()
@@ -65,9 +67,10 @@ def train(wm: Wingman) -> None:
                 else:
                     # get an action from the actor
                     # this is a tensor
-                    act, _ = alg.actor.sample(
-                        *alg.actor(gpuize(obs, wm.device).unsqueeze(0))
+                    policy_observation = MlpObservation(
+                        obs=gpuize(obs, wm.device).unsqueeze(0)
                     )
+                    act, _ = alg.actor.sample(*alg.actor(policy_observation))
 
                     # convert the action to cpu, and remove the batch dim
                     act = cpuize(act.squeeze(0))
@@ -78,7 +81,7 @@ def train(wm: Wingman) -> None:
 
                 # store stuff in mem
                 memory.push(
-                    [obs, next_obs, rew, term, trunc],
+                    [obs, next_obs, act, rew, term],
                     random_rollover=cfg.random_rollover,
                 )
 
@@ -87,6 +90,33 @@ def train(wm: Wingman) -> None:
 
             # for logging
             wm.log["episode_cumulative_reward"] = info["episode"]["r"][0]
+
+        """TRAINING RUN"""
+        print(f"Training epoch {wm.log['epoch']}")
+        dataloader = torch.utils.data.DataLoader(
+            memory, batch_size=cfg.batch_size, shuffle=True, drop_last=False
+        )
+
+        alg.train()
+        for repeat_num in range(int(cfg.replay_ratio)):
+            for batch_num, stuff in enumerate(tqdm(dataloader)):
+                # unpack batches
+                obs = MlpObservation(obs=gpuize(stuff[0], wm.device))
+                next_obs = MlpObservation(obs=gpuize(stuff[1], wm.device))
+                act = gpuize(stuff[2], wm.device)
+                rew = gpuize(stuff[3], wm.device)
+                term = gpuize(stuff[4], wm.device)
+
+                # take a gradient step
+                update_info = alg.update(
+                    obs=obs, act=act, next_obs=next_obs, term=term, rew=rew
+                )
+
+                """WANDB"""
+                wm.log["num_transitions"] = memory.count
+                wm.log["buffer_size"] = memory.__len__()
+
+                # TODO: weights saving
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
@@ -104,7 +134,8 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
         while not term and not trunc:
             # get an action from the actor
             # this is a tensor
-            act, _ = actor.sample(*actor(gpuize(obs, wm.device).unsqueeze(0)))
+            policy_observation = MlpObservation(obs=gpuize(obs, wm.device).unsqueeze(0))
+            act = actor.infer(*actor(policy_observation))
 
             # convert the action to cpu, and remove the batch dim
             act = cpuize(act.squeeze(0))
@@ -144,15 +175,28 @@ def setup_algorithm(wm: Wingman) -> CCGE:
     algorithm_params = CCGEParams()
 
     # define the algorithm
-    return CCGE(
-        actor_type=MlpActor,
-        critic_type=MlpQUEnsemble,
-        env_params=env_params,
-        model_params=model_params,
-        algorithm_params=algorithm_params,
-        device=torch.device(wm.device),
-        jit=not wm.cfg.debug,
-    )
+
+    # whether to jit
+    if wm.cfg.debug:
+        return CCGE(
+            actor_type=MlpActor,
+            critic_type=MlpQUEnsemble,
+            env_params=env_params,
+            model_params=model_params,
+            algorithm_params=algorithm_params,
+            device=torch.device(wm.device),
+        )
+    else:
+        return torch.jit.script(
+            CCGE(
+                actor_type=MlpActor,
+                critic_type=MlpQUEnsemble,
+                env_params=env_params,
+                model_params=model_params,
+                algorithm_params=algorithm_params,
+                device=torch.device(wm.device),
+            )
+        )
 
 
 if __name__ == "__main__":

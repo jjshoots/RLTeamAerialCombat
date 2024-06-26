@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import torch
 from pydantic import Field, StrictFloat, StrictInt
 
@@ -25,6 +27,7 @@ class MlpLearningParams(AlgorithmParams):
     critic_update_ratio: StrictInt = Field(1)
 
 
-class MlpObservation(torch.Tensor, Observation):
+@dataclass
+class MlpObservation(Observation):
     # shape is [B, obs_size]
     obs: torch.Tensor

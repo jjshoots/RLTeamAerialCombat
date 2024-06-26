@@ -669,6 +669,23 @@ opt-einsum = ["opt-einsum (>=3.3)"]
 optree = ["optree (>=0.9.1)"]
 
 [[package]]
+name = "tqdm"
+version = "4.66.4"
+description = "Fast, Extensible Progress Meter"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["pytest (>=6)", "pytest-cov", "pytest-timeout", "pytest-xdist"]
+notebook = ["ipywidgets (>=6)"]
+slack = ["slack-sdk"]
+telegram = ["requests"]
+
+[[package]]
 name = "triton"
 version = "2.3.1"
 description = "A language and compiler for custom Deep Learning operations"
@@ -742,7 +759,7 @@ workspaces = ["wandb-workspaces"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "f4719262b783eb651c8c30b0b175c2c3524d194402fcc78029d97379c0af4db0"
+content-hash = "55e132b7afc19947b842370dde8662a0b08ade22d5ae73b2d87735272feb2a03"
 
 [metadata.files]
 annotated-types = []
@@ -800,6 +817,7 @@ sympy = []
 tbb = []
 tomli = []
 torch = []
+tqdm = []
 triton = []
 typing-extensions = []
 urllib3 = []

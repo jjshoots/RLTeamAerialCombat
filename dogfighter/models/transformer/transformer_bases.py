@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import torch
 from pydantic import Field, StrictFloat, StrictInt
 
@@ -30,6 +32,7 @@ class TransformerLearningParams(AlgorithmParams):
     critic_update_ratio: StrictInt = Field(1)
 
 
+@dataclass
 class TransformerObservation(Observation):
     # other agent observations
     # shape is [B, num_other_agents, obs_size]

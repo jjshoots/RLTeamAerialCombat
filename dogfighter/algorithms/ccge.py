@@ -5,7 +5,7 @@ from typing import Any
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from pydantic import Field, StrictFloat, StrictInt
+from pydantic import Field, StrictBool, StrictFloat, StrictInt
 
 from dogfighter.models.bases import (Action, AlgorithmParams, BaseActor,
                                      BaseQUEnsemble, EnvParams, ModelParams,
@@ -17,9 +17,10 @@ class CCGEParams(AlgorithmParams):
 
     learning_rate: StrictFloat = Field(default=0.003)
     alpha_learning_rate: StrictFloat = Field(default=0.01)
+    entropy_tuning: StrictBool = Field(default=True)
     target_entropy: None | StrictFloat = Field(default=None)
+    learn_uncertainty: StrictBool = Field(default=False)
     discount_factor: StrictFloat = Field(default=0.99)
-    update_ratio: StrictInt = Field(default=1)
     actor_update_ratio: StrictInt = Field(default=1)
     critic_update_ratio: StrictInt = Field(default=1)
 
@@ -35,7 +36,6 @@ class CCGE(nn.Module):
         model_params: ModelParams,
         algorithm_params: CCGEParams = CCGEParams(),
         device: torch.device = torch.device("cpu"),
-        jit: bool = True,
     ):
         """__init__.
 
@@ -45,11 +45,12 @@ class CCGE(nn.Module):
             env_params (EnvParams): env_params
             model_params (ModelParams): model_params
             algorithm_params (CCGEParams): algorithm_params
-            jit (bool): jit
         """
         super().__init__()
         self._gamma = algorithm_params.discount_factor
+        self._entropy_tuning = algorithm_params.entropy_tuning
         self._target_entropy = algorithm_params.target_entropy
+        self._learn_uncertainty = algorithm_params.learn_uncertainty
         self._actor_update_ratio = algorithm_params.actor_update_ratio
         self._critic_update_ratio = algorithm_params.critic_update_ratio
 
@@ -88,18 +89,12 @@ class CCGE(nn.Module):
         self._actor_optim = optim.AdamW(
             self._actor.parameters(), lr=algorithm_params.learning_rate, amsgrad=True
         )
-        self._alpha_optim = optim.AdamW(
+        self._critic_optim = optim.AdamW(
             self._critic.parameters(), lr=algorithm_params.learning_rate, amsgrad=True
         )
-        self._critic_optim = optim.AdamW(
+        self._alpha_optim = optim.AdamW(
             [self._log_alpha], lr=algorithm_params.alpha_learning_rate, amsgrad=True
         )
-
-        # jit all the forward calls
-        if jit:
-            self._actor = torch.jit.script(self._actor)
-            self._critic = torch.jit.script(self._critic)
-            self._critic_target = torch.jit.script(self._critic_target)
 
     @property
     def actor(self) -> BaseActor:
@@ -187,14 +182,17 @@ class CCGE(nn.Module):
         )
         q_loss = (current_q - target_q) ** 2
 
-        # compute the target u and loss
-        # target_u is [B, 1]
-        # u_loss is [B, num_ensemble]
-        target_u = (
-            q_loss.mean(dim=-1, keepdim=True).detach()
-            + (self._gamma * next_u * term) ** 2
-        ).sqrt()
-        u_loss = (current_u - target_u) ** 2
+        if self._learn_uncertainty:
+            # compute the target u and loss
+            # target_u is [B, 1]
+            # u_loss is [B, num_ensemble]
+            target_u = (
+                q_loss.mean(dim=-1, keepdim=True).detach()
+                + (self._gamma * next_u * term) ** 2
+            ).sqrt()
+            u_loss = (current_u - target_u) ** 2
+        else:
+            u_loss = torch.tensor([0.0], device=q_loss.device)
 
         # sum the losses
         critic_loss = q_loss.mean() + u_loss.mean()
@@ -202,9 +200,10 @@ class CCGE(nn.Module):
         # some logging parameters
         log = dict()
         log["target_q"] = target_q.mean().detach()
-        log["target_u"] = target_u.mean().detach()
         log["q_loss"] = q_loss.mean().detach()
-        log["u_loss"] = u_loss.mean().detach()
+        if self._learn_uncertainty:
+            log["target_u"] = target_u.mean().detach()
+            log["u_loss"] = u_loss.mean().detach()
         log["critic_loss"] = critic_loss.mean().detach()
 
         return critic_loss, log
@@ -268,7 +267,7 @@ class CCGE(nn.Module):
         Returns:
             tuple[torch.Tensor, dict[str, Any]]:
         """
-        if not self.entropy_tuning:
+        if not self._entropy_tuning:
             return torch.zeros(1), {}
 
         # log_probs is shape [B, 1]

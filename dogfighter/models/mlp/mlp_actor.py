@@ -52,7 +52,7 @@ class MlpActor(BaseActor[MlpObservation]):
             torch.Tensor:
         """
         # output here is shape [B, act_size * 2]
-        output = self.head(obs)
+        output = self.head(obs.obs)
 
         # split the actions into mean and variance
         # shape is [B, act_size, 2]

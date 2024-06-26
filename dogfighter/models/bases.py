@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 import torch
@@ -20,6 +21,7 @@ class AlgorithmParams(BaseModel):
     pass
 
 
+@dataclass
 class Observation:
     pass
 

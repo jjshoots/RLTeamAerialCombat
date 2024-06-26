@@ -1,15 +1,15 @@
 # env params
-env_name: "MountainCarContinuous-v0"
+env_name: "Pendulum-v1"
 
 # learning params
 buffer_size: 300000
-batch_size: 1024
+batch_size: 128
 total_steps: 1000000
-replay_ratio: 1
+replay_ratio: 5
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.99
-learning_rate: 0.0004
+learning_rate: 0.001
 exploration_steps: 0
 random_rollover: true
 
@@ -20,11 +20,11 @@ confidence_lambda: 0.1
 
 # Model params
 qu_num_ensemble: 2
-embed_dim: 64
+embed_dim: 128
 
 # eval settings
 eval_num_episodes: 20
-eval_steps_ratio: 10000
+eval_steps_ratio: 2000
 
 # wingman required params
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
