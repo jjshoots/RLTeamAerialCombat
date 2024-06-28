@@ -37,7 +37,7 @@ model_id: null
 ckpt_number: 0
 log_status: false
 
-increment: true
+increment: false
 logging_interval: 10
 max_skips: 5
 greater_than: 0.0
