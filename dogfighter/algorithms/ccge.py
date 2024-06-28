@@ -36,6 +36,7 @@ class CCGE(nn.Module):
         model_params: ModelParams,
         algorithm_params: CCGEParams = CCGEParams(),
         device: torch.device = torch.device("cpu"),
+        jit: bool = True,
     ):
         """__init__.
 
@@ -45,6 +46,8 @@ class CCGE(nn.Module):
             env_params (EnvParams): env_params
             model_params (ModelParams): model_params
             algorithm_params (CCGEParams): algorithm_params
+            device (torch.device): device
+            jit (bool): jit
         """
         super().__init__()
         self._gamma = algorithm_params.discount_factor
@@ -95,6 +98,11 @@ class CCGE(nn.Module):
         self._alpha_optim = optim.AdamW(
             [self._log_alpha], lr=algorithm_params.alpha_learning_rate, amsgrad=True
         )
+
+        if jit:
+            self._actor.compile()
+            self._critic.compile()
+            self._critic_target.compile()
 
     @property
     def actor(self) -> BaseActor:

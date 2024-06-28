@@ -1,11 +1,13 @@
 # env params
+num_envs: 4
 env_name: "Pendulum-v1"
 
 # learning params
+vec_env_steps_per_epoch: 2000
+model_updates_per_epoch: 1000
 buffer_size: 300000
 batch_size: 128
 total_steps: 1000000
-replay_ratio: 5
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.99

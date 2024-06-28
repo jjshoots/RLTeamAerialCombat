@@ -6,6 +6,7 @@ from signal import SIGINT, signal
 import gymnasium as gym
 import numpy as np
 import torch
+from gymnasium.vector import AsyncVectorEnv
 from gymnasium.wrappers import record_episode_statistics
 from tqdm import tqdm
 from wingman import ReplayBuffer, Wingman
@@ -23,7 +24,7 @@ def train(wm: Wingman) -> None:
     cfg = wm.cfg
 
     # setup environment and algorithm
-    env = setup_environment(wm)
+    vec_env = setup_vector_environment(wm)
     alg = setup_algorithm(wm)
 
     # setup replay buffer
@@ -54,74 +55,87 @@ def train(wm: Wingman) -> None:
         alg.eval()
         alg.zero_grad()
 
+        all_cumulative_rewards = []
         with torch.no_grad():
-            term, trunc = False, False
-            obs, info = env.reset()
+            obs, info = vec_env.reset()
 
             # step for one episode
-            while not term and not trunc:
+            for i in range(cfg.vec_env_steps_per_epoch):
                 # compute an action depending on whether we're exploring or not
                 if memory.count < cfg.exploration_steps:
                     # sample an action from the env
-                    act = env.action_space.sample()
+                    act = vec_env.action_space.sample()
                 else:
                     # get an action from the actor
                     # this is a tensor
-                    policy_observation = MlpObservation(
-                        obs=gpuize(obs, wm.device).unsqueeze(0)
-                    )
+                    policy_observation = MlpObservation(obs=gpuize(obs, wm.device))
                     act, _ = alg.actor.sample(*alg.actor(policy_observation))
 
-                    # convert the action to cpu, and remove the batch dim
-                    act = cpuize(act.squeeze(0))
+                    # convert the action to cpu
+                    act = cpuize(act)
 
                 # step the transition
-                next_obs, rew, term, trunc, info = env.step(act)
-                rew = float(rew)
+                next_obs, rew, term, trunc, info = vec_env.step(act)
 
                 # store stuff in mem
                 memory.push(
                     [obs, next_obs, act, rew, term],
+                    bulk=True,
                     random_rollover=cfg.random_rollover,
                 )
 
                 # new observation is the next observation
                 obs = next_obs
 
+                # accumulate cumulative rewards
+                if ("episode" in info) and ("r" in info["episode"]):
+                    all_cumulative_rewards.extend([r for r in info["episode"]["r"]])
+
             # for logging
-            wm.log["episode_cumulative_reward"] = info["episode"]["r"][0]
+            if len(all_cumulative_rewards) > 0:
+                wm.log["episode_cumulative_reward"] = np.mean(all_cumulative_rewards)
 
         """TRAINING RUN"""
-        print(f"Training epoch {wm.log['epoch']}")
-        dataloader = torch.utils.data.DataLoader(
-            memory, batch_size=cfg.batch_size, shuffle=True, drop_last=False
+        print(
+            f"Training epoch {wm.log['epoch']}, Replay Buffer Capacity {memory.count} / {memory.mem_size}"
         )
-
+        dataloader = iter(torch.utils.data.DataLoader([]))
         alg.train()
-        for repeat_num in range(int(cfg.replay_ratio)):
-            for batch_num, stuff in enumerate(tqdm(dataloader)):
-                # unpack batches
-                obs = MlpObservation(obs=gpuize(stuff[0], wm.device))
-                next_obs = MlpObservation(obs=gpuize(stuff[1], wm.device))
-                act = gpuize(stuff[2], wm.device)
-                rew = gpuize(stuff[3], wm.device)
-                term = gpuize(stuff[4], wm.device)
-
-                # take a gradient step
-                update_info = alg.update(
-                    obs=obs, act=act, next_obs=next_obs, term=term, rew=rew
+        for update_step in tqdm(range(cfg.model_updates_per_epoch)):
+            # get stuff out of the dataloader
+            try:
+                stuff = next(dataloader)
+            except StopIteration:
+                dataloader = iter(
+                    torch.utils.data.DataLoader(
+                        memory, batch_size=cfg.batch_size, shuffle=True, drop_last=False
+                    )
                 )
+                stuff = next(dataloader)
 
-                """WANDB"""
-                wm.log["num_transitions"] = memory.count
-                wm.log["buffer_size"] = memory.__len__()
+            # unpack batches
+            obs = MlpObservation(obs=gpuize(stuff[0], wm.device))
+            next_obs = MlpObservation(obs=gpuize(stuff[1], wm.device))
+            act = gpuize(stuff[2], wm.device)
+            rew = gpuize(stuff[3], wm.device)
+            term = gpuize(stuff[4], wm.device)
 
-                # TODO: weights saving
+            # take a gradient step
+            update_info = alg.update(
+                obs=obs, act=act, next_obs=next_obs, term=term, rew=rew
+            )
+            wm.log.update(update_info)
+
+        """WANDB"""
+        wm.log["num_transitions"] = memory.count
+        wm.log["buffer_size"] = memory.__len__()
+
+        # TODO: weights saving
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
     # setup the environment and actor
-    env = setup_environment(wm)
+    env = setup_single_environment(wm)
     actor = actor or setup_algorithm(wm).actor
 
     # start the evaluation loops
@@ -151,8 +165,15 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
     return float(np.mean(cumulative_rewards))
 
 
-def setup_environment(wm: Wingman) -> gym.Env:
+def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
+    return AsyncVectorEnv(
+        [lambda i=i: setup_single_environment(wm) for i in range(wm.cfg.num_envs)]
+    )
+
+
+def setup_single_environment(wm: Wingman) -> gym.Env:
     env = gym.make(wm.cfg.env_name)
+
     wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
     wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
 
@@ -177,26 +198,15 @@ def setup_algorithm(wm: Wingman) -> CCGE:
     # define the algorithm
 
     # whether to jit
-    if wm.cfg.debug:
-        return CCGE(
-            actor_type=MlpActor,
-            critic_type=MlpQUEnsemble,
-            env_params=env_params,
-            model_params=model_params,
-            algorithm_params=algorithm_params,
-            device=torch.device(wm.device),
-        )
-    else:
-        return torch.jit.script(
-            CCGE(
-                actor_type=MlpActor,
-                critic_type=MlpQUEnsemble,
-                env_params=env_params,
-                model_params=model_params,
-                algorithm_params=algorithm_params,
-                device=torch.device(wm.device),
-            )
-        )
+    return CCGE(
+        actor_type=MlpActor,
+        critic_type=MlpQUEnsemble,
+        env_params=env_params,
+        model_params=model_params,
+        algorithm_params=algorithm_params,
+        device=torch.device(wm.device),
+        jit=not wm.cfg.debug,
+    )
 
 
 if __name__ == "__main__":
