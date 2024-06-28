@@ -46,5 +46,5 @@ wandb: false
 wandb_name: ''
 wandb_notes: ''
 wandb_id: ''
-wandb_entity: 'wingman'
-wandb_project: 'my_new_project'
+wandb_entity: 'jjshoots'
+wandb_project: 'dogfighter'
