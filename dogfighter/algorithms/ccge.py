@@ -151,9 +151,9 @@ class CCGE(nn.Module):
         Args:
             obs (Observation): obs
             act (Action): act
-            rew (torch.Tensor): rew
+            rew (torch.Tensor): reward of shape [B, 1]
             next_obs (Observation): next_obs
-            term (torch.Tensor): term
+            term (torch.Tensor): term of shape [B, 1]
 
         Returns:
             tuple[torch.Tensor, dict[str, Any]]:

@@ -30,7 +30,7 @@ def train(wm: Wingman) -> None:
     alg = setup_algorithm(wm)
 
     # setup replay buffer
-    memory = ReplayBuffer(cfg.buffer_size)
+    memory = ReplayBuffer(cfg.buffer_size, mode="torch", device=wm.device)
 
     # logging metrics
     wm.log["epoch"] = 0
@@ -79,7 +79,13 @@ def train(wm: Wingman) -> None:
 
                 # store stuff in mem
                 memory.push(
-                    [obs, next_obs, act, rew, term],
+                    [
+                        obs,
+                        next_obs,
+                        act,
+                        np.expand_dims(rew, axis=-1),
+                        np.expand_dims(term, axis=-1),
+                    ],
                     bulk=True,
                     random_rollover=cfg.random_rollover,
                 )
@@ -91,26 +97,18 @@ def train(wm: Wingman) -> None:
         print(
             f"Training epoch {wm.log['epoch']}, Replay Buffer Capacity {memory.count} / {memory.mem_size}"
         )
-        dataloader = iter(torch.utils.data.DataLoader([]))
         alg.train()
-        for update_step in tqdm(range(cfg.model_updates_per_epoch)):
-            # get stuff out of the dataloader
-            try:
-                stuff = next(dataloader)
-            except StopIteration:
-                dataloader = iter(
-                    torch.utils.data.DataLoader(
-                        memory, batch_size=cfg.batch_size, shuffle=True, drop_last=False
-                    )
-                )
-                stuff = next(dataloader)
-
+        for stuff in tqdm(
+            memory.iter_sample(
+                batch_size=cfg.batch_size, num_iter=cfg.model_updates_per_epoch
+            )
+        ):
             # unpack batches
-            obs = MlpObservation(obs=gpuize(stuff[0], wm.device))
-            next_obs = MlpObservation(obs=gpuize(stuff[1], wm.device))
-            act = gpuize(stuff[2], wm.device)
-            rew = gpuize(stuff[3], wm.device)
-            term = gpuize(stuff[4], wm.device)
+            obs = MlpObservation(obs=stuff[0])
+            next_obs = MlpObservation(obs=stuff[1])
+            act = stuff[2]
+            rew = stuff[3]
+            term = stuff[4]
 
             # take a gradient step
             update_info = alg.update(
