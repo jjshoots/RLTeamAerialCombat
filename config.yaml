@@ -1,12 +1,12 @@
 # env params
 num_envs: 4
-env_name: "PyFlyt/QuadX-Hover-v2"
+env_name: "PyFlyt/QuadX-Waypoints-v2"
 
 # learning params
 vec_env_steps_per_epoch: 2000
 model_updates_per_epoch: 1000
 buffer_size: 300000
-batch_size: 128
+batch_size: 512
 total_steps: 1000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
@@ -22,7 +22,7 @@ confidence_lambda: 0.1
 
 # Model params
 qu_num_ensemble: 2
-embed_dim: 128
+embed_dim: 256
 
 # eval settings
 eval_num_episodes: 20

@@ -1,4 +1,5 @@
 # ignore weights
+wandb/
 weights/
 
 # Byte-compiled / optimized / DLL files

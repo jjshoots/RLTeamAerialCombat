@@ -9,6 +9,7 @@ import torch
 from gymnasium.vector import AsyncVectorEnv
 from gymnasium.wrappers import record_episode_statistics
 from PyFlyt import gym_envs  # noqa
+from PyFlyt.gym_envs import FlattenWaypointEnv # noqa
 from tqdm import tqdm
 from wingman import ReplayBuffer, Wingman
 from wingman.utils import cpuize, gpuize, shutdown_handler
@@ -178,14 +179,18 @@ def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
 
 
 def setup_single_environment(wm: Wingman) -> gym.Env:
-    env = gym.make(wm.cfg.env_name)
+    # define one env
+    env = FlattenWaypointEnv(
+        gym.make(wm.cfg.env_name),
+        context_length=2,
+    )
+
+    # recording wrapper
+    env = record_episode_statistics.RecordEpisodeStatistics(env)
 
     # record observation space shape
     wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
     wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
-
-    # wrap some wrappers
-    env = record_episode_statistics.RecordEpisodeStatistics(env)
 
     return env
 
