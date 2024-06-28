@@ -44,17 +44,6 @@ def train(wm: Wingman) -> None:
         print(f"New epoch @ {memory.count} / {cfg.total_steps} total transitions.")
         wm.log["epoch"] += 1
 
-        """EVALUATE POLICY"""
-        if memory.count >= next_eval_step:
-            next_eval_step = (
-                int(memory.count / cfg.eval_steps_ratio) + 1
-            ) * cfg.eval_steps_ratio
-            wm.log["eval_perf"] = evaluate(wm=wm, actor=alg.actor)
-            wm.log["max_eval_perf"] = max(
-                [float(wm.log["max_eval_perf"]), float(wm.log["eval_perf"])]
-            )
-            print(f"Eval score: {wm.log['eval_perf']}")
-
         """ENVIRONMENT ROLLOUT"""
         alg.eval()
         alg.zero_grad()
@@ -62,7 +51,7 @@ def train(wm: Wingman) -> None:
             obs, info = vec_env.reset()
 
             # step for one episode
-            print("Collecting more transitions...")
+            print("Collecting transitions...")
             for i in range(cfg.vec_env_steps_per_epoch):
                 # compute an action depending on whether we're exploring or not
                 if memory.count < cfg.exploration_steps:
@@ -120,6 +109,17 @@ def train(wm: Wingman) -> None:
                 obs=obs, act=act, next_obs=next_obs, term=term, rew=rew
             )
             wm.log.update(update_info)
+
+        """EVALUATE POLICY"""
+        if memory.count >= next_eval_step:
+            next_eval_step = (
+                int(memory.count / cfg.eval_steps_ratio) + 1
+            ) * cfg.eval_steps_ratio
+            wm.log["eval_perf"] = evaluate(wm=wm, actor=alg.actor)
+            wm.log["max_eval_perf"] = max(
+                [float(wm.log["max_eval_perf"]), float(wm.log["eval_perf"])]
+            )
+            print(f"Eval score: {wm.log['eval_perf']}")
 
         """WANDB"""
         wm.log["num_transitions"] = memory.count
