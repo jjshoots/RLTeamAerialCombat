@@ -221,6 +221,8 @@ def setup_algorithm(wm: Wingman) -> CCGE:
             torch.load(model_file, map_location=torch.device(wm.cfg.device))
         )
 
+    return alg
+
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
