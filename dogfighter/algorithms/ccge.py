@@ -36,7 +36,6 @@ class CCGE(nn.Module):
         model_params: ModelParams,
         algorithm_params: CCGEParams = CCGEParams(),
         device: torch.device = torch.device("cpu"),
-        jit: bool = True,
     ):
         """__init__.
 
@@ -47,7 +46,6 @@ class CCGE(nn.Module):
             model_params (ModelParams): model_params
             algorithm_params (CCGEParams): algorithm_params
             device (torch.device): device
-            jit (bool): jit
         """
         super().__init__()
         self._gamma = algorithm_params.discount_factor
@@ -99,11 +97,6 @@ class CCGE(nn.Module):
             [self._log_alpha], lr=algorithm_params.alpha_learning_rate, amsgrad=True
         )
 
-        if jit:
-            self._actor.compile()
-            self._critic.compile()
-            self._critic_target.compile()
-
     @property
     def actor(self) -> BaseActor:
         """actor.
@@ -125,6 +118,79 @@ class CCGE(nn.Module):
             BaseQUEnsemble:
         """
         return self._critic
+
+    def forward(
+        self,
+        obs: Observation,
+        act: Action,
+        next_obs: Observation,
+        term: torch.Tensor,
+        rew: torch.Tensor,
+    ) -> dict[str, Any]:
+        return self.update(
+            obs=obs,
+            act=act,
+            next_obs=next_obs,
+            term=term,
+            rew=rew,
+        )
+
+    def update(
+        self,
+        obs: Observation,
+        act: Action,
+        next_obs: Observation,
+        term: torch.Tensor,
+        rew: torch.Tensor,
+    ) -> dict[str, Any]:
+        """update.
+
+        Args:
+            obs (Observation): obs
+            act (Action): act
+            next_obs (Observation): next_obs
+            term (torch.Tensor): term
+            rew (torch.Tensor): rew
+
+        Returns:
+            dict[str, Any]:
+        """
+        if not self.training:
+            raise AssertionError("Model should be in training mode.")
+
+        all_logs = dict()
+
+        # update critic
+        for _ in range(self._critic_update_ratio):
+            self._critic_optim.zero_grad()
+            loss, log = self._calc_critic_loss(
+                obs=obs,
+                act=act,
+                rew=rew,
+                next_obs=next_obs,
+                term=term,
+            )
+            loss.backward()
+            self._critic_optim.step()
+            self._update_q_target()
+            all_logs = {**all_logs, **log}
+
+        # update actor
+        for _ in range(self._actor_update_ratio):
+            self._actor_optim.zero_grad()
+            loss, log = self._calc_actor_loss(obs=obs, term=term)
+            loss.backward()
+            self._actor_optim.step()
+            all_logs = {**all_logs, **log}
+
+            # also update alpha for entropy
+            self._alpha_optim.zero_grad()
+            loss, log = self._calc_alpha_loss(obs=obs)
+            loss.backward()
+            self._alpha_optim.step()
+            all_logs = {**all_logs, **log}
+
+        return all_logs
 
     def _update_q_target(self, tau=0.02):
         """update_q_target.
@@ -293,63 +359,6 @@ class CCGE(nn.Module):
         log["entropy_loss"] = entropy_loss.mean().detach()
 
         return entropy_loss, log
-
-    def update(
-        self,
-        obs: Observation,
-        act: Action,
-        next_obs: Observation,
-        term: torch.Tensor,
-        rew: torch.Tensor,
-    ) -> dict[str, Any]:
-        """update.
-
-        Args:
-            obs (Observation): obs
-            act (Action): act
-            next_obs (Observation): next_obs
-            term (torch.Tensor): term
-            rew (torch.Tensor): rew
-
-        Returns:
-            dict[str, Any]:
-        """
-        if not self.training:
-            raise AssertionError("Model should be in training mode.")
-
-        all_logs = dict()
-
-        # update critic
-        for _ in range(self._critic_update_ratio):
-            self._critic_optim.zero_grad()
-            loss, log = self._calc_critic_loss(
-                obs=obs,
-                act=act,
-                rew=rew,
-                next_obs=next_obs,
-                term=term,
-            )
-            loss.backward()
-            self._critic_optim.step()
-            self._update_q_target()
-            all_logs = {**all_logs, **log}
-
-        # update actor
-        for _ in range(self._actor_update_ratio):
-            self._actor_optim.zero_grad()
-            loss, log = self._calc_actor_loss(obs=obs, term=term)
-            loss.backward()
-            self._actor_optim.step()
-            all_logs = {**all_logs, **log}
-
-            # also update alpha for entropy
-            self._alpha_optim.zero_grad()
-            loss, log = self._calc_alpha_loss(obs=obs)
-            loss.backward()
-            self._alpha_optim.step()
-            all_logs = {**all_logs, **log}
-
-        return all_logs
 
     def pick_best_action(
         self,

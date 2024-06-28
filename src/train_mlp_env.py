@@ -40,6 +40,8 @@ def train(wm: Wingman) -> None:
 
     """START TRAINING"""
     while memory.count <= cfg.total_steps:
+        print("\n\n")
+        print(f"New epoch @ {memory.count} / {cfg.total_steps} total transitions.")
         wm.log["epoch"] += 1
 
         """EVALUATE POLICY"""
@@ -51,7 +53,7 @@ def train(wm: Wingman) -> None:
             wm.log["max_eval_perf"] = max(
                 [float(wm.log["max_eval_perf"]), float(wm.log["eval_perf"])]
             )
-            print(f"Eval @ {memory.count} transitions: {wm.log['eval_perf']}")
+            print(f"Eval score: {wm.log['eval_perf']}")
 
         """ENVIRONMENT ROLLOUT"""
         alg.eval()
@@ -60,6 +62,7 @@ def train(wm: Wingman) -> None:
             obs, info = vec_env.reset()
 
             # step for one episode
+            print("Collecting more transitions...")
             for i in range(cfg.vec_env_steps_per_epoch):
                 # compute an action depending on whether we're exploring or not
                 if memory.count < cfg.exploration_steps:
@@ -100,18 +103,20 @@ def train(wm: Wingman) -> None:
         alg.train()
         for stuff in tqdm(
             memory.iter_sample(
-                batch_size=cfg.batch_size, num_iter=cfg.model_updates_per_epoch
-            )
+                batch_size=cfg.batch_size,
+                num_iter=cfg.model_updates_per_epoch,
+            ),
+            total=cfg.model_updates_per_epoch,
         ):
             # unpack batches
-            obs = MlpObservation(obs=stuff[0])
-            next_obs = MlpObservation(obs=stuff[1])
-            act = stuff[2]
-            rew = stuff[3]
-            term = stuff[4]
+            obs = MlpObservation(obs=gpuize(stuff[0], wm.device))
+            next_obs = MlpObservation(obs=gpuize(stuff[1], wm.device))
+            act = gpuize(stuff[2], wm.device)
+            rew = gpuize(stuff[3], wm.device)
+            term = gpuize(stuff[4], wm.device)
 
             # take a gradient step
-            update_info = alg.update(
+            update_info = alg.forward(
                 obs=obs, act=act, next_obs=next_obs, term=term, rew=rew
             )
             wm.log.update(update_info)
@@ -199,7 +204,7 @@ def setup_algorithm(wm: Wingman) -> CCGE:
     )
     algorithm_params = CCGEParams()
 
-    # define the algorithm
+    # define the algorithm, conditionally jit
     alg = CCGE(
         actor_type=MlpActor,
         critic_type=MlpQUEnsemble,
@@ -207,8 +212,9 @@ def setup_algorithm(wm: Wingman) -> CCGE:
         model_params=model_params,
         algorithm_params=algorithm_params,
         device=torch.device(wm.device),
-        jit=not wm.cfg.debug,
     )
+    if not wm.cfg.debug:
+        torch.compile(alg)
 
     # get latest weight files
     has_weights, model_file, _ = wm.get_weight_files()
