@@ -9,7 +9,7 @@ import torch
 from gymnasium.vector import AsyncVectorEnv
 from gymnasium.wrappers import record_episode_statistics
 from PyFlyt import gym_envs  # noqa
-from PyFlyt.gym_envs import FlattenWaypointEnv # noqa
+from PyFlyt.gym_envs import FlattenWaypointEnv  # noqa
 from tqdm import tqdm
 from wingman import ReplayBuffer, Wingman
 from wingman.utils import cpuize, gpuize, shutdown_handler
@@ -56,8 +56,6 @@ def train(wm: Wingman) -> None:
         """ENVIRONMENT ROLLOUT"""
         alg.eval()
         alg.zero_grad()
-
-        all_cumulative_rewards = []
         with torch.no_grad():
             obs, info = vec_env.reset()
 
@@ -88,14 +86,6 @@ def train(wm: Wingman) -> None:
 
                 # new observation is the next observation
                 obs = next_obs
-
-                # accumulate cumulative rewards
-                if ("episode" in info) and ("r" in info["episode"]):
-                    all_cumulative_rewards.extend([r for r in info["episode"]["r"]])
-
-            # for logging
-            if len(all_cumulative_rewards) > 0:
-                wm.log["total_return"] = np.mean(all_cumulative_rewards)
 
         """TRAINING RUN"""
         print(
@@ -134,7 +124,7 @@ def train(wm: Wingman) -> None:
 
         # save weights
         to_update, model_file, _ = wm.checkpoint(
-            loss=-float(wm.log["total_return"]), step=wm.log["num_transitions"]
+            loss=-float(wm.log["eval_perf"]), step=wm.log["num_transitions"]
         )
         if to_update:
             torch.save(alg.state_dict(), model_file)
@@ -174,11 +164,14 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
 
 def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
     return AsyncVectorEnv(
-        [lambda i=i: setup_single_environment(wm) for i in range(wm.cfg.num_envs)]
+        [
+            lambda i=i: setup_single_environment(wm, for_vector=True)
+            for i in range(wm.cfg.num_envs)
+        ]
     )
 
 
-def setup_single_environment(wm: Wingman) -> gym.Env:
+def setup_single_environment(wm: Wingman, for_vector: bool = False) -> gym.Env:
     # define one env
     env = FlattenWaypointEnv(
         gym.make(wm.cfg.env_name),
@@ -186,7 +179,8 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
     )
 
     # recording wrapper
-    env = record_episode_statistics.RecordEpisodeStatistics(env)
+    if not for_vector:
+        env = record_episode_statistics.RecordEpisodeStatistics(env)
 
     # record observation space shape
     wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
