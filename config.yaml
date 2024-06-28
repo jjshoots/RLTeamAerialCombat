@@ -1,6 +1,6 @@
 # env params
 num_envs: 4
-env_name: "Pendulum-v1"
+env_name: "PyFlyt/QuadX-Hover-v2"
 
 # learning params
 vec_env_steps_per_epoch: 2000

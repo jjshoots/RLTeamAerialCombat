@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 from signal import SIGINT, signal
 
+from PyFlyt import gym_envs  # ruff: noqa
 import gymnasium as gym
 import numpy as np
 import torch
