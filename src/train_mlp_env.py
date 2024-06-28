@@ -3,12 +3,12 @@ from __future__ import annotations
 import math
 from signal import SIGINT, signal
 
-from PyFlyt import gym_envs  # ruff: noqa
 import gymnasium as gym
 import numpy as np
 import torch
 from gymnasium.vector import AsyncVectorEnv
 from gymnasium.wrappers import record_episode_statistics
+from PyFlyt import gym_envs  # noqa
 from tqdm import tqdm
 from wingman import ReplayBuffer, Wingman
 from wingman.utils import cpuize, gpuize, shutdown_handler
@@ -94,7 +94,7 @@ def train(wm: Wingman) -> None:
 
             # for logging
             if len(all_cumulative_rewards) > 0:
-                wm.log["episode_cumulative_reward"] = np.mean(all_cumulative_rewards)
+                wm.log["total_return"] = np.mean(all_cumulative_rewards)
 
         """TRAINING RUN"""
         print(
@@ -131,7 +131,12 @@ def train(wm: Wingman) -> None:
         wm.log["num_transitions"] = memory.count
         wm.log["buffer_size"] = memory.__len__()
 
-        # TODO: weights saving
+        # save weights
+        to_update, model_file, _ = wm.checkpoint(
+            loss=-float(wm.log["total_return"]), step=wm.log["num_transitions"]
+        )
+        if to_update:
+            torch.save(alg.state_dict(), model_file)
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
@@ -175,6 +180,7 @@ def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
 def setup_single_environment(wm: Wingman) -> gym.Env:
     env = gym.make(wm.cfg.env_name)
 
+    # record observation space shape
     wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
     wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
 
@@ -197,9 +203,7 @@ def setup_algorithm(wm: Wingman) -> CCGE:
     algorithm_params = CCGEParams()
 
     # define the algorithm
-
-    # whether to jit
-    return CCGE(
+    alg = CCGE(
         actor_type=MlpActor,
         critic_type=MlpQUEnsemble,
         env_params=env_params,
@@ -208,6 +212,14 @@ def setup_algorithm(wm: Wingman) -> CCGE:
         device=torch.device(wm.device),
         jit=not wm.cfg.debug,
     )
+
+    # get latest weight files
+    has_weights, model_file, _ = wm.get_weight_files()
+    if has_weights:
+        # load the model
+        alg.load_state_dict(
+            torch.load(model_file, map_location=torch.device(wm.cfg.device))
+        )
 
 
 if __name__ == "__main__":
