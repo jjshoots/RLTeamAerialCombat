@@ -182,7 +182,7 @@ def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
 def setup_single_environment(wm: Wingman, for_vector: bool = False) -> gym.Env:
     # define one env
     env = FlattenWaypointEnv(
-        gym.make(wm.cfg.env_name),
+        gym.make(wm.cfg.env_name, render_mode="human" if wm.cfg.display else None),
         context_length=2,
     )
 
@@ -236,4 +236,9 @@ if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     wm = Wingman(config_yaml="./config.yaml")
 
-    train(wm)
+    if wm.cfg.train:
+        train(wm)
+    elif wm.cfg.eval:
+        evaluate(wm=wm, actor=None)
+    else:
+        print("So this is life now.")
