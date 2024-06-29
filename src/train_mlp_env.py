@@ -105,7 +105,7 @@ def train(wm: Wingman) -> None:
             term = gpuize(stuff[4], wm.device)
 
             # take a gradient step
-            update_info = alg.forward(
+            update_info = alg.update(
                 obs=obs, act=act, next_obs=next_obs, term=term, rew=rew
             )
             wm.log.update(update_info)
