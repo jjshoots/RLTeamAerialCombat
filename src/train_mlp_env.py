@@ -30,7 +30,12 @@ def train(wm: Wingman) -> None:
     alg = setup_algorithm(wm)
 
     # setup replay buffer
-    memory = ReplayBuffer(cfg.buffer_size, mode="torch", device=wm.device)
+    memory = ReplayBuffer(
+        mem_size=cfg.buffer_size,
+        mode="torch",
+        device=wm.device,
+        store_on_device=True,
+    )
 
     # logging metrics
     wm.log["epoch"] = 0
