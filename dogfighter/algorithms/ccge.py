@@ -19,7 +19,7 @@ class CCGEParams(AlgorithmParams):
     alpha_learning_rate: StrictFloat = Field(default=0.01)
     entropy_tuning: StrictBool = Field(default=True)
     target_entropy: None | StrictFloat = Field(default=None)
-    learn_uncertainty: StrictBool = Field(default=False)
+    learn_uncertainty: StrictBool = Field(default=True)
     discount_factor: StrictFloat = Field(default=0.99)
     actor_update_ratio: StrictInt = Field(default=1)
     critic_update_ratio: StrictInt = Field(default=1)
@@ -119,22 +119,6 @@ class CCGE(nn.Module):
         """
         return self._critic
 
-    def forward(
-        self,
-        obs: Observation,
-        act: Action,
-        next_obs: Observation,
-        term: torch.Tensor,
-        rew: torch.Tensor,
-    ) -> dict[str, Any]:
-        return self.update(
-            obs=obs,
-            act=act,
-            next_obs=next_obs,
-            term=term,
-            rew=rew,
-        )
-
     def update(
         self,
         obs: Observation,
@@ -144,6 +128,34 @@ class CCGE(nn.Module):
         rew: torch.Tensor,
     ) -> dict[str, Any]:
         """update.
+
+        Args:
+            obs (Observation): obs
+            act (Action): act
+            next_obs (Observation): next_obs
+            term (torch.Tensor): term
+            rew (torch.Tensor): rew
+
+        Returns:
+            dict[str, Any]:
+        """
+        return self(
+            obs=obs,
+            act=act,
+            next_obs=next_obs,
+            term=term,
+            rew=rew,
+        )
+
+    def forward(
+        self,
+        obs: Observation,
+        act: Action,
+        next_obs: Observation,
+        term: torch.Tensor,
+        rew: torch.Tensor,
+    ) -> dict[str, Any]:
+        """The update step disguised as a forward step.
 
         Args:
             obs (Observation): obs
