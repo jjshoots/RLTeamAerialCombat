@@ -224,7 +224,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jj-wingman"
-version = "0.11.0"
+version = "0.11.1"
 description = "Wingman library for AI projects."
 category = "main"
 optional = false
@@ -768,7 +768,7 @@ workspaces = ["wandb-workspaces"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "fd891201a82b2cda3f40cd0a307642e155b7c51ec38c3ddf06bd51a217320bdf"
+content-hash = "c7118b866248f0331e8da2f22f648fa70e2a9885dc47f69a085f3a98e491c1cd"
 
 [metadata.files]
 annotated-types = []
