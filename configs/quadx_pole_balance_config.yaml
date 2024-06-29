@@ -1,0 +1,53 @@
+# env params
+num_envs: 4
+env_name: "PyFlyt/QuadX-Pole-Balance-v2"
+
+# learning params
+vec_env_steps_per_epoch: 2000
+model_updates_per_epoch: 1000
+buffer_size: 2000000
+batch_size: 1024
+total_steps: 5000000
+critic_update_multiplier: 1
+actor_update_multiplier: 1
+discount_factor: 0.99
+learning_rate: 0.001
+exploration_steps: 0
+random_rollover: true
+
+# CCGE params
+pretrained_oracle: false
+update_oracle: true
+confidence_lambda: 0.1
+
+# Model params
+qu_num_ensemble: 2
+embed_dim: 256
+
+# eval settings
+eval_num_episodes: 20
+eval_steps_ratio: 2000
+
+# wingman required params
+# https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
+train: false
+eval: false
+display: false
+debug: false
+
+save_directory: 'weights'
+model_id: null
+ckpt_number: 0
+log_status: false
+
+increment: false
+logging_interval: 10
+max_skips: 5
+greater_than: 0.0
+
+wandb: false
+wandb_name: 'pole_waypoints'
+wandb_notes: ''
+wandb_id: ''
+wandb_entity: 'jjshoots'
+wandb_project: 'dogfighter'
