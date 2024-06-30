@@ -153,7 +153,6 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
 
         # step for one episode
         while not term and not trunc:
-            frames.append(env.render())
             # get an action from the actor
             # this is a tensor
             policy_observation = MlpObservation(obs=gpuize(obs, wm.device).unsqueeze(0))
@@ -167,6 +166,9 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
 
             # new observation is the next observation
             obs = next_obs
+
+            # for gif
+            # frames.append(env.render())
 
         cumulative_rewards.append(info["episode"]["r"][0])
 
@@ -245,7 +247,7 @@ def setup_algorithm(wm: Wingman) -> CCGE:
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
-    wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
+    wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
 
     if wm.cfg.train:
         train(wm)

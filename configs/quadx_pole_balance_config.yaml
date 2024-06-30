@@ -5,9 +5,9 @@ env_name: "PyFlyt/QuadX-Pole-Balance-v2"
 # learning params
 vec_env_steps_per_epoch: 2000
 model_updates_per_epoch: 1000
-buffer_size: 2000000
+buffer_size: 500000
 batch_size: 1024
-total_steps: 5000000
+total_steps: 2000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.99
