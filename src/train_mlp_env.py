@@ -143,6 +143,8 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
     env = setup_single_environment(wm)
     actor = actor or setup_algorithm(wm).actor
 
+    # frames = []
+
     # start the evaluation loops
     cumulative_rewards: list[float] = []
     for _ in range(wm.cfg.eval_num_episodes):
@@ -151,6 +153,7 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
 
         # step for one episode
         while not term and not trunc:
+            frames.append(env.render())
             # get an action from the actor
             # this is a tensor
             policy_observation = MlpObservation(obs=gpuize(obs, wm.device).unsqueeze(0))
@@ -166,6 +169,10 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
             obs = next_obs
 
         cumulative_rewards.append(info["episode"]["r"][0])
+
+        # import imageio.v3 as iio
+        # iio.imwrite('output.gif', frames, fps=30)
+        # exit()
 
     return float(np.mean(cumulative_rewards))
 
