@@ -9,6 +9,7 @@ import numpy as np
 import torch
 from gymnasium.vector import AsyncVectorEnv
 from gymnasium.wrappers import record_episode_statistics
+from gymnasium.wrappers import rescale_action
 from PyFlyt import gym_envs  # noqa
 from PyFlyt.gym_envs import FlattenWaypointEnv  # noqa
 from tqdm import tqdm
@@ -140,8 +141,8 @@ def train(wm: Wingman) -> None:
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
-    # import imageio.v3 as iio
-    # frames = []
+    import imageio.v3 as iio
+    frames = []
 
     # setup the environment and actor
     env = setup_single_environment(wm)
@@ -169,15 +170,16 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
             obs = next_obs
 
             # for gif
-            # frames.append(env.render())
+            frames.append(env.render())
 
-        # iio.imwrite(
-        #     Path(__file__).parent.parent
-        #     / Path("output_gifs/")
-        #     / Path(f"{wm.model_id}.gif"),
-        #     frames,
-        #     fps=30,
-        # )
+        iio.imwrite(
+            Path(__file__).parent.parent
+            / Path("output_gifs/")
+            / Path(f"{wm.model_id}.gif"),
+            frames,
+            fps=30,
+        )
+        exit()
 
         cumulative_rewards.append(info["episode"]["r"][0])
 
@@ -200,6 +202,7 @@ def setup_single_environment(wm: Wingman, for_vector: bool = False) -> gym.Env:
         render_mode="human" if wm.cfg.display else None,
         flight_mode=-1,
     )
+    env = rescale_action.RescaleAction(env, min_action=-1.0, max_action=1.0)
 
     # wrap in flatten if needed
     if "waypoint" in wm.cfg.env_name.lower():
