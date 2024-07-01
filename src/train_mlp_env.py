@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from signal import SIGINT, signal
 
 import gymnasium as gym
@@ -139,11 +140,15 @@ def train(wm: Wingman) -> None:
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
+    if wm.cfg.display:
+        import imageio.v3 as iio
+
     # setup the environment and actor
     env = setup_single_environment(wm)
     actor = actor or setup_algorithm(wm).actor
 
-    # frames = []
+    # holder for frames that we render
+    frames = []
 
     # start the evaluation loops
     cumulative_rewards: list[float] = []
@@ -168,13 +173,17 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
             obs = next_obs
 
             # for gif
-            # frames.append(env.render())
+            frames.append(env.render())
 
         cumulative_rewards.append(info["episode"]["r"][0])
 
-        # import imageio.v3 as iio
-        # iio.imwrite('output.gif', frames, fps=30)
-        # exit()
+        iio.imwrite(
+            Path(__file__).parent.parent
+            / Path("output_gifs/")
+            / Path(f"{wm.model_id}_gif.gif"),
+            frames,
+            fps=30,
+        )
 
     return float(np.mean(cumulative_rewards))
 
@@ -197,7 +206,7 @@ def setup_single_environment(wm: Wingman, for_vector: bool = False) -> gym.Env:
 
     # wrap in flatten if needed
     if "waypoint" in wm.cfg.env_name.lower():
-        env =FlattenWaypointEnv(env, context_length=1)
+        env = FlattenWaypointEnv(env, context_length=1)
 
     # recording wrapper
     if not for_vector:

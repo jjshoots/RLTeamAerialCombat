@@ -9,13 +9,7 @@ pids+=($!)
 sleep 10
 python3 src/train_mlp_env.py --train --wandb &
 pids+=($!)
-sleep 10
-python3 src/train_mlp_env.py --train --wandb &
-pids+=($!)
-sleep 10
-python3 src/train_mlp_env.py --train --wandb &
-pids+=($!)
-sleep 10
+sleep 20
 
 for pid in ${pids[*]}; do
     wait $pid
