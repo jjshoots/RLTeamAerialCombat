@@ -140,8 +140,8 @@ def train(wm: Wingman) -> None:
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
-    import imageio.v3 as iio
-    frames = []
+    # import imageio.v3 as iio
+    # frames = []
 
     # setup the environment and actor
     env = setup_single_environment(wm)
@@ -170,15 +170,15 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
             obs = next_obs
 
             # for gif
-            frames.append(env.render())
+            # frames.append(env.render())
 
-        iio.imwrite(
-            Path(__file__).parent.parent
-            / Path("output_gifs/")
-            / Path(f"{wm.model_id}.gif"),
-            frames,
-            fps=30,
-        )
+        # iio.imwrite(
+        #     Path(__file__).parent.parent
+        #     / Path("output_gifs/")
+        #     / Path(f"{wm.model_id}.gif"),
+        #     frames,
+        #     fps=30,
+        # )
 
         cumulative_rewards.append(info["episode"]["r"][0])
 
