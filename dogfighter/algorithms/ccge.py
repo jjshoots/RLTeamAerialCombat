@@ -76,7 +76,7 @@ class CCGE(nn.Module):
 
         # tune entropy using log alpha, starts with 0
         if self._target_entropy is None:
-            self._target_entropy = -2.0 / float(env_params.act_size)
+            self._target_entropy = -1.0 / float(env_params.act_size)
         else:
             if self._target_entropy > 0.0:
                 warnings.warn(
