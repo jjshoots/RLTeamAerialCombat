@@ -7,7 +7,6 @@ from pathlib import Path
 from signal import SIGINT, signal
 
 import gymnasium as gym
-import imageio.v3 as iio
 import numpy as np
 import torch
 from gymnasium.vector import AsyncVectorEnv
@@ -23,7 +22,6 @@ from dogfighter.algorithms.ccge import CCGEParams
 from dogfighter.models.bases import BaseActor
 from dogfighter.models.mlp import MlpActor, MlpEnvParams, MlpQUEnsemble
 from dogfighter.models.mlp.mlp_bases import MlpModelParams, MlpObservation
-from wandb import Video
 
 
 def train(wm: Wingman) -> None:
@@ -175,6 +173,7 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
 
 
 def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
+    import imageio.v3 as iio
     frames = []
 
     # setup the environment and actor
