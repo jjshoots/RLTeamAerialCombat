@@ -5,7 +5,7 @@ env_name: "PyFlyt/QuadX-Pole-Waypoints-v2"
 # learning params
 vec_env_steps_per_epoch: 2000
 model_updates_per_epoch: 1000
-buffer_size: 2000000
+buffer_size: 1000000
 batch_size: 1024
 total_steps: 5000000
 critic_update_multiplier: 1
