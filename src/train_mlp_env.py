@@ -140,15 +140,12 @@ def train(wm: Wingman) -> None:
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
-    if wm.cfg.display:
-        import imageio.v3 as iio
+    import imageio.v3 as iio
+    frames = []
 
     # setup the environment and actor
     env = setup_single_environment(wm)
     actor = actor or setup_algorithm(wm).actor
-
-    # holder for frames that we render
-    frames = []
 
     # start the evaluation loops
     cumulative_rewards: list[float] = []
@@ -175,15 +172,15 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
             # for gif
             frames.append(env.render())
 
-        cumulative_rewards.append(info["episode"]["r"][0])
-
         iio.imwrite(
             Path(__file__).parent.parent
             / Path("output_gifs/")
-            / Path(f"{wm.model_id}_gif.gif"),
+            / Path(f"{wm.model_id}.gif"),
             frames,
             fps=30,
         )
+
+        cumulative_rewards.append(info["episode"]["r"][0])
 
     return float(np.mean(cumulative_rewards))
 
@@ -202,6 +199,7 @@ def setup_single_environment(wm: Wingman, for_vector: bool = False) -> gym.Env:
     env = gym.make(
         wm.cfg.env_name,
         render_mode="human" if wm.cfg.display else None,
+        flight_mode=0
     )
 
     # wrap in flatten if needed
@@ -256,7 +254,7 @@ def setup_algorithm(wm: Wingman) -> CCGE:
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
-    wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
+    wm = Wingman(config_yaml="./configs/quadx_pole_balance.yaml")
 
     if wm.cfg.train:
         train(wm)
