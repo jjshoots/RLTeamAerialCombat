@@ -174,6 +174,7 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
 
 def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
     import imageio.v3 as iio
+
     frames = []
 
     # setup the environment and actor
@@ -227,7 +228,7 @@ def setup_single_environment(wm: Wingman, for_vector: bool = False) -> gym.Env:
     # define one env
     env = gym.make(
         wm.cfg.env_name,
-        render_mode="human" if wm.cfg.display else None,
+        render_mode="human" if wm.cfg.display or wm.cfg.render else None,
         flight_mode=-1,
     )
     env = rescale_action.RescaleAction(env, min_action=-1.0, max_action=1.0)
