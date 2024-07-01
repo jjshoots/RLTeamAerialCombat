@@ -46,7 +46,7 @@ max_skips: 5
 greater_than: 0.0
 
 wandb: false
-wandb_name: ''
+wandb_name: 'classic_waypoints'
 wandb_notes: ''
 wandb_id: ''
 wandb_entity: 'jjshoots'
