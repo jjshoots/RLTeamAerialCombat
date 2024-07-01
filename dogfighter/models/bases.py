@@ -6,11 +6,11 @@ import torch
 import torch.distributions as dist
 import torch.nn as nn
 import torch.nn.functional as func
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictInt
 
 
 class EnvParams(BaseModel):
-    pass
+    act_size: StrictInt
 
 
 class ModelParams(BaseModel):
