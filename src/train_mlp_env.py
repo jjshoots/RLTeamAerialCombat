@@ -198,7 +198,7 @@ def setup_single_environment(wm: Wingman, for_vector: bool = False) -> gym.Env:
     env = gym.make(
         wm.cfg.env_name,
         render_mode="human" if wm.cfg.display else None,
-        flight_mode=0
+        flight_mode=-1,
     )
 
     # wrap in flatten if needed
@@ -253,7 +253,7 @@ def setup_algorithm(wm: Wingman) -> CCGE:
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
-    wm = Wingman(config_yaml="./configs/quadx_pole_balance.yaml")
+    wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
 
     if wm.cfg.train:
         train(wm)
