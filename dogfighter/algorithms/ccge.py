@@ -278,6 +278,7 @@ class CCGE(nn.Module):
             ).sqrt()
             u_loss = (current_u - target_u) ** 2
         else:
+            target_u = torch.tensor([0.0], device=q_loss.device)
             u_loss = torch.tensor([0.0], device=q_loss.device)
 
         # sum the losses
@@ -287,9 +288,8 @@ class CCGE(nn.Module):
         log = dict()
         log["target_q"] = target_q.mean().detach()
         log["q_loss"] = q_loss.mean().detach()
-        if self._learn_uncertainty:
-            log["target_u"] = target_u.mean().detach()
-            log["u_loss"] = u_loss.mean().detach()
+        log["target_u"] = target_u.mean().detach()
+        log["u_loss"] = u_loss.mean().detach()
         log["critic_loss"] = critic_loss.mean().detach()
 
         return critic_loss, log
