@@ -33,6 +33,7 @@ eval_steps_ratio: 2000
 train: false
 eval: false
 display: false
+render: false
 debug: false
 
 save_directory: 'weights'
