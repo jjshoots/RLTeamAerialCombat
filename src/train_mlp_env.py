@@ -131,10 +131,6 @@ def train(wm: Wingman) -> None:
             )
             print(f"Eval score: {wm.log['eval_perf']}")
 
-        """GENERATE GIF IF NEEDED"""
-        if memory.count % 500_000 == 0:
-            wm.log["output_gif"] = Video(str(render_gif(wm, alg.actor)))
-
         """WANDB"""
         wm.log["num_transitions"] = memory.count
         wm.log["buffer_size"] = memory.__len__()
@@ -186,7 +182,7 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
     actor = actor or setup_algorithm(wm).actor
 
     term, trunc = False, False
-    env.reset()
+    obs, info = env.reset()
 
     # step for one episode
     while not term and not trunc:
@@ -216,7 +212,7 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
         fps=30,
     )
 
-    return gif_path
+    return gif_path.absolute()
 
 
 def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
@@ -295,5 +291,7 @@ if __name__ == "__main__":
         train(wm)
     elif wm.cfg.eval:
         evaluate(wm=wm, actor=None)
+    elif wm.cfg.render:
+        print(render_gif(wm=wm, actor=None))
     else:
         print("So this is life now.")
