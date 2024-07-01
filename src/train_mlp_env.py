@@ -156,7 +156,6 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
         # step for one episode
         while not term and not trunc:
             # get an action from the actor
-            # this is a tensor
             policy_observation = MlpObservation(obs=gpuize(obs, wm.device).unsqueeze(0))
             act = actor.infer(*actor(policy_observation))
 
