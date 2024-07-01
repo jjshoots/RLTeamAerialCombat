@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import math
+import random
+import string
 from pathlib import Path
 from signal import SIGINT, signal
 
@@ -8,8 +10,8 @@ import gymnasium as gym
 import numpy as np
 import torch
 from gymnasium.vector import AsyncVectorEnv
-from gymnasium.wrappers import record_episode_statistics
-from gymnasium.wrappers import rescale_action
+from gymnasium.wrappers import record_episode_statistics, rescale_action
+from wandb import Video
 from PyFlyt import gym_envs  # noqa
 from PyFlyt.gym_envs import FlattenWaypointEnv  # noqa
 from tqdm import tqdm
@@ -128,6 +130,10 @@ def train(wm: Wingman) -> None:
             )
             print(f"Eval score: {wm.log['eval_perf']}")
 
+        """GENERATE GIF IF NEEDED"""
+        if memory.count % 500_000 == 0:
+            wm.log["output_gif"] = Video(str(render_gif(wm, alg.actor)))
+
         """WANDB"""
         wm.log["num_transitions"] = memory.count
         wm.log["buffer_size"] = memory.__len__()
@@ -141,9 +147,6 @@ def train(wm: Wingman) -> None:
 
 
 def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
-    import imageio.v3 as iio
-    frames = []
-
     # setup the environment and actor
     env = setup_single_environment(wm)
     actor = actor or setup_algorithm(wm).actor
@@ -169,21 +172,52 @@ def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
             # new observation is the next observation
             obs = next_obs
 
-            # for gif
-            frames.append(env.render())
-
-        iio.imwrite(
-            Path(__file__).parent.parent
-            / Path("output_gifs/")
-            / Path(f"{wm.model_id}.gif"),
-            frames,
-            fps=30,
-        )
-        exit()
-
         cumulative_rewards.append(info["episode"]["r"][0])
 
     return float(np.mean(cumulative_rewards))
+
+
+def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
+    import imageio.v3 as iio
+
+    frames = []
+
+    # setup the environment and actor
+    env = setup_single_environment(wm)
+    actor = actor or setup_algorithm(wm).actor
+
+    term, trunc = False, False
+    env.reset()
+
+    # step for one episode
+    while not term and not trunc:
+        # get an action from the actor
+        policy_observation = MlpObservation(obs=gpuize(obs, wm.device).unsqueeze(0))
+        act = actor.infer(*actor(policy_observation))
+
+        # convert the action to cpu, and remove the batch dim
+        act = cpuize(act.squeeze(0))
+
+        # step the transition
+        next_obs, rew, term, trunc, info = env.step(act)
+
+        # new observation is the next observation
+        obs = next_obs
+
+        # for gif
+        frames.append(env.render())
+
+    gif_path = Path("/tmp") / Path(
+        "".join(random.choices(string.ascii_letters + string.digits, k=8))
+    ).with_suffix(".gif")
+
+    iio.imwrite(
+        gif_path,
+        frames,
+        fps=30,
+    )
+
+    return gif_path
 
 
 def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
