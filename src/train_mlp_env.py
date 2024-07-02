@@ -94,7 +94,7 @@ def train(wm: Wingman) -> None:
                 # new observation is the next observation
                 # compute exclusion mask of tuples to ignore in the next iteration
                 obs = next_obs
-                exclusion_mask = ~term & ~trunc
+                exclusion_mask = ~term | ~trunc
 
         """TRAINING RUN"""
         print(
