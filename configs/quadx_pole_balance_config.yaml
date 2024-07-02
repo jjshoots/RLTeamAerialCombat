@@ -25,7 +25,7 @@ qu_num_ensemble: 2
 embed_dim: 256
 
 # eval settings
-eval_num_episodes: 20
+eval_num_episodes: 40
 eval_steps_ratio: 2000
 
 # wingman required params

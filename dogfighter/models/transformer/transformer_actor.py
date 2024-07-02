@@ -42,6 +42,11 @@ class TransformerActor(BaseActor[TransformerObservation]):
             _features_description, _activation_description
         )
 
+    def package_observation(
+        self, obs: dict[str, torch.Tensor], device: torch.device
+    ) -> TransformerObservation:
+        raise NotImplementedError
+
     def forward(
         self,
         obs: TransformerObservation,

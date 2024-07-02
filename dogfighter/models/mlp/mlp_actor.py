@@ -1,5 +1,7 @@
+import numpy as np
 import torch
 from wingman import NeuralBlocks
+from wingman.utils import gpuize
 
 from dogfighter.models.bases import BaseActor
 from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
@@ -38,6 +40,20 @@ class MlpActor(BaseActor[MlpObservation]):
         self.head = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
+
+    def package_observation(
+        self, obs: torch.Tensor | np.ndarray, device: torch.device
+    ) -> MlpObservation:
+        """package_observation.
+
+        Args:
+            obs (torch.Tensor, np.ndarray): obs
+            device (torch.device): device
+
+        Returns:
+            MlpObservation:
+        """
+        return MlpObservation(obs=gpuize(obs, device=device))
 
     def forward(
         self,

@@ -6,10 +6,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from pydantic import Field, StrictBool, StrictFloat, StrictInt
+from tqdm import tqdm
+from wingman import ReplayBuffer
+from wingman.utils import gpuize
 
 from dogfighter.models.bases import (Action, AlgorithmParams, BaseActor,
-                                     BaseQUEnsemble, EnvParams, ModelParams,
-                                     Observation)
+                                     BaseAlgorithm, BaseQUEnsemble, EnvParams,
+                                     ModelParams, Observation)
 
 
 class CCGEParams(AlgorithmParams):
@@ -25,7 +28,7 @@ class CCGEParams(AlgorithmParams):
     critic_update_ratio: StrictInt = Field(default=1)
 
 
-class CCGE(nn.Module):
+class CCGE(BaseAlgorithm):
     """Critic Confidence Guided Exploration."""
 
     def __init__(
@@ -121,31 +124,58 @@ class CCGE(nn.Module):
 
     def update(
         self,
-        obs: Observation,
-        act: Action,
-        next_obs: Observation,
-        term: torch.Tensor,
-        rew: torch.Tensor,
+        device: torch.device,
+        memory: ReplayBuffer,
+        batch_size: int,
+        num_gradient_steps: int,
     ) -> dict[str, Any]:
-        """update.
+        """Updates the model using the replay buffer for `num_gradient_steps`.
+
+        Note that this expects that `memory` has:
+        - The first `n` items be for observation.
+        - The next `n` items be for next observation.
+        - The next 1 item be for action.
+        - The next 1 item be for reward.
+        - The next 1 item be for termination.
 
         Args:
-            obs (Observation): obs
-            act (Action): act
-            next_obs (Observation): next_obs
-            term (torch.Tensor): term
-            rew (torch.Tensor): rew
+            device (torch.device): device
+            memory (ReplayBuffer): memory
+            batch_size (int): batch_size
+            num_gradient_steps (int): num_gradient_steps
 
         Returns:
             dict[str, Any]:
         """
-        return self(
-            obs=obs,
-            act=act,
-            next_obs=next_obs,
-            term=term,
-            rew=rew,
-        )
+        # initialise the update infos
+        update_info = {}
+
+        # start the training!
+        self.train()
+        for stuff in tqdm(  # pyright: ignore[reportAssignmentType]
+            memory.iter_sample(
+                batch_size=batch_size,
+                num_iter=num_gradient_steps,
+            ),
+            total=num_gradient_steps,
+        ):
+            # unpack batches
+            obs = self.actor.package_observation(stuff[0], device=device)
+            next_obs = self.actor.package_observation(stuff[1], device=device)
+            act = gpuize(stuff[2], device)
+            rew = gpuize(stuff[3], device)
+            term = gpuize(stuff[4], device)
+
+            # take a gradient step
+            update_info = self.forward(
+                obs=obs,
+                act=act,
+                next_obs=next_obs,
+                term=term,
+                rew=rew,
+            )
+
+        return update_info
 
     def forward(
         self,

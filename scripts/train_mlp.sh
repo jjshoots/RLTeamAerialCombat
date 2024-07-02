@@ -4,7 +4,7 @@ source .venv/bin/activate
 wingman-compress-weights
 
 declare -a pids=()
-python3 src/train_mlp_env.py --train --wandb &
+python3 src/main.py --train --wandb &
 pids+=($!)
 sleep 10
 

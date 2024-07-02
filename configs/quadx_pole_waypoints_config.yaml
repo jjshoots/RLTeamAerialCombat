@@ -14,6 +14,8 @@ discount_factor: 0.98
 learning_rate: 0.003
 exploration_steps: 0
 random_rollover: true
+replay_buffer_mode: "torch"
+replay_buffer_store_on_device: true
 
 # CCGE params
 pretrained_oracle: false
@@ -25,8 +27,8 @@ qu_num_ensemble: 2
 embed_dim: 256
 
 # eval settings
-eval_num_episodes: 20
-eval_steps_ratio: 2000
+eval_num_episodes: 40
+eval_steps_ratio: 10000
 
 # wingman required params
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman

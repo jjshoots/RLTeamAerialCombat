@@ -1,12 +1,13 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import torch
 import torch.distributions as dist
 import torch.nn as nn
 import torch.nn.functional as func
 from pydantic import BaseModel, StrictInt
+from wingman.replay_buffer import ReplayBuffer
 
 
 class EnvParams(BaseModel):
@@ -32,6 +33,18 @@ ObservationType = TypeVar("ObservationType", bound=Observation)
 Action = torch.Tensor
 
 
+class BaseAlgorithm(nn.Module):
+    @abstractmethod
+    def update(
+        self,
+        device: torch.device,
+        memory: ReplayBuffer,
+        batch_size: int,
+        num_gradient_steps: int,
+    ) -> dict[str, Any]:
+        raise NotImplementedError
+
+
 class BaseQUEnsemble(nn.Module, Generic[ObservationType]):
     def __init__(self, env_params: EnvParams, model_params: ModelParams) -> None:
         super().__init__()
@@ -50,6 +63,10 @@ class BaseActor(nn.Module, Generic[ObservationType]):
 
     def __call__(self, obs: ObservationType) -> torch.Tensor:
         return self.forward(obs=obs)
+
+    @abstractmethod
+    def package_observation(self, obs: Any, device: torch.device) -> ObservationType:
+        raise NotImplementedError
 
     @abstractmethod
     def forward(self, obs: ObservationType) -> torch.Tensor:
