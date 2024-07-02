@@ -10,7 +10,7 @@ batch_size: 2048
 total_steps: 2000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
-discount_factor: 0.99
+discount_factor: 0.98
 learning_rate: 0.003
 exploration_steps: 0
 random_rollover: true
