@@ -57,7 +57,7 @@ def train(wm: Wingman) -> None:
         alg.zero_grad()
         with torch.no_grad():
             obs, info = vec_env.reset()
-            exclusion_mask = np.zeros(vec_env.num_envs, dtype=bool)
+            non_reset_envs = np.ones(vec_env.num_envs, dtype=bool)
 
             # step for one episode
             print("Collecting transitions...")
@@ -81,11 +81,11 @@ def train(wm: Wingman) -> None:
                 # store stuff in mem
                 memory.push(
                     [
-                        obs[exclusion_mask, ...],
-                        next_obs[exclusion_mask, ...],
-                        act[exclusion_mask, ...],
-                        np.expand_dims(rew, axis=-1)[exclusion_mask, ...],
-                        np.expand_dims(term, axis=-1)[exclusion_mask, ...],
+                        obs[non_reset_envs, ...],
+                        next_obs[non_reset_envs, ...],
+                        act[non_reset_envs, ...],
+                        np.expand_dims(rew, axis=-1)[non_reset_envs, ...],
+                        np.expand_dims(term, axis=-1)[non_reset_envs, ...],
                     ],
                     bulk=True,
                     random_rollover=cfg.random_rollover,
@@ -94,7 +94,7 @@ def train(wm: Wingman) -> None:
                 # new observation is the next observation
                 # compute exclusion mask of tuples to ignore in the next iteration
                 obs = next_obs
-                exclusion_mask = ~term | ~trunc
+                non_reset_envs = ~term & ~trunc
 
         """TRAINING RUN"""
         print(
