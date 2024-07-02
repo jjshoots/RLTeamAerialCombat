@@ -291,7 +291,7 @@ if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     # wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
     # wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
-    wm = Wingman(config_yaml="./configs/quadx_classic_waypoints_config.yaml")
+    wm = Wingman(config_yaml="./configs/quadx_waypoints_config.yaml")
 
     if wm.cfg.train:
         train(wm)
