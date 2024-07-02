@@ -78,8 +78,6 @@ def train(wm: Wingman) -> None:
                 # step the transition
                 next_obs, rew, term, trunc, info = vec_env.step(act)
 
-                # get the mask of indexes of outputs we want to exclude
-
                 # store stuff in mem
                 memory.push(
                     [
@@ -94,6 +92,7 @@ def train(wm: Wingman) -> None:
                 )
 
                 # new observation is the next observation
+                # compute exclusion mask of tuples to ignore in the next iteration
                 obs = next_obs
                 exclusion_mask = ~term & ~trunc
 
