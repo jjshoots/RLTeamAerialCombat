@@ -263,7 +263,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jj-wingman"
-version = "0.11.1"
+version = "0.11.2"
 description = "Wingman library for AI projects."
 category = "main"
 optional = false
@@ -425,7 +425,7 @@ python-versions = ">=3"
 
 [[package]]
 name = "nvidia-nvjitlink-cu12"
-version = "12.5.40"
+version = "12.5.82"
 description = "Nvidia JIT LTO Library"
 category = "main"
 optional = false
@@ -449,14 +449,14 @@ python-versions = ">=3.8"
 
 [[package]]
 name = "pillow"
-version = "10.3.0"
+version = "10.4.0"
 description = "Python Imaging Library (Fork)"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 
 [package.extras]
-docs = ["furo", "olefile", "sphinx (>=2.4)", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-removed-in", "sphinxext-opengraph"]
+docs = ["furo", "olefile", "sphinx (>=7.3)", "sphinx-copybutton", "sphinx-inline-tabs", "sphinxext-opengraph"]
 fpx = ["olefile"]
 mic = ["olefile"]
 tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
@@ -517,7 +517,7 @@ test = ["enum34", "ipaddress", "mock", "pywin32", "wmi"]
 
 [[package]]
 name = "pydantic"
-version = "2.7.4"
+version = "2.8.0"
 description = "Data validation using Python type hints"
 category = "main"
 optional = false
@@ -525,15 +525,18 @@ python-versions = ">=3.8"
 
 [package.dependencies]
 annotated-types = ">=0.4.0"
-pydantic-core = "2.18.4"
-typing-extensions = ">=4.6.1"
+pydantic-core = "2.20.0"
+typing-extensions = [
+    {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
+    {version = ">=4.6.1", markers = "python_version < \"3.13\""},
+]
 
 [package.extras]
 email = ["email-validator (>=2.0.0)"]
 
 [[package]]
 name = "pydantic-core"
-version = "2.18.4"
+version = "2.20.0"
 description = "Core functionality for Pydantic validation and serialization"
 category = "main"
 optional = false
@@ -823,7 +826,7 @@ workspaces = ["wandb-workspaces"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "4837ac905815897c21404e5e69a5ebe601838a65530f5a1b00050a342e2ecb9a"
+content-hash = "0560735434dc8647dc89115e3cc34fe61c1a8bcffb87db1bcf7ef329952da842"
 
 [metadata.files]
 annotated-types = []
