@@ -57,6 +57,7 @@ def train(wm: Wingman) -> None:
         alg.zero_grad()
         with torch.no_grad():
             obs, info = vec_env.reset()
+            exclusion_mask = np.zeros(vec_env.num_envs, dtype=bool)
 
             # step for one episode
             print("Collecting transitions...")
@@ -77,14 +78,16 @@ def train(wm: Wingman) -> None:
                 # step the transition
                 next_obs, rew, term, trunc, info = vec_env.step(act)
 
+                # get the mask of indexes of outputs we want to exclude
+
                 # store stuff in mem
                 memory.push(
                     [
-                        obs,
-                        next_obs,
-                        act,
-                        np.expand_dims(rew, axis=-1),
-                        np.expand_dims(term, axis=-1),
+                        obs[exclusion_mask, ...],
+                        next_obs[exclusion_mask, ...],
+                        act[exclusion_mask, ...],
+                        np.expand_dims(rew, axis=-1)[exclusion_mask, ...],
+                        np.expand_dims(term, axis=-1)[exclusion_mask, ...],
                     ],
                     bulk=True,
                     random_rollover=cfg.random_rollover,
@@ -92,6 +95,7 @@ def train(wm: Wingman) -> None:
 
                 # new observation is the next observation
                 obs = next_obs
+                exclusion_mask = ~term & ~trunc
 
         """TRAINING RUN"""
         print(
