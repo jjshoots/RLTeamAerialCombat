@@ -206,7 +206,8 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
         frames.append(env.render())
 
     gif_path = Path("/tmp") / Path(
-        "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        "gif"
+        # "".join(random.choices(string.ascii_letters + string.digits, k=8))
     ).with_suffix(".gif")
 
     iio.imwrite(
@@ -288,7 +289,9 @@ def setup_algorithm(wm: Wingman) -> CCGE:
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
-    wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
+    # wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
+    # wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
+    wm = Wingman(config_yaml="./configs/quadx_classic_waypoints_config.yaml")
 
     if wm.cfg.train:
         train(wm)
