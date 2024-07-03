@@ -133,17 +133,17 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
-    # wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
+    wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
     # wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
-    wm = Wingman(config_yaml="./configs/quadx_waypoints_config.yaml")
+    # wm = Wingman(config_yaml="./configs/quadx_waypoints_config.yaml")
 
     if wm.cfg.train:
         train(wm)
     elif wm.cfg.eval:
         wm.log["eval_perf"], wm.log["mean_episode_length"] = env_evaluate(
+            vec_env=setup_vector_environment(wm),
             actor=setup_algorithm(wm).actor,
             device=wm.device,
-            vec_env=setup_vector_environment(wm),
             num_episodes=wm.cfg.eval_num_episodes,
         )
     elif wm.cfg.render:
