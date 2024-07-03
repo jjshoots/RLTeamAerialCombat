@@ -4,34 +4,26 @@ import math
 from pathlib import Path
 from signal import SIGINT, signal
 
-import numpy as np
 import torch
-from wingman import ReplayBuffer, Wingman
+from wingman import Wingman
 from wingman.utils import cpuize, gpuize, shutdown_handler
 
 from dogfighter.models.bases import BaseActor
 from dogfighter.models.mlp.mlp_bases import MlpObservation
 from env_interaction_utils import env_collect_to_memory, env_evaluate
-from setup_utils import (setup_algorithm, setup_single_environment,
-                         setup_vector_environment)
+from setup_utils import (setup_algorithm, setup_replay_buffer,
+                         setup_single_environment, setup_vector_environment)
 
 
 def train(wm: Wingman) -> None:
     # pull the config out of wingman
     cfg = wm.cfg
 
-    # setup environments and algorithm
+    # setup envs, alg, replay buffer
     train_env = setup_vector_environment(wm)
     eval_env = setup_vector_environment(wm)
     alg = setup_algorithm(wm)
-
-    # setup replay buffer
-    memory = ReplayBuffer(
-        mem_size=cfg.buffer_size,
-        mode="torch",
-        device=wm.device,
-        store_on_device=True,
-    )
+    memory = setup_replay_buffer(wm)
 
     # logging metrics
     wm.log["epoch"] = 0
@@ -95,37 +87,6 @@ def train(wm: Wingman) -> None:
             torch.save(alg.state_dict(), model_file)
 
 
-def evaluate(wm: Wingman, actor: BaseActor | None) -> float:
-    # setup the environment and actor
-    env = setup_single_environment(wm)
-    actor = actor or setup_algorithm(wm).actor
-
-    # start the evaluation loops
-    cumulative_rewards: list[float] = []
-    for _ in range(wm.cfg.eval_num_episodes):
-        term, trunc = False, False
-        obs, info = env.reset()
-
-        # step for one episode
-        while not term and not trunc:
-            # get an action from the actor
-            policy_observation = MlpObservation(obs=gpuize(obs, wm.device).unsqueeze(0))
-            act = actor.infer(*actor(policy_observation))
-
-            # convert the action to cpu, and remove the batch dim
-            act = cpuize(act.squeeze(0))
-
-            # step the transition
-            next_obs, rew, term, trunc, info = env.step(act)
-
-            # new observation is the next observation
-            obs = next_obs
-
-        cumulative_rewards.append(info["episode"]["r"][0])
-
-    return float(np.mean(cumulative_rewards))
-
-
 def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
     import imageio.v3 as iio
 
@@ -179,7 +140,12 @@ if __name__ == "__main__":
     if wm.cfg.train:
         train(wm)
     elif wm.cfg.eval:
-        evaluate(wm=wm, actor=None)
+        wm.log["eval_perf"], wm.log["mean_episode_length"] = env_evaluate(
+            actor=setup_algorithm(wm).actor,
+            device=wm.device,
+            vec_env=setup_vector_environment(wm),
+            num_episodes=wm.cfg.eval_num_episodes,
+        )
     elif wm.cfg.render:
         print(render_gif(wm=wm, actor=None))
     else:

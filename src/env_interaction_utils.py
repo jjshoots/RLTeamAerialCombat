@@ -3,7 +3,7 @@ from typing import OrderedDict
 import numpy as np
 import torch
 from gymnasium.vector import VectorEnv
-from wingman import ReplayBuffer
+from wingman.replay_buffer import ReplayBuffer
 from wingman.utils import cpuize
 
 from dogfighter.models.bases import BaseActor

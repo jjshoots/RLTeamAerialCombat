@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 from pydantic import Field, StrictBool, StrictFloat, StrictInt
 from tqdm import tqdm
-from wingman import ReplayBuffer
+from wingman.replay_buffer import ReplayBuffer
 from wingman.utils import gpuize
 
 from dogfighter.models.bases import (Action, AlgorithmParams, BaseActor,

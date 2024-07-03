@@ -5,7 +5,8 @@ import torch
 from gymnasium.vector import AsyncVectorEnv
 from gymnasium.wrappers import rescale_action
 from PyFlyt.gym_envs import FlattenWaypointEnv
-from wingman import ReplayBuffer, Wingman
+from wingman import Wingman
+from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
 
 from dogfighter.algorithms import CCGE
 from dogfighter.algorithms.ccge import CCGEParams
@@ -14,7 +15,7 @@ from dogfighter.models.mlp.mlp_bases import MlpModelParams
 
 
 def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
-    return ReplayBuffer(
+    return FlatReplayBuffer(
         mem_size=wm.cfg.buffer_size,
         mode=wm.cfg.replay_buffer_mode,
         device=wm.device,
