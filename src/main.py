@@ -140,6 +140,7 @@ if __name__ == "__main__":
     if wm.cfg.train:
         train(wm)
     elif wm.cfg.eval:
+        wm.cfg.num_envs = 1 if wm.cfg.display else wm.cfg.num_envs
         wm.log["eval_perf"], wm.log["mean_episode_length"] = env_evaluate(
             vec_env=setup_vector_environment(wm),
             actor=setup_algorithm(wm).actor,
