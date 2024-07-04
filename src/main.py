@@ -38,7 +38,7 @@ def train(wm: Wingman) -> None:
         wm.log["epoch"] += 1
 
         """ENVIRONMENT ROLLOUT"""
-        memory = env_collect_to_memory(
+        memory, info = env_collect_to_memory(
             actor=alg.actor,
             vec_env=train_env,
             memory=memory,
@@ -47,32 +47,33 @@ def train(wm: Wingman) -> None:
         )
         wm.log["buffer_size"] = memory.__len__()
         wm.log["num_transitions"] = memory.count
+        wm.log.update(info)
 
         """TRAINING RUN"""
         print(
             f"Training epoch {wm.log['epoch']}, Replay Buffer Capacity {memory.count} / {memory.mem_size}"
         )
-        update_info = alg.update(
+        info = alg.update(
             memory=memory,
             batch_size=cfg.batch_size,
             num_gradient_steps=cfg.model_updates_per_epoch,
         )
-        wm.log.update(update_info)
+        wm.log.update(info)
 
         """EVALUATE POLICY"""
         if memory.count >= next_eval_step:
-            wm.log["eval_perf"], wm.log["mean_episode_length"] = env_evaluate(
+            info = env_evaluate(
                 actor=alg.actor,
                 vec_env=eval_env,
                 num_episodes=cfg.eval_num_episodes,
             )
+            wm.log.update(info)
             wm.log["max_eval_perf"] = max(
                 [float(wm.log["max_eval_perf"]), float(wm.log["eval_perf"])]
             )
             next_eval_step = (
                 int(memory.count / cfg.eval_steps_ratio) + 1
             ) * cfg.eval_steps_ratio
-            print(f"Eval score: {wm.log['eval_perf']}")
 
         """WANDB"""
         # save weights

@@ -6,8 +6,7 @@ from wingman.utils import cpuize, gpuize
 
 
 class VecEnvGpuizeWrapper(VectorEnvWrapper):
-    """VecEnvGpuizeWrapper.
-    """
+    """VecEnvGpuizeWrapper."""
 
     def __init__(self, env: VectorEnv, device: torch.device):
         """__init__.

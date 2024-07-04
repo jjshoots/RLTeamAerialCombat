@@ -1,3 +1,6 @@
+import time
+from typing import Literal
+
 import numpy as np
 import torch
 from gymnasium.vector import VectorEnv
@@ -14,7 +17,7 @@ def env_collect_to_memory(
     memory: ReplayBuffer,
     num_steps: int,
     random_actions: bool,
-) -> ReplayBuffer:
+) -> tuple[ReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """Runs the actor in the vector environment and collects transitions.
 
     This collects `num_steps * vec_env.num_envs` transitions.
@@ -33,8 +36,11 @@ def env_collect_to_memory(
         random_actions (bool): random_actions
 
     Returns:
-        ReplayBuffer:
+        tuple[ReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """
+    # to record times
+    start_time = time.time()
+
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()
@@ -43,7 +49,7 @@ def env_collect_to_memory(
     obs, info = vec_env.reset()
     non_reset_envs = np.ones(vec_env.num_envs, dtype=bool)
 
-    for i in range(num_steps):
+    for _ in range(num_steps):
         # compute an action depending on whether we're exploring or not
         if random_actions:
             # sample an action from the env
@@ -61,7 +67,7 @@ def env_collect_to_memory(
                 [
                     obs[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
                     next_obs[non_reset_envs, ...],
-                    act[non_reset_envs, ...],
+                    act[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
                     np.expand_dims(rew, axis=-1)[non_reset_envs, ...],
                     np.expand_dims(term, axis=-1)[non_reset_envs, ...],
                 ],
@@ -79,17 +85,29 @@ def env_collect_to_memory(
         obs = next_obs
         non_reset_envs = ~term & ~trunc
 
-    return memory
+    # print some recordings
+    total_time = time.time() - start_time
+    interactions = num_steps * vec_env.num_envs
+    interaction_per_second = total_time / interactions
+    print(
+        "Collect Stats: "
+        f"{total_time:.2f}s for {interactions} interactions @ {interaction_per_second} i/s."
+    )
+
+    # return the replay buffer and some information
+    info: dict[Literal["interactions_per_second"], float] = dict()
+    info["interactions_per_second"] = interactions / total_time
+    return memory, info
 
 
 def env_evaluate(
     actor: BaseActor,
     vec_env: VectorEnv,
     num_episodes: int,
-) -> tuple[float, float]:
+) -> dict[Literal["eval_perf", "mean_episode_length"], float]:
     """Performs an evaluation run using the given actor on the vectorized environment.
 
-    Note that `vec_env.num_envs` must cleanly divide. num_episodes.
+    Note that `vec_env.num_envs` must cleanly divide num_episodes.
 
     Args:
         actor (BaseActor): actor
@@ -97,7 +115,7 @@ def env_evaluate(
         num_episodes (int): num_episodes
 
     Returns:
-        tuple[float, float]: mean_returns, mean_episode_length
+        dict[Literal["eval_perf", "mean_episode_length"], float]:
     """
     assert (
         (num_episodes / vec_env.num_envs) % 1.0 == 0
@@ -108,7 +126,7 @@ def env_evaluate(
 
     for _ in range(num_episodes // vec_env.num_envs):
         # reset things
-        obs, info = vec_env.reset()
+        obs, _ = vec_env.reset()
         done_envs = np.zeros(vec_env.num_envs, dtype=bool)
 
         # step for one episode
@@ -121,7 +139,7 @@ def env_evaluate(
             act = cpuize(act)
 
             # step the transition
-            next_obs, rew, term, trunc, info = vec_env.step(act)
+            next_obs, rew, term, trunc, _ = vec_env.step(act)
 
             # roll observation and record the done envs
             obs = next_obs
@@ -131,7 +149,12 @@ def env_evaluate(
             cumulative_rewards += np.sum(rew * (1.0 - done_envs))
             num_valid_steps += np.sum(1.0 - done_envs)
 
-    mean_returns = float(cumulative_rewards / num_episodes)
-    mean_episode_lengths = float(num_valid_steps / num_episodes)
-
-    return mean_returns, mean_episode_lengths
+    # arrange the results
+    info: dict[Literal["eval_perf", "mean_episode_length"], float] = dict()
+    info["eval_perf"] = float(cumulative_rewards / num_episodes)
+    info["mean_episode_length"] = float(num_valid_steps / num_episodes)
+    print(
+        "Evaluation Stats: "
+        f"{info['eval_perf']} mean eval score @ {info['mean_episode_length']} mean episode length."
+    )
+    return info
