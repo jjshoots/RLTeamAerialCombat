@@ -26,18 +26,16 @@ def train(wm: Wingman) -> None:
 
     # logging metrics
     wm.log["epoch"] = 0
-    wm.log["eval_perf"] = -math.inf
     wm.log["max_eval_perf"] = -math.inf
-    wm.log["mean_episode_length"] = 0.0
     next_eval_step = 0
 
-    """START TRAINING"""
+    # start the main training loop
     while memory.count <= cfg.total_steps:
         print("\n\n")
         print(f"New epoch @ {memory.count} / {cfg.total_steps} total transitions.")
         wm.log["epoch"] += 1
 
-        """ENVIRONMENT ROLLOUT"""
+        """POLICY ROLLOUT"""
         memory, info = env_collect_to_memory(
             actor=alg.actor,
             vec_env=train_env,
