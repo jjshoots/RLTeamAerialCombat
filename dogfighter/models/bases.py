@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
 import torch
@@ -22,22 +21,14 @@ class AlgorithmParams(BaseModel):
     pass
 
 
-@dataclass
-class Observation:
-    pass
+Observation = TypeVar("Observation")
+Action = TypeVar("Action")
 
 
-ObservationType = TypeVar("ObservationType", bound=Observation)
-
-
-Action = torch.Tensor
-
-
-class BaseAlgorithm(nn.Module):
+class BaseAlgorithm(nn.Module, Generic[Observation, Action]):
     @abstractmethod
     def update(
         self,
-        device: torch.device,
         memory: ReplayBuffer,
         batch_size: int,
         num_gradient_steps: int,
@@ -45,31 +36,27 @@ class BaseAlgorithm(nn.Module):
         raise NotImplementedError
 
 
-class BaseQUEnsemble(nn.Module, Generic[ObservationType]):
+class BaseQUEnsemble(nn.Module, Generic[Observation, Action]):
     def __init__(self, env_params: EnvParams, model_params: ModelParams) -> None:
         super().__init__()
 
-    def __call__(self, obs: ObservationType, act: Action) -> torch.Tensor:
+    def __call__(self, obs: Observation, act: Action) -> torch.Tensor:
         return self.forward(obs=obs, act=act)
 
     @abstractmethod
-    def forward(self, obs: ObservationType, act: Action) -> torch.Tensor:
+    def forward(self, obs: Observation, act: Action) -> torch.Tensor:
         raise NotImplementedError
 
 
-class BaseActor(nn.Module, Generic[ObservationType]):
+class BaseActor(nn.Module, Generic[Observation, Action]):
     def __init__(self, env_params: EnvParams, model_params: ModelParams) -> None:
         super().__init__()
 
-    def __call__(self, obs: ObservationType) -> torch.Tensor:
+    def __call__(self, obs: Observation) -> torch.Tensor:
         return self.forward(obs=obs)
 
     @abstractmethod
-    def package_observation(self, obs: Any, device: torch.device) -> ObservationType:
-        raise NotImplementedError
-
-    @abstractmethod
-    def forward(self, obs: ObservationType) -> torch.Tensor:
+    def forward(self, obs: Observation) -> torch.Tensor:
         raise NotImplementedError
 
     @staticmethod

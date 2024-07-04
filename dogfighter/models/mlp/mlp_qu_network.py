@@ -1,12 +1,11 @@
 import torch
 from wingman import NeuralBlocks
 
-from dogfighter.models.bases import Action, BaseQUEnsemble
-from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
-                                             MlpObservation)
+from dogfighter.models.bases import BaseQUEnsemble
+from dogfighter.models.mlp.mlp_bases import MlpEnvParams, MlpModelParams
 
 
-class MlpQUNetwork(BaseQUEnsemble[MlpObservation]):
+class MlpQUNetwork(BaseQUEnsemble):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(
@@ -46,24 +45,24 @@ class MlpQUNetwork(BaseQUEnsemble[MlpObservation]):
 
     def forward(
         self,
-        obs: MlpObservation,
-        act: Action,
+        obs: torch.Tensor,
+        act: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (MlpObservation): obs
-            act (Action): Action of shape [B, act_size] or [num_actions, B, act_size]
+            obs (torch.Tensor): Observation of shape [B, obs_size]
+            act (torch.Tensor): Action of shape [B, act_size] or [num_actions, B, act_size]
 
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
 
         # if we have multiple actions per observation, stack the observation
-        if len(act.shape) != len(obs.obs.shape):
-            input = obs.obs.expand(act.shape[0], -1, -1)
+        if len(act.shape) != len(obs.shape):
+            input = obs.expand(act.shape[0], -1, -1)
         else:
-            input = obs.obs
+            input = obs
 
         # get the output
         # the shape here is either [B, q_u] or [num_actions, B, q_u]

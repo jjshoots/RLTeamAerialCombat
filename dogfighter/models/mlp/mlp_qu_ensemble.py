@@ -1,13 +1,12 @@
 import torch
 import torch.nn as nn
 
-from dogfighter.models.bases import Action, BaseQUEnsemble
-from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
-                                             MlpObservation)
+from dogfighter.models.bases import BaseQUEnsemble
+from dogfighter.models.mlp.mlp_bases import MlpEnvParams, MlpModelParams
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetwork
 
 
-class MlpQUEnsemble(BaseQUEnsemble[MlpObservation]):
+class MlpQUEnsemble(BaseQUEnsemble):
     """Q U Ensemble."""
 
     def __init__(
@@ -29,14 +28,14 @@ class MlpQUEnsemble(BaseQUEnsemble[MlpObservation]):
 
     def forward(
         self,
-        obs: MlpObservation,
-        act: Action,
+        obs: torch.Tensor,
+        act: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (MlpObservation): obs
-            act (Action): act
+            obs (torch.Tensor): Observation of shape [B, obs_size]
+            act (torch.Tensor): Action of shape [B, act_size] or [num_actions, B, act_size]
 
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B, num_ensemble] or [q_u, num_actions, B, num_ensemble]

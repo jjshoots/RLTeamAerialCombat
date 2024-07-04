@@ -9,7 +9,6 @@ from wingman import Wingman
 from wingman.utils import cpuize, gpuize, shutdown_handler
 
 from dogfighter.models.bases import BaseActor
-from dogfighter.models.mlp.mlp_bases import MlpObservation
 from env_interaction_utils import env_collect_to_memory, env_evaluate
 from setup_utils import (setup_algorithm, setup_replay_buffer,
                          setup_single_environment, setup_vector_environment)
@@ -42,9 +41,8 @@ def train(wm: Wingman) -> None:
         memory = env_collect_to_memory(
             actor=alg.actor,
             vec_env=train_env,
-            device=wm.device,
             memory=memory,
-            random_actions=memory.count <= cfg.exploration_steps,
+            random_actions=memory.count < cfg.exploration_steps,
             num_steps=cfg.vec_env_steps_per_epoch,
         )
         wm.log["buffer_size"] = memory.__len__()
@@ -55,7 +53,6 @@ def train(wm: Wingman) -> None:
             f"Training epoch {wm.log['epoch']}, Replay Buffer Capacity {memory.count} / {memory.mem_size}"
         )
         update_info = alg.update(
-            device=wm.device,
             memory=memory,
             batch_size=cfg.batch_size,
             num_gradient_steps=cfg.model_updates_per_epoch,
@@ -66,7 +63,6 @@ def train(wm: Wingman) -> None:
         if memory.count >= next_eval_step:
             wm.log["eval_perf"], wm.log["mean_episode_length"] = env_evaluate(
                 actor=alg.actor,
-                device=wm.device,
                 vec_env=eval_env,
                 num_episodes=cfg.eval_num_episodes,
             )
@@ -102,10 +98,8 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
     # step for one episode
     while not term and not trunc:
         # get an action from the actor
-        policy_observation = MlpObservation(obs=gpuize(obs, wm.device).unsqueeze(0))
-        act = actor.infer(*actor(policy_observation))
-
-        # convert the action to cpu, and remove the batch dim
+        obs = gpuize(obs.unsqueeze(0), device=wm.device)
+        act = actor.infer(*actor(obs))
         act = cpuize(act.squeeze(0))
 
         # step the transition
@@ -144,7 +138,6 @@ if __name__ == "__main__":
         wm.log["eval_perf"], wm.log["mean_episode_length"] = env_evaluate(
             vec_env=setup_vector_environment(wm),
             actor=setup_algorithm(wm).actor,
-            device=wm.device,
             num_episodes=wm.cfg.eval_num_episodes,
         )
     elif wm.cfg.render:

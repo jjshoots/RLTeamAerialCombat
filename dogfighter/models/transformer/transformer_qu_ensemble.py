@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
 
-from dogfighter.models.bases import Action, BaseQUEnsemble
+from dogfighter.models.bases import BaseQUEnsemble
 from dogfighter.models.transformer.transformer_bases import (
     TransformerEnvParams, TransformerModelParams, TransformerObservation)
 from dogfighter.models.transformer.transformer_qu_network import \
     TransformerQUNetwork
 
 
-class TransformerQUEnsemble(BaseQUEnsemble[TransformerObservation]):
+class TransformerQUEnsemble(BaseQUEnsemble[TransformerObservation, torch.Tensor]):
     """Q U Ensemble."""
 
     def __init__(
@@ -40,13 +40,13 @@ class TransformerQUEnsemble(BaseQUEnsemble[TransformerObservation]):
     def forward(
         self,
         obs: TransformerObservation,
-        act: Action,
+        act: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
 
         Args:
             obs (TransformerObservation): obs
-            act (Action): act
+            act (torch.Tensor): act
 
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B, num_ensemble] or [q_u, num_actions, B, num_ensemble]

@@ -1,10 +1,6 @@
-from dataclasses import dataclass
-
-import torch
 from pydantic import Field, StrictFloat, StrictInt
 
-from dogfighter.models.bases import (AlgorithmParams, EnvParams, ModelParams,
-                                     Observation)
+from dogfighter.models.bases import AlgorithmParams, EnvParams, ModelParams
 
 
 class MlpEnvParams(EnvParams):
@@ -25,9 +21,3 @@ class MlpLearningParams(AlgorithmParams):
     update_ratio: StrictInt = Field(1)
     actor_update_ratio: StrictInt = Field(1)
     critic_update_ratio: StrictInt = Field(1)
-
-
-@dataclass
-class MlpObservation(Observation):
-    # shape is [B, obs_size]
-    obs: torch.Tensor

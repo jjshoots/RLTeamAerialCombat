@@ -1,10 +1,9 @@
-from dataclasses import dataclass
+from typing import Literal
 
 import torch
 from pydantic import Field, StrictFloat, StrictInt
 
-from dogfighter.models.bases import (AlgorithmParams, EnvParams, ModelParams,
-                                     Observation)
+from dogfighter.models.bases import AlgorithmParams, EnvParams, ModelParams
 
 
 class TransformerEnvParams(EnvParams):
@@ -32,14 +31,9 @@ class TransformerLearningParams(AlgorithmParams):
     critic_update_ratio: StrictInt = Field(1)
 
 
-@dataclass
-class TransformerObservation(Observation):
-    # other agent observations
-    # shape is [B, num_other_agents, obs_size]
-    obs: torch.Tensor
-    # other agent mask
-    # TODO: Figure out size
-    obs_mask: torch.Tensor
-    # current agent attitude
-    # shape is [B, att_size]
-    att: torch.Tensor
+TransformerObservation = dict[Literal["key", "mask", "query"], torch.Tensor]
+"""
+obs (torch.Tensor): a [B, N, obs_size] tensor for N other UAVs.
+obs_mask (torch.Tensor): a [B, N, 1] mask tensor for N other UAVs, where True means the observation is null.
+att (torch.Tensor): a [B, att_size] tensor for the current UAV's attitude.
+"""

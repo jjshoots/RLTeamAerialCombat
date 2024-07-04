@@ -1,14 +1,11 @@
-import numpy as np
 import torch
 from wingman import NeuralBlocks
-from wingman.utils import gpuize
 
 from dogfighter.models.bases import BaseActor
-from dogfighter.models.mlp.mlp_bases import (MlpEnvParams, MlpModelParams,
-                                             MlpObservation)
+from dogfighter.models.mlp.mlp_bases import MlpEnvParams, MlpModelParams
 
 
-class MlpActor(BaseActor[MlpObservation]):
+class MlpActor(BaseActor):
     """Actor with Gaussian prediction head."""
 
     def __init__(
@@ -41,34 +38,20 @@ class MlpActor(BaseActor[MlpObservation]):
             _features_description, _activation_description
         )
 
-    def package_observation(
-        self, obs: torch.Tensor | np.ndarray, device: torch.device
-    ) -> MlpObservation:
-        """package_observation.
-
-        Args:
-            obs (torch.Tensor, np.ndarray): obs
-            device (torch.device): device
-
-        Returns:
-            MlpObservation:
-        """
-        return MlpObservation(obs=gpuize(obs, device=device))
-
     def forward(
         self,
-        obs: MlpObservation,
+        obs: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (MlpObservation): Observation of shape [B, obs_size]
+            obs (torch.Tensor): Observation of shape [B, obs_size]
 
         Returns:
             torch.Tensor:
         """
         # output here is shape [B, act_size * 2]
-        output = self.head(obs.obs)
+        output = self.head(obs)
 
         # split the actions into mean and variance
         # shape is [B, act_size, 2]

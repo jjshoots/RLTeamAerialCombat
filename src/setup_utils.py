@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import gymnasium as gym
 import torch
-from gymnasium.vector import AsyncVectorEnv
+from gymnasium.vector import AsyncVectorEnv, VectorEnv
 from gymnasium.wrappers import rescale_action
 from PyFlyt.gym_envs import FlattenWaypointEnv
 from wingman import Wingman
@@ -10,24 +10,21 @@ from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
 
 from dogfighter.algorithms import CCGE
 from dogfighter.algorithms.ccge import CCGEParams
+from dogfighter.env_utils.vec_env_gpuize_wrapper import VecEnvGpuizeWrapper
 from dogfighter.models.mlp import MlpActor, MlpEnvParams, MlpQUEnsemble
 from dogfighter.models.mlp.mlp_bases import MlpModelParams
 
 
-def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
-    return FlatReplayBuffer(
-        mem_size=wm.cfg.buffer_size,
-        mode=wm.cfg.replay_buffer_mode,
-        device=wm.device,
-        store_on_device=wm.cfg.replay_buffer_store_on_device,
-        random_rollover=wm.cfg.random_rollover,
-    )
-
-
-def setup_vector_environment(wm: Wingman) -> AsyncVectorEnv:
-    return AsyncVectorEnv(
+def setup_vector_environment(wm: Wingman) -> VectorEnv:
+    # make the vec env
+    vec_env = AsyncVectorEnv(
         [lambda i=i: setup_single_environment(wm) for i in range(wm.cfg.num_envs)]
     )
+
+    # wrapper to convert the observation to tensors
+    vec_env = VecEnvGpuizeWrapper(vec_env, wm.device)
+
+    return vec_env
 
 
 def setup_single_environment(wm: Wingman) -> gym.Env:
@@ -48,6 +45,16 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
     wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
 
     return env
+
+
+def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
+    return FlatReplayBuffer(
+        mem_size=wm.cfg.buffer_size,
+        mode=wm.cfg.replay_buffer_mode,
+        device=wm.device,
+        store_on_device=wm.cfg.replay_buffer_store_on_device,
+        random_rollover=wm.cfg.random_rollover,
+    )
 
 
 def setup_algorithm(wm: Wingman) -> CCGE:

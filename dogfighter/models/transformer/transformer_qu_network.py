@@ -1,14 +1,14 @@
 import torch
 from wingman import NeuralBlocks
 
-from dogfighter.models.bases import Action, BaseQUEnsemble
+from dogfighter.models.bases import BaseQUEnsemble
 from dogfighter.models.transformer.transformer_backbone import \
     TransformerBackbone
 from dogfighter.models.transformer.transformer_bases import (
     TransformerEnvParams, TransformerModelParams, TransformerObservation)
 
 
-class TransformerQUNetwork(BaseQUEnsemble[TransformerObservation]):
+class TransformerQUNetwork(BaseQUEnsemble[TransformerObservation, torch.Tensor]):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(
@@ -57,27 +57,27 @@ class TransformerQUNetwork(BaseQUEnsemble[TransformerObservation]):
     def forward(
         self,
         obs: TransformerObservation,
-        act: Action,
+        act: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (TransformerObservation): obs
-            act (Action): Action of shape [B, act_size] or [num_actions, B, act_size]
+            obs (Observation): obs
+            act (torch.Tensor): Action of shape [B, act_size] or [num_actions, B, act_size]
 
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
         # pass obs and att through the backbone
         # the shape here is [B, N, embed_dim]
-        obsatt_embed = self.backbone(obs=obs.obs, obs_mask=obs.obs_mask, att=obs.att)
+        obsatt_embed = self.backbone(obs=obs)
 
         # pass the action through the action network
         # the shape here is either [B, embed_dim] or [num_actions, B, embed_dim]
         action_embed = self.act_network(act)
 
         # if we have multiple actions per observation, stack the observation
-        if len(act.shape) != len(obs.att.shape):
+        if len(act.shape) != len(obs["key"].shape):
             obsatt_embed = obsatt_embed.expand(act.shape[0], -1, -1)
 
         # merge things together and get the output

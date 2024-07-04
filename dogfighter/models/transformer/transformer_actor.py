@@ -8,7 +8,7 @@ from dogfighter.models.transformer.transformer_bases import (
     TransformerEnvParams, TransformerModelParams, TransformerObservation)
 
 
-class TransformerActor(BaseActor[TransformerObservation]):
+class TransformerActor(BaseActor):
     """Actor with Gaussian prediction head."""
 
     def __init__(
@@ -42,11 +42,6 @@ class TransformerActor(BaseActor[TransformerObservation]):
             _features_description, _activation_description
         )
 
-    def package_observation(
-        self, obs: dict[str, torch.Tensor], device: torch.device
-    ) -> TransformerObservation:
-        raise NotImplementedError
-
     def forward(
         self,
         obs: TransformerObservation,
@@ -60,7 +55,7 @@ class TransformerActor(BaseActor[TransformerObservation]):
             torch.Tensor:
         """
         # embedding here is shape [B, embed_dim]
-        embedding = self.backbone(obs=obs.obs, obs_mask=obs.obs_mask, att=obs.att)
+        embedding = self.backbone(obs=obs)
 
         # output here is shape [B, act_size * 2]
         output = self.head(embedding)

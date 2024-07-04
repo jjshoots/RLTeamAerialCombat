@@ -3,7 +3,7 @@ import torch.nn as nn
 from wingman import NeuralBlocks
 
 from dogfighter.models.transformer.transformer_bases import (
-    TransformerEnvParams, TransformerModelParams)
+    TransformerEnvParams, TransformerModelParams, TransformerObservation)
 
 
 class TransformerBackbone(nn.Module):
@@ -58,24 +58,23 @@ class TransformerBackbone(nn.Module):
             batch_first=True,
         )
 
-    def forward(
-        self, obs: torch.Tensor, obs_mask: torch.Tensor, att: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, obs: TransformerObservation) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (torch.Tensor): a [B, N, obs_size] tensor for N other UAVs.
-            obs_mask (torch.Tensor): a [B, N, 1] mask tensor for N other UAVs, where True means the observation is null.
-            obs (torch.Tensor): a [B, att_size] tensor for the current UAV's attitude.
+            obs (TransformerObservation):
+                - "key": a [B, N, obs_size] tensor.
+                - "mask": a [B, N, 1] mask tensor, where True means the key is null.
+                - "query": a [B, att_size] tensor.
 
-        Returns:
+        Returns:-
             torch.Tensor: a [B, embed_dim] tensor representing the compressed state.
         """
         # TODO: handle observation mask
 
         # this is [B, N, embed_dim] and [B, 1, embed_dim]
-        obs_embeddings = self.obs_embedder(obs)
-        att_embeddings = self.att_embedder(att.unsqueeze(-2))
+        obs_embeddings = self.obs_embedder(obs["key"])
+        att_embeddings = self.att_embedder(obs["query"].unsqueeze(-2))
 
         # this is [B, 1, embed_dim] then [B, embed_dim]
         result = self.transformer(src=obs_embeddings, tgt=att_embeddings)

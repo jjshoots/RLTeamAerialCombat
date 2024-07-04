@@ -8,11 +8,10 @@ import torch.optim as optim
 from pydantic import Field, StrictBool, StrictFloat, StrictInt
 from tqdm import tqdm
 from wingman.replay_buffer import ReplayBuffer
-from wingman.utils import gpuize
 
-from dogfighter.models.bases import (Action, AlgorithmParams, BaseActor,
-                                     BaseAlgorithm, BaseQUEnsemble, EnvParams,
-                                     ModelParams, Observation)
+from dogfighter.models.bases import (AlgorithmParams, BaseActor, BaseAlgorithm,
+                                     BaseQUEnsemble, EnvParams, ModelParams,
+                                     Observation)
 
 
 class CCGEParams(AlgorithmParams):
@@ -28,7 +27,7 @@ class CCGEParams(AlgorithmParams):
     critic_update_ratio: StrictInt = Field(default=1)
 
 
-class CCGE(BaseAlgorithm):
+class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
     """Critic Confidence Guided Exploration."""
 
     def __init__(
@@ -124,7 +123,6 @@ class CCGE(BaseAlgorithm):
 
     def update(
         self,
-        device: torch.device,
         memory: ReplayBuffer,
         batch_size: int,
         num_gradient_steps: int,
@@ -139,7 +137,6 @@ class CCGE(BaseAlgorithm):
         - The next 1 item be for termination.
 
         Args:
-            device (torch.device): device
             memory (ReplayBuffer): memory
             batch_size (int): batch_size
             num_gradient_steps (int): num_gradient_steps
@@ -160,19 +157,14 @@ class CCGE(BaseAlgorithm):
             total=num_gradient_steps,
         ):
             # unpack batches
-            obs = self.actor.package_observation(stuff[0], device=device)
-            next_obs = self.actor.package_observation(stuff[1], device=device)
-            act = gpuize(stuff[2], device)
-            rew = gpuize(stuff[3], device)
-            term = gpuize(stuff[4], device)
 
             # take a gradient step
             update_info = self.forward(
-                obs=obs,
-                act=act,
-                next_obs=next_obs,
-                term=term,
-                rew=rew,
+                obs=stuff[0],
+                next_obs=stuff[1],
+                act=(stuff[2]),
+                rew=stuff[3],
+                term=stuff[4],
             )
 
         return update_info
@@ -180,7 +172,7 @@ class CCGE(BaseAlgorithm):
     def forward(
         self,
         obs: Observation,
-        act: Action,
+        act: torch.Tensor,
         next_obs: Observation,
         term: torch.Tensor,
         rew: torch.Tensor,
@@ -189,7 +181,7 @@ class CCGE(BaseAlgorithm):
 
         Args:
             obs (Observation): obs
-            act (Action): act
+            act (torch.Tensor): act
             next_obs (Observation): next_obs
             term (torch.Tensor): term
             rew (torch.Tensor): rew
@@ -249,7 +241,7 @@ class CCGE(BaseAlgorithm):
     def _calc_critic_loss(
         self,
         obs: Observation,
-        act: Action,
+        act: torch.Tensor,
         rew: torch.Tensor,
         next_obs: Observation,
         term: torch.Tensor,
@@ -258,7 +250,7 @@ class CCGE(BaseAlgorithm):
 
         Args:
             obs (Observation): obs
-            act (Action): act
+            act (torch.Tensor): act
             rew (torch.Tensor): reward of shape [B, 1]
             next_obs (Observation): next_obs
             term (torch.Tensor): term of shape [B, 1]
@@ -405,13 +397,13 @@ class CCGE(BaseAlgorithm):
     def pick_best_action(
         self,
         obs: Observation,
-        act_sets: Action,
+        act_sets: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """pick_best_action.
 
         Args:
             obs (Observation): obs
-            act_sets (Action): act_sets
+            act_sets (torch.Tensor): act_sets
 
         Returns:
             tuple[torch.Tensor, torch.Tensor]:

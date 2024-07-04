@@ -1,5 +1,3 @@
-from typing import OrderedDict
-
 import numpy as np
 import torch
 from gymnasium.vector import VectorEnv
@@ -13,10 +11,9 @@ from dogfighter.models.bases import BaseActor
 def env_collect_to_memory(
     actor: BaseActor,
     vec_env: VectorEnv,
-    device: torch.device,
     memory: ReplayBuffer,
-    random_actions: bool,
     num_steps: int,
+    random_actions: bool,
 ) -> ReplayBuffer:
     """Runs the actor in the vector environment and collects transitions.
 
@@ -31,10 +28,9 @@ def env_collect_to_memory(
     Args:
         actor (BaseActor): actor
         vec_env (VectorEnv): vec_env
-        device (torch.device): device
         memory (ReplayBuffer): memory
-        random_actions (bool): random_actions
         num_steps (int): num_steps
+        random_actions (bool): random_actions
 
     Returns:
         ReplayBuffer:
@@ -54,21 +50,16 @@ def env_collect_to_memory(
             act = vec_env.action_space.sample()
         else:
             # get an action from the actor
-            # this is a tensor
-            policy_observation = actor.package_observation(obs, device)
-            act, _ = actor.sample(*actor(policy_observation))
-
-            # convert the action to cpu
-            act = cpuize(act)
+            act, _ = actor.sample(*actor(obs))
 
         # step the transition
         next_obs, rew, term, trunc, info = vec_env.step(act)
 
         # store stuff in mem
-        if isinstance(obs, np.ndarray):
+        if isinstance(obs, (np.ndarray, torch.Tensor)):
             memory.push(
                 [
-                    obs[non_reset_envs, ...],
+                    obs[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
                     next_obs[non_reset_envs, ...],
                     act[non_reset_envs, ...],
                     np.expand_dims(rew, axis=-1)[non_reset_envs, ...],
@@ -76,17 +67,8 @@ def env_collect_to_memory(
                 ],
                 bulk=True,
             )
-        elif isinstance(obs, OrderedDict):
-            memory.push(
-                [
-                    *obs[non_reset_envs, ...].values(),
-                    *next_obs[non_reset_envs, ...].values(),
-                    act[non_reset_envs, ...],
-                    np.expand_dims(rew, axis=-1)[non_reset_envs, ...],
-                    np.expand_dims(term, axis=-1)[non_reset_envs, ...],
-                ],
-                bulk=True,
-            )
+        elif isinstance(obs, dict):
+            raise NotImplementedError("Not implemented yet.")
         else:
             raise NotImplementedError(
                 f"No idea how to deal with observation of type {type(obs)}."
@@ -102,7 +84,6 @@ def env_collect_to_memory(
 
 def env_evaluate(
     actor: BaseActor,
-    device: torch.device,
     vec_env: VectorEnv,
     num_episodes: int,
 ) -> tuple[float, float]:
@@ -112,7 +93,6 @@ def env_evaluate(
 
     Args:
         actor (BaseActor): actor
-        device (torch.device): device
         vec_env (VectorEnv): vec_env
         num_episodes (int): num_episodes
 
@@ -135,8 +115,7 @@ def env_evaluate(
         while not np.all(done_envs):
             # get an action from the actor
             # this is a tensor
-            policy_observation = actor.package_observation(obs, device)
-            act = actor.infer(*actor(policy_observation))
+            act = actor.infer(*actor(obs))
 
             # convert the action to cpu
             act = cpuize(act)
