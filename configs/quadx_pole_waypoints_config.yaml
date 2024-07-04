@@ -3,7 +3,7 @@ num_envs: 8
 env_name: "PyFlyt/QuadX-Pole-Waypoints-v2"
 
 # learning params
-vec_env_steps_per_epoch: 2000
+env_transitions_per_epoch: 8000
 model_updates_per_epoch: 1000
 buffer_size: 1000000
 batch_size: 2048
@@ -27,7 +27,7 @@ qu_num_ensemble: 2
 embed_dim: 256
 
 # eval settings
-eval_num_episodes: 40
+eval_num_episodes: 32
 eval_steps_ratio: 10000
 
 # wingman required params

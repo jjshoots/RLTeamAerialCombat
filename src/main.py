@@ -41,7 +41,7 @@ def train(wm: Wingman) -> None:
             vec_env=train_env,
             memory=memory,
             random_actions=memory.count < cfg.exploration_steps,
-            num_steps=cfg.vec_env_steps_per_epoch,
+            num_transitions=cfg.env_transitions_per_epoch,
         )
         wm.log["buffer_size"] = memory.__len__()
         wm.log["num_transitions"] = memory.count

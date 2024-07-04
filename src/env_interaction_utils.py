@@ -15,12 +15,12 @@ def env_collect_to_memory(
     actor: BaseActor,
     vec_env: VectorEnv,
     memory: ReplayBuffer,
-    num_steps: int,
+    num_transitions: int,
     random_actions: bool,
 ) -> tuple[ReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """Runs the actor in the vector environment and collects transitions.
 
-    This collects `num_steps * vec_env.num_envs` transitions.
+    This collects `num_transitions` transitions using `num_transitions // vev_env.num_envs` steps.
     Note that it stores the items in the replay buffer in the following order:
     - The first `n` items be for observation. (`n=1` if obs = np.ndarray)
     - The next `n` items be for next observation. (`n=1` if obs = np.ndarray)
@@ -49,7 +49,7 @@ def env_collect_to_memory(
     obs, info = vec_env.reset()
     non_reset_envs = np.ones(vec_env.num_envs, dtype=bool)
 
-    for _ in range(num_steps):
+    for _ in range(num_transitions // vec_env.num_envs):
         # compute an action depending on whether we're exploring or not
         if random_actions:
             # sample an action from the env
@@ -87,12 +87,8 @@ def env_collect_to_memory(
 
     # print some recordings
     total_time = time.time() - start_time
-    total_interactions = num_steps * vec_env.num_envs
-    interaction_per_second = total_interactions / total_time
-    print(
-        "Collect Stats: "
-        f"{total_time:.2f}s for {total_interactions} interactions @ {interaction_per_second} i/s."
-    )
+    interaction_per_second = num_transitions / total_time
+    print(f"Collect Stats: {total_time:.2f}s @ {interaction_per_second} t/s.")
 
     # return the replay buffer and some information
     info: dict[Literal["interactions_per_second"], float] = dict()
