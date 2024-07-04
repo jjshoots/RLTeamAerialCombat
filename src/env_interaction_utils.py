@@ -87,16 +87,16 @@ def env_collect_to_memory(
 
     # print some recordings
     total_time = time.time() - start_time
-    interactions = num_steps * vec_env.num_envs
-    interaction_per_second = total_time / interactions
+    total_interactions = num_steps * vec_env.num_envs
+    interaction_per_second = total_interactions / total_time
     print(
         "Collect Stats: "
-        f"{total_time:.2f}s for {interactions} interactions @ {interaction_per_second} i/s."
+        f"{total_time:.2f}s for {total_interactions} interactions @ {interaction_per_second} i/s."
     )
 
     # return the replay buffer and some information
     info: dict[Literal["interactions_per_second"], float] = dict()
-    info["interactions_per_second"] = interactions / total_time
+    info["interactions_per_second"] = interaction_per_second
     return memory, info
 
 
