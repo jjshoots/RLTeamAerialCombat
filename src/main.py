@@ -97,7 +97,7 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
     # step for one episode
     while not term and not trunc:
         # get an action from the actor
-        obs = gpuize(obs.unsqueeze(0), device=wm.device)
+        obs = gpuize(obs, device=wm.device).unsqueeze(0)
         act = actor.infer(*actor(obs))
         act = cpuize(act.squeeze(0))
 
