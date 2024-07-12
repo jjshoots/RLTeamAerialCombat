@@ -66,10 +66,10 @@ def env_collect_to_memory(
             memory.push(
                 [
                     obs[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
-                    next_obs[non_reset_envs, ...],
                     act[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
                     np.expand_dims(rew, axis=-1)[non_reset_envs, ...],
                     np.expand_dims(term, axis=-1)[non_reset_envs, ...],
+                    next_obs[non_reset_envs, ...],
                 ],
                 bulk=True,
             )

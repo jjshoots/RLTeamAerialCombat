@@ -149,22 +149,14 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
 
         # start the training!
         self.train()
-        for stuff in tqdm(  # pyright: ignore[reportAssignmentType]
-            memory.iter_sample(
-                batch_size=batch_size,
-                num_iter=num_gradient_steps,
-            ),
-            total=num_gradient_steps,
-        ):
-            # unpack batches
-
-            # take a gradient step
+        for _ in tqdm(range(num_gradient_steps)):
+            obs, act, rew, term, next_obs = memory.sample(batch_size)
             update_info = self.forward(
-                obs=stuff[0],
-                next_obs=stuff[1],
-                act=(stuff[2]),
-                rew=stuff[3],
-                term=stuff[4],
+                obs=obs,
+                act=act,
+                rew=rew,
+                term=term,
+                next_obs=next_obs,
             )
 
         return update_info
@@ -173,18 +165,18 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
         self,
         obs: Observation,
         act: torch.Tensor,
-        next_obs: Observation,
-        term: torch.Tensor,
         rew: torch.Tensor,
+        term: torch.Tensor,
+        next_obs: Observation,
     ) -> dict[str, Any]:
         """The update step disguised as a forward step.
 
         Args:
             obs (Observation): obs
             act (torch.Tensor): act
-            next_obs (Observation): next_obs
-            term (torch.Tensor): term
             rew (torch.Tensor): rew
+            term (torch.Tensor): term
+            next_obs (Observation): next_obs
 
         Returns:
             dict[str, Any]:
@@ -201,8 +193,8 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
                 obs=obs,
                 act=act,
                 rew=rew,
-                next_obs=next_obs,
                 term=term,
+                next_obs=next_obs,
             )
             loss.backward()
             self._critic_optim.step()
@@ -243,8 +235,8 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
         obs: Observation,
         act: torch.Tensor,
         rew: torch.Tensor,
-        next_obs: Observation,
         term: torch.Tensor,
+        next_obs: Observation,
     ) -> tuple[torch.Tensor, dict[str, Any]]:
         """_calc_critic_loss.
 
@@ -252,8 +244,8 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
             obs (Observation): obs
             act (torch.Tensor): act
             rew (torch.Tensor): reward of shape [B, 1]
-            next_obs (Observation): next_obs
             term (torch.Tensor): term of shape [B, 1]
+            next_obs (Observation): next_obs
 
         Returns:
             tuple[torch.Tensor, dict[str, Any]]:
