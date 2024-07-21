@@ -93,7 +93,7 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
     actor = actor or setup_algorithm(wm).actor
 
     term, trunc = False, False
-    obs, info = env.reset()
+    obs, _ = env.reset()
 
     # step for one episode
     while not term and not trunc:
@@ -103,7 +103,7 @@ def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
         act = cpuize(act.squeeze(0))
 
         # step the transition
-        next_obs, rew, term, trunc, info = env.step(act)
+        next_obs, _, term, trunc, _ = env.step(act)
 
         # new observation is the next observation
         obs = next_obs

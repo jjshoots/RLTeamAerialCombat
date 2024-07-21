@@ -20,7 +20,7 @@ from dogfighter.models.mlp.mlp_bases import MlpModelParams
 def setup_vector_environment(wm: Wingman) -> VectorEnv:
     # make the vec env
     vec_env = AsyncVectorEnv(
-        [lambda i=i: setup_single_environment(wm) for i in range(wm.cfg.num_envs)]
+        [lambda _=i: setup_single_environment(wm) for i in range(wm.cfg.num_envs)]
     )
 
     # wrapper to convert the observation to tensors
