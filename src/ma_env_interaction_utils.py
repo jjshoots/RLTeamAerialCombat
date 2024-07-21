@@ -71,6 +71,9 @@ def ma_env_collect_to_memory(
             # step the transition
             dict_next_obs, dict_rew, dict_term, dict_trunc, _ = ma_env.step(dict_act)
 
+            # increment step count
+            steps_collected += stack_obs.shape[0]
+
             # store stuff in mem
             memory.push(
                 [
