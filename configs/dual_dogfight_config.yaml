@@ -1,20 +1,20 @@
 # env params
-env_type: "parallel_env"
-env_name: "dogfight"
 team_size: 1
 
 # learning params
 env_transitions_per_epoch: 8000
 model_updates_per_epoch: 1000
-buffer_size: 500000
+buffer_size: 1000000
 batch_size: 2048
-total_steps: 2000000
+total_steps: 4000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.98
 learning_rate: 0.003
 exploration_steps: 0
 random_rollover: true
+replay_buffer_mode: "torch"
+replay_buffer_store_on_device: true
 
 # CCGE params
 pretrained_oracle: false
@@ -34,7 +34,6 @@ eval_steps_ratio: 2000
 train: false
 eval: false
 display: false
-render: false
 debug: false
 
 save_directory: 'weights'

@@ -48,19 +48,21 @@ def ma_env_collect_to_memory(
 
     steps_collected = 0
     while steps_collected < num_transitions:
-        # init the first obs, infos, convert obs into array
+        # init the first obs, infos
         dict_obs, _ = ma_env.reset()
-        stack_obs = gpuize(np.stack([v for v in dict_obs.values()]))
 
         while ma_env.agents:
+            # stack the observation into an array
+            stack_obs = torch.stack([gpuize(v) for v in dict_obs.values()], dim=0)
+
             # compute an action depending on whether we're exploring or not
             if random_actions:
                 # sample an action from the env
                 dict_act = {
                     agent: ma_env.action_space(agent).sample()
-                    for agent in ma_env.agents
+                    for agent in dict_obs.keys()
                 }
-                stack_act = torch.stack([v for v in dict_act.values()])
+                stack_act = torch.stack([v for v in dict_act.values()], dim=0)
             else:
                 # get an action from the actor
                 stack_act, _ = actor.sample(*actor(stack_obs))
@@ -74,9 +76,9 @@ def ma_env_collect_to_memory(
                 [
                     stack_obs,
                     stack_act,
-                    torch.stack([v for v in dict_rew]),
-                    torch.stack([v for v in dict_term]),
-                    torch.stack([v for v in dict_next_obs]),
+                    torch.stack([gpuize(v) for v in dict_rew.values()], dim=0)[:, None],
+                    torch.stack([gpuize(v) for v in dict_term.values()], dim=0)[:, None],
+                    torch.stack([gpuize(v) for v in dict_next_obs.values()], dim=0),
                 ],
                 bulk=True,
             )

@@ -67,8 +67,8 @@ def vec_env_collect_to_memory(
                 [
                     obs[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
                     act[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
-                    np.expand_dims(rew, axis=-1)[non_reset_envs, ...],
-                    np.expand_dims(term, axis=-1)[non_reset_envs, ...],
+                    rew[:, None][non_reset_envs, ...],
+                    term[:, None][non_reset_envs, ...],
                     next_obs[non_reset_envs, ...],
                 ],
                 bulk=True,
