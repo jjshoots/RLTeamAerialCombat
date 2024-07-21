@@ -164,10 +164,10 @@ def ma_env_evaluate(
 
             # track statistics
             num_interactions += 1
-            num_out_of_bounds = sum(
+            num_out_of_bounds += sum(
                 [info.get("out_of_bounds", 0) for info in dict_info.values()]
             )
-            num_collisions = sum(
+            num_collisions += sum(
                 [info.get("collision", 0) for info in dict_info.values()]
             )
             cumulative_reward = sum([rew for rew in dict_rew.values()])

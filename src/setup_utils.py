@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gymnasium as gym
-import PyFlyt
 import torch
 from gymnasium.vector import AsyncVectorEnv, VectorEnv
 from gymnasium.wrappers import rescale_action
