@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import gymnasium as gym
+import PyFlyt
 import torch
 from gymnasium.vector import AsyncVectorEnv, VectorEnv
 from gymnasium.wrappers import rescale_action
+from pettingzoo import ParallelEnv
 from PyFlyt.gym_envs import FlattenWaypointEnv
 from wingman import Wingman
 from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
@@ -25,6 +27,21 @@ def setup_vector_environment(wm: Wingman) -> VectorEnv:
     vec_env = VecEnvGpuizeWrapper(vec_env, wm.device)
 
     return vec_env
+
+
+def setup_ma_environment(wm: Wingman) -> ParallelEnv:
+    # define one env
+    ma_env = PyFlyt.pz_envs.MAFixedwingDogfightEnv(
+        team_size=wm.cfg.team_size,
+        render_mode="human" if wm.cfg.display else None,
+        flatten_observation=True,
+    )
+
+    # record observation space shape
+    wm.cfg.obs_size = ma_env.observation_space(0).shape[0]
+    wm.cfg.act_size = ma_env.action_space(0).shape[0]
+
+    return ma_env
 
 
 def setup_single_environment(wm: Wingman) -> gym.Env:

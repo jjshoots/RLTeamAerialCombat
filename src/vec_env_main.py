@@ -9,9 +9,10 @@ from wingman import Wingman
 from wingman.utils import cpuize, gpuize, shutdown_handler
 
 from dogfighter.models.bases import BaseActor
-from env_interaction_utils import env_collect_to_memory, env_evaluate
 from setup_utils import (setup_algorithm, setup_replay_buffer,
                          setup_single_environment, setup_vector_environment)
+from vec_env_interaction_utils import (vec_env_collect_to_memory,
+                                       vec_env_evaluate)
 
 
 def train(wm: Wingman) -> None:
@@ -36,7 +37,7 @@ def train(wm: Wingman) -> None:
         wm.log["epoch"] += 1
 
         """POLICY ROLLOUT"""
-        memory, info = env_collect_to_memory(
+        memory, info = vec_env_collect_to_memory(
             actor=alg.actor,
             vec_env=train_env,
             memory=memory,
@@ -60,7 +61,7 @@ def train(wm: Wingman) -> None:
 
         """EVALUATE POLICY"""
         if memory.count >= next_eval_step:
-            info = env_evaluate(
+            info = vec_env_evaluate(
                 actor=alg.actor,
                 vec_env=eval_env,
                 num_episodes=cfg.eval_num_episodes,
@@ -134,7 +135,7 @@ if __name__ == "__main__":
         train(wm)
     elif wm.cfg.eval:
         wm.cfg.num_envs = 1 if wm.cfg.display else wm.cfg.num_envs
-        wm.log["eval_perf"], wm.log["mean_episode_length"] = env_evaluate(
+        wm.log["eval_perf"], wm.log["mean_episode_length"] = vec_env_evaluate(
             vec_env=setup_vector_environment(wm),
             actor=setup_algorithm(wm).actor,
             num_episodes=wm.cfg.eval_num_episodes,

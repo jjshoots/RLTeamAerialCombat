@@ -11,7 +11,7 @@ from dogfighter.models.bases import BaseActor
 
 
 @torch.no_grad()
-def env_collect_to_memory(
+def vec_env_collect_to_memory(
     actor: BaseActor,
     vec_env: VectorEnv,
     memory: ReplayBuffer,
@@ -96,7 +96,7 @@ def env_collect_to_memory(
     return memory, info
 
 
-def env_evaluate(
+def vec_env_evaluate(
     actor: BaseActor,
     vec_env: VectorEnv,
     num_episodes: int,
