@@ -88,29 +88,6 @@ def train(wm: Wingman) -> None:
             torch.save(alg.state_dict(), model_file)
 
 
-def render(wm: Wingman, actor: BaseActor | None) -> None:
-    # setup the environment and actor
-    env = setup_ma_environment(wm)
-    actor = actor or setup_algorithm(wm).actor
-
-    # init the first obs, infos, convert obs into array
-    dict_obs, _ = env.reset()
-    stack_obs = gpuize(np.stack([v for v in dict_obs.values()]))
-
-    while env.agents:
-        # get an action from the actor
-        stack_act, _ = actor.sample(*actor(stack_obs))
-        dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
-
-        # step the transition, step observation
-        dict_next_obs, _, dict_term, dict_trunc, _ = env.step(dict_act)
-        dict_obs = {
-            k: v
-            for k, v in dict_next_obs.items()
-            if not (dict_term[k] or dict_trunc[k])
-        }
-
-
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
@@ -118,6 +95,10 @@ if __name__ == "__main__":
     if wm.cfg.train:
         train(wm)
     elif wm.cfg.display:
-        render(wm=wm, actor=None)
+        info = ma_env_evaluate(
+            ma_env=setup_ma_environment(wm),
+            actor=setup_algorithm(wm).actor,
+            num_episodes=1,
+        )
     else:
         print("So this is life now.")

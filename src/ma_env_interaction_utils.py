@@ -152,7 +152,7 @@ def ma_env_evaluate(
             # convert the dictionary observation into an array and move it to the GPU
             # get an action from the actor, then parse into dictionary
             stack_obs = gpuize(np.stack([v for v in dict_obs.values()]))
-            stack_act, _ = actor.sample(*actor(stack_obs))
+            stack_act = actor.infer(*actor(stack_obs))
             dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
 
             # step a transition, next observation is current observation
