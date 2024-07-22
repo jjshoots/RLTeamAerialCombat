@@ -167,7 +167,7 @@ def ma_env_evaluate(
 
             # track statistics
             num_interactions += 1
-            cumulative_reward = sum([rew for rew in dict_rew.values()])
+            cumulative_reward += sum([rew for rew in dict_rew.values()])
             for agent_info in dict_info.values():
                 num_out_of_bounds += agent_info.get("out_of_bounds", 0)
                 num_collisions += agent_info.get("collision", 0)
