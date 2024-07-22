@@ -5,8 +5,8 @@ import torch
 from gymnasium.vector import AsyncVectorEnv, VectorEnv
 from gymnasium.wrappers import rescale_action
 from pettingzoo import ParallelEnv
-from PyFlyt.pz_envs import MAFixedwingDogfightEnv
 from PyFlyt.gym_envs import FlattenWaypointEnv
+from PyFlyt.pz_envs import MAFixedwingDogfightEnv
 from wingman import Wingman
 from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
 
