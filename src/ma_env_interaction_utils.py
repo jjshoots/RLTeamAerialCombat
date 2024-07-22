@@ -171,7 +171,9 @@ def ma_env_evaluate(
             for agent_info in dict_info.values():
                 num_out_of_bounds += agent_info.get("out_of_bounds", 0)
                 num_collisions += agent_info.get("collision", 0)
-                num_received_hits += agent_info.get("received_hits", 0)
+
+        # track statistics
+        num_received_hits += sum([i.get("received_hits", 0) for i in dict_info])
 
     # arrange the results
     info: dict[
