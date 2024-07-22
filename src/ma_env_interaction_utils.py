@@ -62,7 +62,7 @@ def ma_env_collect_to_memory(
                     agent: ma_env.action_space(agent).sample()
                     for agent in dict_obs.keys()
                 }
-                stack_act = torch.stack([v for v in dict_act.values()], dim=0)
+                stack_act = torch.stack([gpuize(v) for v in dict_act.values()], dim=0)
             else:
                 # get an action from the actor
                 stack_act, _ = actor.sample(*actor(stack_obs))
