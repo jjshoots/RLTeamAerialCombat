@@ -188,6 +188,6 @@ def ma_env_evaluate(
     info["cumulative_reward"] = cumulative_reward / num_episodes
     info["num_out_of_bounds"] = float(num_out_of_bounds / num_episodes)
     info["num_collisions"] = float(num_collisions / num_episodes)
-    info["mean_hits_per_agent"] = num_received_hits / num_episodes
+    info["mean_hits_per_agent"] = float(num_received_hits / num_episodes)
     print("Evaluation Stats:\n" f"{pformat(info, indent=2)}\n")
     return info
