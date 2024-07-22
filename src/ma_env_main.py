@@ -70,9 +70,9 @@ def train(wm: Wingman) -> None:
                 num_episodes=cfg.eval_num_episodes,
             )
             wm.log.update(info)
-            wm.log["performance"] = info["mean_episode_interactions"] / (
-                info["num_collisions"] + info["num_out_of_bounds"] + 1
-            )
+            wm.log["performance"] = (
+                info["mean_episode_interactions"] + info["mean_hits_per_agent"] * 10.0
+            ) / (info["num_collisions"] + info["num_out_of_bounds"] + 1)
             next_eval_step = (
                 int(memory.count / cfg.eval_steps_ratio) + 1
             ) * cfg.eval_steps_ratio

@@ -144,14 +144,11 @@ def ma_env_evaluate(
     num_collisions = 0
     num_received_hits = 0
 
-    import time
-
     for _ in range(num_episodes):
         # init the first obs, infos
         dict_obs, dict_info = ma_env.reset()
 
         while ma_env.agents:
-            time.sleep(0.03)
             # convert the dictionary observation into an array and move it to the GPU
             # get an action from the actor, then parse into dictionary
             stack_obs = gpuize(np.stack([v for v in dict_obs.values()]))
