@@ -10,7 +10,7 @@ total_steps: 6000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.98
-learning_rate: 0.005
+learning_rate: 0.003
 exploration_steps: 25000
 min_transitions_before_training: 50000
 random_rollover: true
