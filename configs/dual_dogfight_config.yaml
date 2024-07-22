@@ -2,7 +2,6 @@
 team_size: 1
 
 # learning params
-min_transitions_before_training: 100000
 env_transitions_per_epoch: 8000
 model_updates_per_epoch: 1000
 buffer_size: 2000000
@@ -12,7 +11,8 @@ critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.98
 learning_rate: 0.005
-exploration_steps: 0
+exploration_steps: 25000
+min_transitions_before_training: 50000
 random_rollover: true
 replay_buffer_mode: "torch"
 replay_buffer_store_on_device: true

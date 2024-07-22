@@ -45,6 +45,14 @@ def train(wm: Wingman) -> None:
         wm.log["num_transitions"] = memory.count
         wm.log.update(info)
 
+        # don't proceed with training until we have a minimum number of transitions
+        if memory.count < cfg.min_transitions_before_training:
+            print(
+                f"Haven't reached minimum number of transitions ({memory.count} / {cfg.min_transitions_before_training}) "
+                "required before training, continuing with sampling..."
+            )
+            continue
+
         """TRAINING RUN"""
         print(
             f"Training epoch {wm.log['epoch']}, Replay Buffer Capacity {memory.count} / {memory.mem_size}"
