@@ -2,10 +2,11 @@
 team_size: 1
 
 # learning params
+min_transitions_before_training: 100000
 env_transitions_per_epoch: 8000
 model_updates_per_epoch: 1000
 buffer_size: 2000000
-batch_size: 4096
+batch_size: 2048
 total_steps: 6000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
