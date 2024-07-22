@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from signal import SIGINT, signal
 
-import numpy as np
 import torch
 from wingman import Wingman
-from wingman.utils import cpuize, gpuize, shutdown_handler
+from wingman.utils import shutdown_handler
 
-from dogfighter.models.bases import BaseActor
 from ma_env_interaction_utils import ma_env_collect_to_memory, ma_env_evaluate
 from setup_utils import (setup_algorithm, setup_ma_environment,
                          setup_replay_buffer)
