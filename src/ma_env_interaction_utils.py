@@ -110,10 +110,11 @@ def ma_env_evaluate(
     num_episodes: int,
 ) -> dict[
     Literal[
+        "mean_episode_interactions",
         "cumulative_reward",
         "num_out_of_bounds",
         "num_collisions",
-        "mean_episode_interactions",
+        "mean_hits_per_agent",
     ],
     float,
 ]:
@@ -127,19 +128,21 @@ def ma_env_evaluate(
     Returns:
         dict[
             Literal[
+                "mean_episode_interactions",
                 "cumulative_reward",
                 "num_out_of_bounds",
                 "num_collisions",
-                "mean_episode_interactions",
+                "mean_hits_per_agent",
             ],
             float
         ]:
     """
     # start the evaluation loops
     num_interactions = 0
+    cumulative_reward = 0.0
     num_out_of_bounds = 0
     num_collisions = 0
-    cumulative_reward = 0.0
+    num_received_hits = 0
 
     for _ in range(num_episodes):
         # init the first obs, infos
@@ -164,27 +167,27 @@ def ma_env_evaluate(
 
             # track statistics
             num_interactions += 1
-            num_out_of_bounds += sum(
-                [info.get("out_of_bounds", 0) for info in dict_info.values()]
-            )
-            num_collisions += sum(
-                [info.get("collision", 0) for info in dict_info.values()]
-            )
             cumulative_reward = sum([rew for rew in dict_rew.values()])
+            for agent_info in dict_info.values():
+                num_out_of_bounds += agent_info.get("out_of_bounds", 0)
+                num_collisions += agent_info.get("collision", 0)
+                num_received_hits += agent_info.get("received_hits", 0)
 
     # arrange the results
     info: dict[
         Literal[
+            "mean_episode_interactions",
             "cumulative_reward",
             "num_out_of_bounds",
             "num_collisions",
-            "mean_episode_interactions",
+            "mean_hits_per_agent",
         ],
         float,
     ] = dict()
     info["mean_episode_interactions"] = float(num_interactions / num_episodes)
+    info["cumulative_reward"] = cumulative_reward / num_episodes
     info["num_out_of_bounds"] = float(num_out_of_bounds / num_episodes)
     info["num_collisions"] = float(num_collisions / num_episodes)
-    info["cumulative_reward"] = cumulative_reward / num_episodes
+    info["mean_hits_per_agent"] = num_received_hits / num_episodes
     print("Evaluation Stats:\n" f"{pformat(info, indent=2)}\n")
     return info
