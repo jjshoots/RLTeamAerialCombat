@@ -4,9 +4,9 @@ team_size: 1
 # learning params
 env_transitions_per_epoch: 8000
 model_updates_per_epoch: 1000
-buffer_size: 2000000
+buffer_size: 1500000
 batch_size: 2048
-total_steps: 6000000
+total_steps: 3000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.98

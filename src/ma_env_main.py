@@ -71,7 +71,7 @@ def train(wm: Wingman) -> None:
             )
             wm.log.update(info)
             wm.log["performance"] = (
-                info["mean_episode_interactions"] + info["mean_hits_per_agent"] * 10.0
+                info["mean_episode_interactions"] * 0.05 + info["mean_hits_per_agent"] * 10.0
             ) / (info["num_collisions"] + info["num_out_of_bounds"] + 1)
             next_eval_step = (
                 int(memory.count / cfg.eval_steps_ratio) + 1
