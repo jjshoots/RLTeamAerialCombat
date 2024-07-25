@@ -51,9 +51,13 @@ def ma_env_collect_to_memory(
         # init the first obs, infos
         dict_obs, _ = ma_env.reset()
 
+        # list to store memory address references for each transition generated
+        transitions = []
+
+        # loop interaction
         while ma_env.agents:
             # stack the observation into an array
-            stack_obs = torch.stack([gpuize(v) for v in dict_obs.values()], dim=0)
+            stack_obs = np.stack([v for v in dict_obs.values()], axis=0)
 
             # compute an action depending on whether we're exploring or not
             if random_actions:
@@ -62,11 +66,11 @@ def ma_env_collect_to_memory(
                     agent: ma_env.action_space(agent).sample()
                     for agent in dict_obs.keys()
                 }
-                stack_act = torch.stack([gpuize(v) for v in dict_act.values()], dim=0)
+                stack_act = np.stack([v for v in dict_act.values()], axis=0)
             else:
                 # get an action from the actor
-                stack_act, _ = actor.sample(*actor(stack_obs))
-                dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
+                stack_act = cpuize(actor.sample(*actor(gpuize(stack_obs)))[0])
+                dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
             # step the transition
             dict_next_obs, dict_rew, dict_term, dict_trunc, _ = ma_env.step(dict_act)
@@ -74,16 +78,17 @@ def ma_env_collect_to_memory(
             # increment step count
             steps_collected += stack_obs.shape[0]
 
-            # store stuff in mem
-            memory.push(
-                [
+            # temporarily store the transitions
+            # don't care that it's not contiguous
+            # we just want to store memory addresses for now
+            transitions.append(
+                (
                     stack_obs,
                     stack_act,
-                    torch.stack([gpuize(v) for v in dict_rew.values()], dim=0)[:, None],
-                    torch.stack([gpuize(v) for v in dict_term.values()], dim=0)[:, None],
-                    torch.stack([gpuize(v) for v in dict_next_obs.values()], dim=0),
-                ],
-                bulk=True,
+                    np.stack([v for v in dict_rew.values()], axis=0)[:, None],
+                    np.stack([v for v in dict_term.values()], axis=0)[:, None],
+                    np.stack([v for v in dict_next_obs.values()], axis=0),
+                )
             )
 
             # new observation is the next observation
@@ -92,6 +97,12 @@ def ma_env_collect_to_memory(
                 for k, v in dict_next_obs.items()
                 if not (dict_term[k] or dict_trunc[k])
             }
+
+        # store stuff in contiguous mem after each episode
+        memory.push(
+            [gpuize(np.stack(items, axis=0)) for items in zip(*transitions)],
+            bulk=True,
+        )
 
     # print some recordings
     total_time = time.time() - start_time
