@@ -100,7 +100,7 @@ def ma_env_collect_to_memory(
 
         # store stuff in contiguous mem after each episode
         memory.push(
-            [gpuize(np.stack(items, axis=0)) for items in zip(*transitions)],
+            [gpuize(np.concatenate(items, axis=0)) for items in zip(*transitions)],
             bulk=True,
         )
 
