@@ -88,7 +88,7 @@ def train(wm: Wingman) -> None:
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
-    wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
+    wm = Wingman(config_yaml="./configs/quad_dogfight_config.yaml")
 
     if wm.cfg.train:
         train(wm)

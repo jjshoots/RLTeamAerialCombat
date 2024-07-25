@@ -3,7 +3,7 @@ team_size: 2
 
 # learning params
 env_transitions_per_epoch: 8000
-model_updates_per_epoch: 1000
+model_updates_per_epoch: 2000
 buffer_size: 1500000
 batch_size: 2048
 total_steps: 3000000
@@ -48,7 +48,7 @@ max_skips: 5
 greater_than: 0.0
 
 wandb: false
-wandb_name: "1v1_dogfight"
+wandb_name: "2v2_dogfight"
 wandb_notes: ""
 wandb_id: ""
 wandb_entity: "jjshoots"
