@@ -159,7 +159,7 @@ def vec_env_evaluate(
     return info
 
 
-def render_gif(wm: Wingman) -> Path:
+def vec_env_render_gif(wm: Wingman) -> Path:
     import imageio.v3 as iio
 
     frames = []
