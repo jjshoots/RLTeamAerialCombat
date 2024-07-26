@@ -23,6 +23,7 @@ def train(wm: Wingman) -> None:
 
     # logging metrics
     wm.log["epoch"] = 0
+    wm.log["max_eval_perf"] = -math.inf
     next_eval_step = 0
 
     # start the main training loop
@@ -70,9 +71,9 @@ def train(wm: Wingman) -> None:
                 num_episodes=cfg.eval_num_episodes,
             )
             wm.log.update(info)
-            wm.log["performance"] = (
-                info["mean_episode_interactions"] * 0.05 + info["mean_hits_per_agent"] * 10.0
-            ) / (info["num_collisions"] + info["num_out_of_bounds"] + 1)
+            wm.log["max_eval_perf"] = max(
+                [float(wm.log["max_eval_perf"]), float(wm.log["eval_perf"])]
+            )
             next_eval_step = (
                 int(memory.count / cfg.eval_steps_ratio) + 1
             ) * cfg.eval_steps_ratio
@@ -80,7 +81,7 @@ def train(wm: Wingman) -> None:
         """WANDB"""
         # save weights
         to_update, model_file, _ = wm.checkpoint(
-            loss=-float(wm.log["performance"]), step=wm.log["num_transitions"]
+            loss=-float(wm.log["eval_perf"]), step=wm.log["num_transitions"]
         )
         if to_update:
             torch.save(alg.state_dict(), model_file)

@@ -126,6 +126,7 @@ def ma_env_evaluate(
         "num_out_of_bounds",
         "num_collisions",
         "mean_hits_per_agent",
+        "eval_perf",
     ],
     float,
 ]:
@@ -144,6 +145,7 @@ def ma_env_evaluate(
                 "num_out_of_bounds",
                 "num_collisions",
                 "mean_hits_per_agent",
+                "eval_perf",
             ],
             float
         ]:
@@ -196,6 +198,7 @@ def ma_env_evaluate(
             "num_out_of_bounds",
             "num_collisions",
             "mean_hits_per_agent",
+            "eval_perf",
         ],
         float,
     ] = dict()
@@ -204,5 +207,8 @@ def ma_env_evaluate(
     info["num_out_of_bounds"] = float(num_out_of_bounds / num_episodes)
     info["num_collisions"] = float(num_collisions / num_episodes)
     info["mean_hits_per_agent"] = float(num_received_hits / num_episodes)
+    info["eval_perf"] = (
+        info["mean_episode_interactions"] * 0.05 + info["mean_hits_per_agent"] * 10.0
+    ) / (info["num_collisions"] + info["num_out_of_bounds"] + 1)
     print("Evaluation Stats:\n" f"{pformat(info, indent=2)}\n")
     return info
