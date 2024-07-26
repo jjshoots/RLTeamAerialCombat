@@ -31,7 +31,7 @@ if __name__ == "__main__":
             wm.log["eval_perf"], wm.log["mean_episode_length"] = vec_env_evaluate(
                 env=setup_vector_environment(wm),
                 actor=setup_algorithm(wm).actor,
-                num_episodes=wm.cfg.eval_num_episodes,
+                num_episodes=1,
             )
         else:
             raise ValueError(

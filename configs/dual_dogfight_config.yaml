@@ -1,4 +1,5 @@
 # env params
+env_type: "ma_env"
 team_size: 1
 
 # learning params
