@@ -6,9 +6,10 @@ import torch
 from wingman import Wingman
 
 from ma_env_interaction_utils import ma_env_collect_to_memory, ma_env_evaluate
-from vec_env_interaction_utils import vec_env_collect_to_memory, vec_env_evaluate
 from setup_utils import (setup_algorithm, setup_ma_environment,
                          setup_replay_buffer, setup_vector_environment)
+from vec_env_interaction_utils import (vec_env_collect_to_memory,
+                                       vec_env_evaluate)
 
 
 def train(wm: Wingman) -> None:
@@ -27,7 +28,9 @@ def train(wm: Wingman) -> None:
         collect_function = ma_env_collect_to_memory
         evaluate_function = ma_env_evaluate
     else:
-        raise ValueError(f"Expected only 'vec_env' and 'ma_env' for env_type, got '{cfg.env_type}'.")
+        raise ValueError(
+            f"Expected only 'vec_env' and 'ma_env' for env_type, got '{cfg.env_type}'."
+        )
 
     # setup algorithm and replay buffer
     alg = setup_algorithm(wm)

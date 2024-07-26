@@ -63,8 +63,7 @@ def ma_env_collect_to_memory(
             if random_actions:
                 # sample an action from the env
                 dict_act = {
-                    agent: env.action_space(agent).sample()
-                    for agent in dict_obs.keys()
+                    agent: env.action_space(agent).sample() for agent in dict_obs.keys()
                 }
                 stack_act = np.stack([v for v in dict_act.values()], axis=0)
             else:
