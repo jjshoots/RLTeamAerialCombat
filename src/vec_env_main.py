@@ -1,17 +1,14 @@
 from __future__ import annotations
 
 import math
-from pathlib import Path
 from signal import SIGINT, signal
 
 import torch
 from wingman import Wingman
-from wingman.utils import cpuize, gpuize, shutdown_handler
+from wingman.utils import shutdown_handler
 
-from dogfighter.models.bases import BaseActor
-from setup_utils import (setup_algorithm, setup_replay_buffer,
-                         setup_single_environment, setup_vector_environment)
-from vec_env_interaction_utils import (vec_env_collect_to_memory,
+from setup_utils import setup_algorithm, setup_replay_buffer, setup_vector_environment
+from vec_env_interaction_utils import (render_gif, vec_env_collect_to_memory,
                                        vec_env_evaluate)
 
 
@@ -39,7 +36,7 @@ def train(wm: Wingman) -> None:
         """POLICY ROLLOUT"""
         memory, info = vec_env_collect_to_memory(
             actor=alg.actor,
-            vec_env=train_env,
+            env=train_env,
             memory=memory,
             random_actions=memory.count < cfg.exploration_steps,
             num_transitions=cfg.env_transitions_per_epoch,
@@ -71,7 +68,7 @@ def train(wm: Wingman) -> None:
         if memory.count >= next_eval_step:
             info = vec_env_evaluate(
                 actor=alg.actor,
-                vec_env=eval_env,
+                env=eval_env,
                 num_episodes=cfg.eval_num_episodes,
             )
             wm.log.update(info)
@@ -91,48 +88,6 @@ def train(wm: Wingman) -> None:
             torch.save(alg.state_dict(), model_file)
 
 
-def render_gif(wm: Wingman, actor: BaseActor | None) -> Path:
-    import imageio.v3 as iio
-
-    frames = []
-
-    # setup the environment and actor
-    env = setup_single_environment(wm)
-    actor = actor or setup_algorithm(wm).actor
-
-    term, trunc = False, False
-    obs, _ = env.reset()
-
-    # step for one episode
-    while not term and not trunc:
-        # get an action from the actor
-        obs = gpuize(obs, device=wm.device).unsqueeze(0)
-        act = actor.infer(*actor(obs))
-        act = cpuize(act.squeeze(0))
-
-        # step the transition
-        next_obs, _, term, trunc, _ = env.step(act)
-
-        # new observation is the next observation
-        obs = next_obs
-
-        # for gif
-        frames.append(env.render())
-
-    gif_path = Path("/tmp") / Path(
-        "gif"
-        # "".join(random.choices(string.ascii_letters + string.digits, k=8))
-    ).with_suffix(".gif")
-
-    iio.imwrite(
-        gif_path,
-        frames,
-        fps=30,
-    )
-
-    return gif_path.absolute()
-
-
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     wm = Wingman(config_yaml="./configs/quadx_pole_waypoints_config.yaml")
@@ -144,11 +99,11 @@ if __name__ == "__main__":
     elif wm.cfg.eval:
         wm.cfg.num_envs = 1 if wm.cfg.display else wm.cfg.num_envs
         wm.log["eval_perf"], wm.log["mean_episode_length"] = vec_env_evaluate(
-            vec_env=setup_vector_environment(wm),
+            env=setup_vector_environment(wm),
             actor=setup_algorithm(wm).actor,
             num_episodes=wm.cfg.eval_num_episodes,
         )
     elif wm.cfg.render:
-        print(render_gif(wm=wm, actor=None))
+        print(render_gif(wm=wm))
     else:
         print("So this is life now.")

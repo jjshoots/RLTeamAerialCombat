@@ -14,14 +14,14 @@ from dogfighter.models.bases import BaseActor
 @torch.no_grad()
 def ma_env_collect_to_memory(
     actor: BaseActor,
-    ma_env: ParallelEnv,
+    env: ParallelEnv,
     memory: ReplayBuffer,
     num_transitions: int,
     random_actions: bool,
 ) -> tuple[ReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """Runs the actor in the multiagent parallel environment and collects transitions.
 
-    This collects `num_transitions` transitions using `num_transitions // ma_env.num_agent` steps.
+    This collects `num_transitions` transitions using `num_transitions // env.num_agent` steps.
     Note that it stores the items in the replay buffer in the following order:
     - The first `n` items be for observation. (`n=1` if obs = np.ndarray)
     - The next `n` items be for next observation. (`n=1` if obs = np.ndarray)
@@ -31,7 +31,7 @@ def ma_env_collect_to_memory(
 
     Args:
         actor (BaseActor): actor
-        ma_env (ParallelEnv): ma_env
+        env (ParallelEnv): env
         memory (ReplayBuffer): memory
         num_transitions (int): num_transitions
         random_actions (bool): random_actions
@@ -49,13 +49,13 @@ def ma_env_collect_to_memory(
     steps_collected = 0
     while steps_collected < num_transitions:
         # init the first obs, infos
-        dict_obs, _ = ma_env.reset()
+        dict_obs, _ = env.reset()
 
         # list to store memory address references for each transition generated
         transitions = []
 
         # loop interaction
-        while ma_env.agents:
+        while env.agents:
             # stack the observation into an array
             stack_obs = np.stack([v for v in dict_obs.values()], axis=0)
 
@@ -63,7 +63,7 @@ def ma_env_collect_to_memory(
             if random_actions:
                 # sample an action from the env
                 dict_act = {
-                    agent: ma_env.action_space(agent).sample()
+                    agent: env.action_space(agent).sample()
                     for agent in dict_obs.keys()
                 }
                 stack_act = np.stack([v for v in dict_act.values()], axis=0)
@@ -73,7 +73,7 @@ def ma_env_collect_to_memory(
                 dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
             # step the transition
-            dict_next_obs, dict_rew, dict_term, dict_trunc, _ = ma_env.step(dict_act)
+            dict_next_obs, dict_rew, dict_term, dict_trunc, _ = env.step(dict_act)
 
             # increment step count
             steps_collected += stack_obs.shape[0]
@@ -117,7 +117,7 @@ def ma_env_collect_to_memory(
 
 def ma_env_evaluate(
     actor: BaseActor,
-    ma_env: ParallelEnv,
+    env: ParallelEnv,
     num_episodes: int,
 ) -> dict[
     Literal[
@@ -134,7 +134,7 @@ def ma_env_evaluate(
 
     Args:
         actor (BaseActor): actor
-        ma_env (ParallelEnv): ma_env
+        env (ParallelEnv): env
         num_episodes (int): num_episodes
 
     Returns:
@@ -159,9 +159,9 @@ def ma_env_evaluate(
 
     for _ in range(num_episodes):
         # init the first obs, infos
-        dict_obs, dict_info = ma_env.reset()
+        dict_obs, dict_info = env.reset()
 
-        while ma_env.agents:
+        while env.agents:
             # convert the dictionary observation into an array and move it to the GPU
             # get an action from the actor, then parse into dictionary
             stack_obs = gpuize(np.stack([v for v in dict_obs.values()]))
@@ -169,7 +169,7 @@ def ma_env_evaluate(
             dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
 
             # step a transition, next observation is current observation
-            dict_next_obs, dict_rew, dict_term, dict_trunc, dict_info = ma_env.step(
+            dict_next_obs, dict_rew, dict_term, dict_trunc, dict_info = env.step(
                 dict_act
             )
             dict_obs = {

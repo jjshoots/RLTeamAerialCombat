@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import math
 from signal import SIGINT, signal
 
 import torch
 from wingman import Wingman
 from wingman.utils import shutdown_handler
 
+from ma_env_interaction_utils import ma_env_collect_to_memory, ma_env_evaluate
 from ma_env_interaction_utils import ma_env_collect_to_memory, ma_env_evaluate
 from setup_utils import (setup_algorithm, setup_ma_environment,
                          setup_replay_buffer)
@@ -35,7 +37,7 @@ def train(wm: Wingman) -> None:
         """POLICY ROLLOUT"""
         memory, info = ma_env_collect_to_memory(
             actor=alg.actor,
-            ma_env=train_env,
+            env=train_env,
             memory=memory,
             random_actions=memory.count < cfg.exploration_steps,
             num_transitions=cfg.env_transitions_per_epoch,
@@ -67,7 +69,7 @@ def train(wm: Wingman) -> None:
         if memory.count >= next_eval_step:
             info = ma_env_evaluate(
                 actor=alg.actor,
-                ma_env=eval_env,
+                env=eval_env,
                 num_episodes=cfg.eval_num_episodes,
             )
             wm.log.update(info)
@@ -96,7 +98,7 @@ if __name__ == "__main__":
         train(wm)
     elif wm.cfg.display:
         info = ma_env_evaluate(
-            ma_env=setup_ma_environment(wm),
+            env=setup_ma_environment(wm),
             actor=setup_algorithm(wm).actor,
             num_episodes=1,
         )

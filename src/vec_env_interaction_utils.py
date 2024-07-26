@@ -1,19 +1,22 @@
+from pathlib import Path
 import time
 from typing import Literal
 
 import numpy as np
 import torch
 from gymnasium.vector import VectorEnv
+from wingman import Wingman
 from wingman.replay_buffer import ReplayBuffer
-from wingman.utils import cpuize
+from wingman.utils import cpuize, gpuize
 
 from dogfighter.models.bases import BaseActor
+from setup_utils import setup_algorithm, setup_single_environment
 
 
 @torch.no_grad()
 def vec_env_collect_to_memory(
     actor: BaseActor,
-    vec_env: VectorEnv,
+    env: VectorEnv,
     memory: ReplayBuffer,
     num_transitions: int,
     random_actions: bool,
@@ -30,7 +33,7 @@ def vec_env_collect_to_memory(
 
     Args:
         actor (BaseActor): actor
-        vec_env (VectorEnv): vec_env
+        env (VectorEnv): env
         memory (ReplayBuffer): memory
         num_steps (int): num_steps
         random_actions (bool): random_actions
@@ -46,20 +49,20 @@ def vec_env_collect_to_memory(
     actor.zero_grad()
 
     # init the first obs, infos, and reset masks
-    obs, info = vec_env.reset()
-    non_reset_envs = np.ones(vec_env.num_envs, dtype=bool)
+    obs, info = env.reset()
+    non_reset_envs = np.ones(env.num_envs, dtype=bool)
 
-    for _ in range(num_transitions // vec_env.num_envs):
+    for _ in range(num_transitions // env.num_envs):
         # compute an action depending on whether we're exploring or not
         if random_actions:
             # sample an action from the env
-            act = vec_env.action_space.sample()
+            act = env.action_space.sample()
         else:
             # get an action from the actor
             act, _ = actor.sample(*actor(obs))
 
         # step the transition
-        next_obs, rew, term, trunc, info = vec_env.step(act)
+        next_obs, rew, term, trunc, info = env.step(act)
 
         # store stuff in mem
         if isinstance(obs, (np.ndarray, torch.Tensor)):
@@ -98,32 +101,32 @@ def vec_env_collect_to_memory(
 
 def vec_env_evaluate(
     actor: BaseActor,
-    vec_env: VectorEnv,
+    env: VectorEnv,
     num_episodes: int,
 ) -> dict[Literal["eval_perf", "mean_episode_length"], float]:
     """Performs an evaluation run using the given actor on the vectorized environment.
 
-    Note that `vec_env.num_envs` must cleanly divide num_episodes.
+    Note that `env.num_envs` must cleanly divide num_episodes.
 
     Args:
         actor (BaseActor): actor
-        vec_env (VectorEnv): vec_env
+        env (VectorEnv): env
         num_episodes (int): num_episodes
 
     Returns:
         dict[Literal["eval_perf", "mean_episode_length"], float]:
     """
     assert (
-        (num_episodes / vec_env.num_envs) % 1.0 == 0
-    ), f"`num_episodes` ({num_episodes}) must be clean multiple of {vec_env.num_envs}."
+        (num_episodes / env.num_envs) % 1.0 == 0
+    ), f"`num_episodes` ({num_episodes}) must be clean multiple of {env.num_envs}."
     # start the evaluation loops
     num_valid_steps = 0
     cumulative_rewards = 0.0
 
-    for _ in range(num_episodes // vec_env.num_envs):
+    for _ in range(num_episodes // env.num_envs):
         # reset things
-        obs, _ = vec_env.reset()
-        done_envs = np.zeros(vec_env.num_envs, dtype=bool)
+        obs, _ = env.reset()
+        done_envs = np.zeros(env.num_envs, dtype=bool)
 
         # step for one episode
         while not np.all(done_envs):
@@ -135,7 +138,7 @@ def vec_env_evaluate(
             act = cpuize(act)
 
             # step the transition
-            next_obs, rew, term, trunc, _ = vec_env.step(act)
+            next_obs, rew, term, trunc, _ = env.step(act)
 
             # roll observation and record the done envs
             obs = next_obs
@@ -154,3 +157,45 @@ def vec_env_evaluate(
         f"{info['eval_perf']} mean eval score @ {info['mean_episode_length']} mean episode length."
     )
     return info
+
+
+def render_gif(wm: Wingman) -> Path:
+    import imageio.v3 as iio
+
+    frames = []
+
+    # setup the environment and actor
+    env = setup_single_environment(wm)
+    actor = setup_algorithm(wm).actor
+
+    term, trunc = False, False
+    obs, _ = env.reset()
+
+    # step for one episode
+    while not term and not trunc:
+        # get an action from the actor
+        obs = gpuize(obs, device=wm.device).unsqueeze(0)
+        act = actor.infer(*actor(obs))
+        act = cpuize(act.squeeze(0))
+
+        # step the transition
+        next_obs, _, term, trunc, _ = env.step(act)
+
+        # new observation is the next observation
+        obs = next_obs
+
+        # for gif
+        frames.append(env.render())
+
+    gif_path = Path("/tmp") / Path(
+        "gif"
+        # "".join(random.choices(string.ascii_letters + string.digits, k=8))
+    ).with_suffix(".gif")
+
+    iio.imwrite(
+        gif_path,
+        frames,
+        fps=30,
+    )
+
+    return gif_path.absolute()
