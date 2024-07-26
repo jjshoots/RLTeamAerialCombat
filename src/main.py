@@ -108,6 +108,7 @@ if __name__ == "__main__":
 
     if wm.cfg.train:
         train(wm)
+
     elif wm.cfg.display:
         if wm.cfg.env_type == "ma_env":
             info = ma_env_evaluate(
@@ -124,8 +125,10 @@ if __name__ == "__main__":
             )
         else:
             raise ValueError(f"Expected only 'vec_env' and 'ma_env' for env_type, got '{cfg.env_type}'.")
+
     elif wm.cfg.render:
         if wm.cfg.env_type == "vec_env":
             print(vec_env_render_gif(wm=wm))
+
     else:
         print("So this is life now.")
