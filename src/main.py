@@ -13,8 +13,8 @@ from vec_env_interaction_utils import vec_env_evaluate, vec_env_render_gif
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
-    # wm = Wingman(config_yaml="./configs/quad_dogfight_config.yaml")
-    wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
+    wm = Wingman(config_yaml="./configs/quad_dogfight_config.yaml")
+    # wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
 
     if wm.cfg.train:
         train(wm)

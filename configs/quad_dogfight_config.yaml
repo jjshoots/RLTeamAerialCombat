@@ -1,12 +1,13 @@
 # env params
+env_type: "ma_env"
 team_size: 2
 
 # learning params
-env_transitions_per_epoch: 8000
-model_updates_per_epoch: 1000
-buffer_size: 1500000
+env_transitions_per_epoch: 10000
+model_updates_per_epoch: 2000
+buffer_size: 2000000
 batch_size: 2048
-total_steps: 2500000
+total_steps: 5000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.98

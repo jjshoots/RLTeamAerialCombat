@@ -4,10 +4,10 @@ source .venv/bin/activate
 wingman-compress-weights
 
 declare -a pids=()
-python3 src/ma_env_main.py --train --wandb &
+python3 src/main.py --train --wandb &
 pids+=($!)
 sleep 10
-python3 src/ma_env_main.py --train --wandb &
+python3 src/main.py --train --wandb &
 pids+=($!)
 sleep 10
 
