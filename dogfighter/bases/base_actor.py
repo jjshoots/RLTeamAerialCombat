@@ -1,62 +1,56 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Any, Generic, TypeVar
+from typing import Generic
 
 import torch
 import torch.distributions as dist
 import torch.nn as nn
 import torch.nn.functional as func
-from pydantic import BaseModel, StrictInt
-from wingman.replay_buffer import ReplayBuffer
+from pydantic import BaseModel
+
+from dogfighter.bases.base_types import Action, Observation
 
 
-class EnvParams(BaseModel):
-    act_size: StrictInt
+class ActorConfig(BaseModel):
+    """ActorConfig for creating actors."""
 
-
-class ModelParams(BaseModel):
-    pass
-
-
-class AlgorithmParams(BaseModel):
-    pass
-
-
-Observation = TypeVar("Observation")
-Action = TypeVar("Action")
-
-
-class BaseAlgorithm(nn.Module, Generic[Observation, Action]):
     @abstractmethod
-    def update(
-        self,
-        memory: ReplayBuffer,
-        batch_size: int,
-        num_gradient_steps: int,
-    ) -> dict[str, Any]:
+    def instantiate(self) -> Actor:
+        """instantiate.
+
+        Args:
+
+        Returns:
+            BaseActor:
+        """
         raise NotImplementedError
 
 
-class BaseQUEnsemble(nn.Module, Generic[Observation, Action]):
-    def __init__(self, env_params: EnvParams, model_params: ModelParams) -> None:
-        super().__init__()
-
-    def __call__(self, obs: Observation, act: Action) -> torch.Tensor:
-        return self.forward(obs=obs, act=act)
-
-    @abstractmethod
-    def forward(self, obs: Observation, act: Action) -> torch.Tensor:
-        raise NotImplementedError
-
-
-class BaseActor(nn.Module, Generic[Observation, Action]):
-    def __init__(self, env_params: EnvParams, model_params: ModelParams) -> None:
-        super().__init__()
+class Actor(nn.Module, Generic[Observation, Action]):
+    """Actor."""
 
     def __call__(self, obs: Observation) -> torch.Tensor:
+        """__call__.
+
+        Args:
+            obs (Observation): obs
+
+        Returns:
+            torch.Tensor:
+        """
         return self.forward(obs=obs)
 
     @abstractmethod
     def forward(self, obs: Observation) -> torch.Tensor:
+        """forward.
+
+        Args:
+            obs (Observation): obs
+
+        Returns:
+            torch.Tensor:
+        """
         raise NotImplementedError
 
     @staticmethod

@@ -1,70 +1,111 @@
 #!/usr/bin/env python3
 import warnings
+from dataclasses import field
 from typing import Any
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from pydantic import Field, StrictBool, StrictFloat, StrictInt
 from tqdm import tqdm
 from wingman.replay_buffer import ReplayBuffer
 
-from dogfighter.models.bases import (AlgorithmParams, BaseActor, BaseAlgorithm,
-                                     BaseQUEnsemble, EnvParams, ModelParams,
-                                     Observation)
+from dogfighter.bases.base_actor import Actor, ActorConfig
+from dogfighter.bases.base_algorithm import Algorithm, AlgorithmConfig
+from dogfighter.bases.base_critic import QUNetworkConfig
+from dogfighter.bases.base_types import Observation
+from dogfighter.models.qu_ensemble import QUEnsemble
 
 
-class CCGEParams(AlgorithmParams):
-    """CCGEParams."""
+class CCGEConfig(AlgorithmConfig):
+    """Critic Confidence Guided Exploration."""
 
-    learning_rate: StrictFloat = Field(default=0.003)
-    alpha_learning_rate: StrictFloat = Field(default=0.01)
-    entropy_tuning: StrictBool = Field(default=True)
-    target_entropy: None | StrictFloat = Field(default=None)
-    learn_uncertainty: StrictBool = Field(default=True)
-    discount_factor: StrictFloat = Field(default=0.99)
-    actor_update_ratio: StrictInt = Field(default=1)
-    critic_update_ratio: StrictInt = Field(default=1)
+    device: str
+    actor_config: ActorConfig
+    qu_config: QUNetworkConfig
+    qu_num_ensemble: int = field(default=2)
+    learning_rate: float = field(default=0.003)
+    alpha_learning_rate: float = field(default=0.01)
+    tune_entropy: bool = field(default=True)
+    target_entropy: float = field(default=0.0)
+    learn_uncertainty: bool = field(default=True)
+    discount_factor: float = field(default=0.99)
+    actor_update_ratio: int = field(default=1)
+    critic_update_ratio: int = field(default=1)
+
+    def instantiate(self) -> "CCGE":
+        """instantiate.
+
+        Args:
+
+        Returns:
+            "CCGE":
+        """
+        return CCGE(
+            device=torch.device(self.device),
+            actor=self.actor_config.instantiate(),
+            ensemble_qu=QUEnsemble(self.qu_config, num_ensemble=self.qu_num_ensemble),
+            ensemble_qu_target=QUEnsemble(
+                self.qu_config, num_ensemble=self.qu_num_ensemble
+            ),
+            learning_rate=self.learning_rate,
+            alpha_learning_rate=self.alpha_learning_rate,
+            tune_entropy=self.tune_entropy,
+            target_entropy=self.target_entropy,
+            learn_uncertainty=self.learn_uncertainty,
+            discount_factor=self.discount_factor,
+            actor_update_ratio=self.actor_update_ratio,
+            critic_update_ratio=self.critic_update_ratio,
+        )
 
 
-class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
+class CCGE(Algorithm):
     """Critic Confidence Guided Exploration."""
 
     def __init__(
         self,
-        actor_type: type[BaseActor],
-        critic_type: type[BaseQUEnsemble],
-        env_params: EnvParams,
-        model_params: ModelParams,
-        algorithm_params: CCGEParams = CCGEParams(),
-        device: torch.device = torch.device("cpu"),
+        device: torch.device,
+        actor: Actor,
+        ensemble_qu: QUEnsemble,
+        ensemble_qu_target: QUEnsemble,
+        learning_rate: float,
+        alpha_learning_rate: float,
+        tune_entropy: bool,
+        target_entropy: float,
+        learn_uncertainty: bool,
+        discount_factor: float,
+        actor_update_ratio: int,
+        critic_update_ratio: int,
     ):
         """__init__.
 
         Args:
-            actor_type (type[BaseActor]): actor_type
-            critic_type (type[BaseQUEnsemble]): critic_type
-            env_params (EnvParams): env_params
-            model_params (ModelParams): model_params
-            algorithm_params (CCGEParams): algorithm_params
+            actor (Actor): actor
+            ensemble_qu (QUEnsemble): ensemble_qu
+            ensemble_qu_target (QUEnsemble): ensemble_qu_target
+            learning_rate (float): learning_rate
+            alpha_learning_rate (float): alpha_learning_rate
+            tune_entropy (bool): tune_entropy
+            target_entropy (float): target_entropy
+            learn_uncertainty (bool): learn_uncertainty
+            discount_factor (float): discount_factor
+            actor_update_ratio (int): actor_update_ratio
+            critic_update_ratio (int): critic_update_ratio
             device (torch.device): device
         """
         super().__init__()
-        self._gamma = algorithm_params.discount_factor
-        self._entropy_tuning = algorithm_params.entropy_tuning
-        self._target_entropy = algorithm_params.target_entropy
-        self._learn_uncertainty = algorithm_params.learn_uncertainty
-        self._actor_update_ratio = algorithm_params.actor_update_ratio
-        self._critic_update_ratio = algorithm_params.critic_update_ratio
+        self._gamma = discount_factor
+        self._tune_entropy = tune_entropy
+        self._target_entropy = target_entropy
+        self._learn_uncertainty = learn_uncertainty
+        self._actor_update_ratio = actor_update_ratio
+        self._critic_update_ratio = critic_update_ratio
 
         # actor head
-        self._actor = actor_type(env_params=env_params, model_params=model_params)
+        self._actor = actor
 
         # twin delayed Q networks
-        self._critic = critic_type(env_params=env_params, model_params=model_params)
-        self._critic_target = critic_type(
-            env_params=env_params, model_params=model_params
-        )
+        self._critic = ensemble_qu
+        self._critic_target = ensemble_qu_target
 
         # move the models to the right device
         self._actor.to(device)
@@ -77,30 +118,27 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
             param.requires_grad = False
 
         # tune entropy using log alpha, starts with 0
-        if self._target_entropy is None:
-            self._target_entropy = -1.0 / float(env_params.act_size)
-        else:
-            if self._target_entropy > 0.0:
-                warnings.warn(
-                    f"Target entropy is recommended to be negative,\
-                              currently it is {self._target_entropy},\
-                              I hope you know what you're doing..."
-                )
+        if self._target_entropy > 0.0:
+            warnings.warn(
+                f"Target entropy is recommended to be negative,\
+                          currently it is {self._target_entropy},\
+                          I hope you know what you're doing..."
+            )
         self._log_alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True))
 
         # define the optimizers
         self._actor_optim = optim.AdamW(
-            self._actor.parameters(), lr=algorithm_params.learning_rate, amsgrad=True
+            self._actor.parameters(), lr=learning_rate, amsgrad=True
         )
         self._critic_optim = optim.AdamW(
-            self._critic.parameters(), lr=algorithm_params.learning_rate, amsgrad=True
+            self._critic.parameters(), lr=learning_rate, amsgrad=True
         )
         self._alpha_optim = optim.AdamW(
-            [self._log_alpha], lr=algorithm_params.alpha_learning_rate, amsgrad=True
+            [self._log_alpha], lr=alpha_learning_rate, amsgrad=True
         )
 
     @property
-    def actor(self) -> BaseActor:
+    def actor(self) -> Actor:
         """actor.
 
         Args:
@@ -111,7 +149,7 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
         return self._actor
 
     @property
-    def qu_ensemble_critic(self) -> BaseQUEnsemble:
+    def qu_ensemble_critic(self) -> QUEnsemble:
         """qu_ensemble_critic.
 
         Args:
@@ -367,7 +405,7 @@ class CCGE(BaseAlgorithm[Observation, torch.Tensor]):
         Returns:
             tuple[torch.Tensor, dict[str, Any]]:
         """
-        if not self._entropy_tuning:
+        if not self._tune_entropy:
             return torch.zeros(1), {}
 
         # log_probs is shape [B, 1]

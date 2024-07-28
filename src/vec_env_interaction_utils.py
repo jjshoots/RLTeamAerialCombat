@@ -9,13 +9,13 @@ from wingman import Wingman
 from wingman.replay_buffer import ReplayBuffer
 from wingman.utils import cpuize, gpuize
 
-from dogfighter.models.bases import BaseActor
+from dogfighter.bases.base_actor import Actor
 from setup_utils import setup_algorithm, setup_single_environment
 
 
 @torch.no_grad()
 def vec_env_collect_to_memory(
-    actor: BaseActor,
+    actor: Actor,
     env: VectorEnv,
     memory: ReplayBuffer,
     num_transitions: int,
@@ -32,7 +32,7 @@ def vec_env_collect_to_memory(
     - The next 1 item be for termination.
 
     Args:
-        actor (BaseActor): actor
+        actor (Actor): actor
         env (VectorEnv): env
         memory (ReplayBuffer): memory
         num_steps (int): num_steps
@@ -100,7 +100,7 @@ def vec_env_collect_to_memory(
 
 
 def vec_env_evaluate(
-    actor: BaseActor,
+    actor: Actor,
     env: VectorEnv,
     num_episodes: int,
 ) -> dict[Literal["eval_perf", "mean_episode_length"], float]:
@@ -109,7 +109,7 @@ def vec_env_evaluate(
     Note that `env.num_envs` must cleanly divide num_episodes.
 
     Args:
-        actor (BaseActor): actor
+        actor (Actor): actor
         env (VectorEnv): env
         num_episodes (int): num_episodes
 

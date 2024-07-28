@@ -1,34 +1,59 @@
+from dataclasses import field
+
 import torch
 from wingman import NeuralBlocks
 
-from dogfighter.models.bases import BaseQUEnsemble
-from dogfighter.models.mlp.mlp_bases import MlpEnvParams, MlpModelParams
+from dogfighter.bases.base_critic import QUNetwork, QUNetworkConfig
 
 
-class MlpQUNetwork(BaseQUEnsemble):
+class MlpQUNetworkConfig(QUNetworkConfig):
+    """MlpQUNetworkConfig."""
+
+    obs_size: int
+    act_size: int
+    embed_dim: int = field(default=256)
+
+    def instantiate(self) -> "MlpQUNetwork":
+        """instantiate.
+
+        Args:
+
+        Returns:
+            QUNetwork:
+        """
+        return MlpQUNetwork(
+            obs_size=self.obs_size,
+            act_size=self.act_size,
+            embed_dim=self.embed_dim,
+        )
+
+
+class MlpQUNetwork(QUNetwork):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(
         self,
-        env_params: MlpEnvParams,
-        model_params: MlpModelParams,
+        obs_size: int,
+        act_size: int,
+        embed_dim: int,
     ) -> None:
         """__init__.
 
         Args:
-            env_params (MlpEnvParams): env_params
-            model_params (MlpModelParams): model_params
+            obs_size (int): obs_size
+            act_size (int): act_size
+            embed_dim (int): embed_dim
 
         Returns:
             None:
         """
-        super().__init__(env_params=env_params, model_params=model_params)
+        super().__init__()
 
         # outputs the action after all the compute before it
         _features_description = [
-            env_params.obs_size + env_params.act_size,
-            model_params.embed_dim,
-            model_params.embed_dim,
+            obs_size + act_size,
+            embed_dim,
+            embed_dim,
             2,
         ]
         _activation_description = ["relu"] * (len(_features_description) - 2) + [

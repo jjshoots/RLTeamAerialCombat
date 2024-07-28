@@ -8,12 +8,12 @@ from pettingzoo import ParallelEnv
 from wingman.replay_buffer import ReplayBuffer
 from wingman.utils import cpuize, gpuize
 
-from dogfighter.models.bases import BaseActor
+from dogfighter.bases.base_actor import Actor
 
 
 @torch.no_grad()
 def ma_env_collect_to_memory(
-    actor: BaseActor,
+    actor: Actor,
     env: ParallelEnv,
     memory: ReplayBuffer,
     num_transitions: int,
@@ -30,7 +30,7 @@ def ma_env_collect_to_memory(
     - The next 1 item be for termination.
 
     Args:
-        actor (BaseActor): actor
+        actor (Actor): actor
         env (ParallelEnv): env
         memory (ReplayBuffer): memory
         num_transitions (int): num_transitions
@@ -115,7 +115,7 @@ def ma_env_collect_to_memory(
 
 
 def ma_env_evaluate(
-    actor: BaseActor,
+    actor: Actor,
     env: ParallelEnv,
     num_episodes: int,
 ) -> dict[
@@ -132,7 +132,7 @@ def ma_env_evaluate(
     """ma_env_evaluate.
 
     Args:
-        actor (BaseActor): actor
+        actor (Actor): actor
         env (ParallelEnv): env
         num_episodes (int): num_episodes
 

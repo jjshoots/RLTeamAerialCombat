@@ -1,17 +1,41 @@
+from dataclasses import field
+
 import torch
 from wingman import NeuralBlocks
 
-from dogfighter.models.bases import BaseActor
-from dogfighter.models.mlp.mlp_bases import MlpEnvParams, MlpModelParams
+from dogfighter.bases.base_actor import Actor, ActorConfig
 
 
-class MlpActor(BaseActor):
+class MlpActorConfig(ActorConfig):
+    """MlpActorConfig."""
+
+    obs_size: int
+    act_size: int
+    embed_dim: int = field(default=256)
+
+    def instantiate(self) -> "MlpActor":
+        """instantiate.
+
+        Args:
+
+        Returns:
+            Actor:
+        """
+        return MlpActor(
+            obs_size=self.obs_size,
+            act_size=self.act_size,
+            embed_dim=self.embed_dim,
+        )
+
+
+class MlpActor(Actor):
     """Actor with Gaussian prediction head."""
 
     def __init__(
         self,
-        env_params: MlpEnvParams,
-        model_params: MlpModelParams,
+        obs_size: int,
+        act_size: int,
+        embed_dim: int,
     ) -> None:
         """__init__.
 
@@ -22,14 +46,14 @@ class MlpActor(BaseActor):
         Returns:
             None:
         """
-        super().__init__(env_params=env_params, model_params=model_params)
+        super().__init__()
 
         # outputs the action after all the compute before it
         _features_description = [
-            env_params.obs_size,
-            model_params.embed_dim,
-            model_params.embed_dim,
-            env_params.act_size * 2,
+            obs_size,
+            embed_dim,
+            embed_dim,
+            act_size * 2,
         ]
         _activation_description = ["relu"] * (len(_features_description) - 2) + [
             "identity"

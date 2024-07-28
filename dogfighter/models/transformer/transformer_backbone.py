@@ -1,9 +1,8 @@
+from typing import Literal
+
 import torch
 import torch.nn as nn
 from wingman import NeuralBlocks
-
-from dogfighter.models.transformer.transformer_bases import (
-    TransformerEnvParams, TransformerModelParams, TransformerObservation)
 
 
 class TransformerBackbone(nn.Module):
@@ -11,37 +10,42 @@ class TransformerBackbone(nn.Module):
 
     def __init__(
         self,
-        env_params: TransformerEnvParams,
-        model_params: TransformerModelParams,
+        input_dim: int,
+        ff_dim: int,
+        num_att_heads: int,
+        num_decode_layers: int,
+        num_encode_layers: int,
     ) -> None:
-        """A backbone model for encoding the observation and attitude of the current UAV.
+        """__init__.
 
-        Observation is expected to be an [B, N, obs_size] tensor.
-        Attitude is a [B, att_size,] tensor.
+        Input SRC and TGT are expected to be [B, N, obs_size] tensors.
 
         Args:
-            env_params (TransformerEnvParams): env_params
-            model_params (TransformerModelParams): model_params
+            input_dim (int): input_dim
+            ff_dim (int): ff_dim
+            num_att_heads (int): num_att_heads
+            num_decode_layers (int): num_decode_layers
+            num_encode_layers (int): num_encode_layers
 
         Returns:
             None:
         """
         super().__init__()
 
-        # Observation -> d_model
+        # self attention -> d_model
         _features_description = [
-            env_params.obs_size,
-            model_params.embed_dim,
+            input_dim,
+            input_dim,
         ]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.obs_embedder = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
 
-        # Attitude -> d_model
+        # cross attention -> d_model
         _features_description = [
-            env_params.att_size,
-            model_params.embed_dim,
+            input_dim,
+            input_dim,
         ]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.att_embedder = NeuralBlocks.generate_linear_stack(
@@ -50,31 +54,30 @@ class TransformerBackbone(nn.Module):
 
         # the transformer model
         self.transformer = nn.Transformer(
-            d_model=model_params.embed_dim,
-            nhead=model_params.att_num_heads,
-            num_encoder_layers=model_params.att_num_encoder_layers,
-            num_decoder_layers=model_params.att_num_decoder_layers,
-            dim_feedforward=model_params.att_inner_dim,
+            d_model=input_dim,
+            nhead=num_att_heads,
+            num_encoder_layers=num_encode_layers,
+            num_decoder_layers=num_decode_layers,
+            dim_feedforward=ff_dim,
             batch_first=True,
         )
 
-    def forward(self, obs: TransformerObservation) -> torch.Tensor:
+    def forward(
+        self, obs: dict[Literal["src", "tgt", "mask"], torch.Tensor]
+    ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (TransformerObservation):
-                - "key": a [B, N, obs_size] tensor.
-                - "mask": a [B, N, 1] mask tensor, where True means the key is null.
-                - "query": a [B, att_size] tensor.
+            obs (dict[Literal["src", "tgt", "mask"], torch.Tensor]): [B, N, obs_size] tensors
 
-        Returns:-
-            torch.Tensor: a [B, embed_dim] tensor representing the compressed state.
+        Returns:
+            torch.Tensor:
         """
         # TODO: handle observation mask
 
         # this is [B, N, embed_dim] and [B, 1, embed_dim]
-        obs_embeddings = self.obs_embedder(obs["key"])
-        att_embeddings = self.att_embedder(obs["query"].unsqueeze(-2))
+        obs_embeddings = self.obs_embedder(obs["src"])
+        att_embeddings = self.att_embedder(obs["tgt"].unsqueeze(-2))
 
         # this is [B, 1, embed_dim] then [B, embed_dim]
         result = self.transformer(src=obs_embeddings, tgt=att_embeddings)

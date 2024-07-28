@@ -10,11 +10,11 @@ from PyFlyt.pz_envs import MAFixedwingDogfightEnv
 from wingman import Wingman
 from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
 
-from dogfighter.algorithms import CCGE
-from dogfighter.algorithms.ccge import CCGEParams
+from dogfighter.algorithms.ccge import CCGEConfig
+from dogfighter.bases.base_algorithm import Algorithm
 from dogfighter.env_utils.vec_env_gpuize_wrapper import VecEnvGpuizeWrapper
-from dogfighter.models.mlp import MlpActor, MlpEnvParams, MlpQUEnsemble
-from dogfighter.models.mlp.mlp_bases import MlpModelParams
+from dogfighter.models.mlp.mlp_actor import MlpActorConfig
+from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
 
 
 def setup_vector_environment(wm: Wingman) -> VectorEnv:
@@ -74,27 +74,21 @@ def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
     )
 
 
-def setup_algorithm(wm: Wingman) -> CCGE:
-    # define some params
-    env_params = MlpEnvParams(
-        obs_size=wm.cfg.obs_size,
-        act_size=wm.cfg.act_size,
-    )
-    model_params = MlpModelParams(
-        qu_num_ensemble=wm.cfg.qu_num_ensemble,
-        embed_dim=wm.cfg.embed_dim,
-    )
-    algorithm_params = CCGEParams()
+def setup_algorithm(wm: Wingman) -> Algorithm:
+    alg = CCGEConfig(
+        device=str(wm.device),
+        actor_config=MlpActorConfig(
+            obs_size=wm.cfg.obs_size,
+            act_size=wm.cfg.act_size,
+            embed_dim=wm.cfg.embed_dim,
+        ),
+        qu_config=MlpQUNetworkConfig(
+            obs_size=wm.cfg.obs_size,
+            act_size=wm.cfg.act_size,
+            embed_dim=wm.cfg.embed_dim,
+        ),
+    ).instantiate()
 
-    # define the algorithm, conditionally jit
-    alg = CCGE(
-        actor_type=MlpActor,
-        critic_type=MlpQUEnsemble,
-        env_params=env_params,
-        model_params=model_params,
-        algorithm_params=algorithm_params,
-        device=torch.device(wm.device),
-    )
     if not wm.cfg.debug:
         torch.compile(alg)
 
