@@ -87,6 +87,7 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
             act_size=wm.cfg.act_size,
             embed_dim=wm.cfg.embed_dim,
         ),
+        target_entropy=(-2.0 * wm.cfg.act_size),
     ).instantiate()
 
     if not wm.cfg.debug:
