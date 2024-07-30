@@ -22,7 +22,7 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
     # define one env
     env = gym.make(
         wm.cfg.env_name,
-        render_mode="human" if wm.cfg.display or wm.cfg.render else None,
+        render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
         flight_mode=-1,
     )
     env = rescale_action.RescaleAction(env, min_action=-1.0, max_action=1.0)
@@ -32,8 +32,10 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
         env = FlattenWaypointEnv(env, context_length=1)
 
     # record observation space shape
-    wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
-    wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+    if not getattr(wm.cfg, "obs_size", None):
+        wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+    if not getattr(wm.cfg, "act_size", None):
+        wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
 
     return env
 
@@ -54,13 +56,15 @@ def setup_ma_environment(wm: Wingman) -> ParallelEnv:
     # define one env
     ma_env = MAFixedwingDogfightEnv(
         team_size=wm.cfg.team_size,
-        render_mode="human" if wm.cfg.display else None,
+        render_mode="human" if wm.cfg.mode.display else None,
         flatten_observation=True,
     )
 
     # record observation space shape
-    wm.cfg.obs_size = ma_env.observation_space(0).shape[0]
-    wm.cfg.act_size = ma_env.action_space(0).shape[0]
+    if not getattr(wm.cfg, "obs_size", None):
+        wm.cfg.obs_size = ma_env.observation_space(0).shape[0]
+    if not getattr(wm.cfg, "act_size", None):
+        wm.cfg.act_size = ma_env.action_space(0).shape[0]
 
     return ma_env
 
@@ -91,7 +95,7 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
         target_entropy=(-wm.cfg.act_size),
     ).instantiate()
 
-    if not wm.cfg.debug:
+    if not wm.cfg.mode.debug:
         torch.compile(alg)
 
     # get latest weight files

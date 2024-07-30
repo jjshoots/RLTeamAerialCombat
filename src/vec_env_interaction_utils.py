@@ -44,6 +44,9 @@ def vec_env_collect_to_memory(
     # to record times
     start_time = time.time()
 
+    # list to store memory before big push at end
+    transitions = []
+
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()
@@ -65,28 +68,26 @@ def vec_env_collect_to_memory(
         next_obs, rew, term, trunc, info = env.step(act)
 
         # store stuff in mem
-        if isinstance(obs, (np.ndarray, torch.Tensor)):
-            memory.push(
-                [
-                    obs[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
-                    act[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
-                    rew[:, None][non_reset_envs, ...],
-                    term[:, None][non_reset_envs, ...],
-                    next_obs[non_reset_envs, ...],
-                ],
-                bulk=True,
+        transitions.append(
+            (
+                obs[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
+                act[non_reset_envs, ...],  # pyright: ignore[reportArgumentType]
+                rew[:, None][non_reset_envs, ...],
+                term[:, None][non_reset_envs, ...],
+                next_obs[non_reset_envs, ...],
             )
-        elif isinstance(obs, dict):
-            raise NotImplementedError("Not implemented yet.")
-        else:
-            raise NotImplementedError(
-                f"No idea how to deal with observation of type {type(obs)}."
-            )
+        )
 
         # new observation is the next observation
         # compute exclusion mask of tuples to ignore in the next iteration
         obs = next_obs
         non_reset_envs = ~term & ~trunc
+
+    # push everything to memory in one big go
+    memory.push(
+        [gpuize(np.concatenate(items, axis=0)) for items in zip(*transitions)],
+        bulk=True,
+    )
 
     # print some recordings
     total_time = time.time() - start_time

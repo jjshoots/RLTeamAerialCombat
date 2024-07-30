@@ -188,7 +188,7 @@ class CCGE(Algorithm):
         all_logs = dict()
 
         # update critic
-        for _ in range(self._critic_update_ratio):
+        for _ in range(self.config.critic_update_ratio):
             self._critic_optim.zero_grad()
             loss, log = self._calc_critic_loss(
                 obs=obs,
@@ -203,7 +203,7 @@ class CCGE(Algorithm):
             all_logs = {**all_logs, **log}
 
         # update actor
-        for _ in range(self._actor_update_ratio):
+        for _ in range(self.config.actor_update_ratio):
             self._actor_optim.zero_grad()
             loss, log = self._calc_actor_loss(obs=obs, term=term)
             loss.backward()
