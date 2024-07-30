@@ -8,10 +8,11 @@ from pettingzoo import ParallelEnv
 from PyFlyt.gym_envs import FlattenWaypointEnv
 from PyFlyt.pz_envs import MAFixedwingDogfightEnv
 from wingman import Wingman
-from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
+from wingman.replay_buffer import ReplayBuffer
 
 from dogfighter.algorithms.ccge import CCGEConfig
 from dogfighter.bases.base_algorithm import Algorithm
+from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from dogfighter.env_utils.vec_env_gpuize_wrapper import VecEnvGpuizeWrapper
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
@@ -65,13 +66,13 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
 
 
 def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
-    return FlatReplayBuffer(
+    return ReplayBufferConfig(
         mem_size=wm.cfg.buffer_size,
         mode=wm.cfg.replay_buffer_mode,
-        device=wm.device,
+        device=str(wm.device),
         store_on_device=wm.cfg.replay_buffer_store_on_device,
         random_rollover=wm.cfg.random_rollover,
-    )
+    ).instantiate()
 
 
 def setup_algorithm(wm: Wingman) -> Algorithm:
