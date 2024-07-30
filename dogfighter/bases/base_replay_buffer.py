@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from typing import Literal, Union
 
 import torch
@@ -17,6 +18,7 @@ class WrappedReplayBufferConfig(BaseModel):
 
     base_buffer: Union[ReplayBufferConfig, "WrappedReplayBufferConfig"]
 
+    @abstractmethod
     def instantiate(self) -> ReplayBuffer:
         """instantiate.
 
