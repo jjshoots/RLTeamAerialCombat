@@ -21,27 +21,17 @@ class MlpActorConfig(ActorConfig):
         Returns:
             Actor:
         """
-        return MlpActor(
-            obs_size=self.obs_size,
-            act_size=self.act_size,
-            embed_dim=self.embed_dim,
-        )
+        return MlpActor(self)
 
 
 class MlpActor(Actor):
     """Actor with Gaussian prediction head."""
 
-    def __init__(
-        self,
-        obs_size: int,
-        act_size: int,
-        embed_dim: int,
-    ) -> None:
+    def __init__(self, config: MlpActorConfig) -> None:
         """__init__.
 
         Args:
-            env_params (MlpEnvParams): env_params
-            model_params (MlpModelParams): model_params
+            config (MlpActorConfig): config
 
         Returns:
             None:
@@ -50,10 +40,10 @@ class MlpActor(Actor):
 
         # outputs the action after all the compute before it
         _features_description = [
-            obs_size,
-            embed_dim,
-            embed_dim,
-            act_size * 2,
+            config.obs_size,
+            config.embed_dim,
+            config.embed_dim,
+            config.act_size * 2,
         ]
         _activation_description = ["relu"] * (len(_features_description) - 2) + [
             "identity"

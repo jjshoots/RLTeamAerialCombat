@@ -23,7 +23,8 @@ class CCGEConfig(AlgorithmConfig):
     actor_config: ActorConfig
     qu_config: QUNetworkConfig
     qu_num_ensemble: int = field(default=2)
-    learning_rate: float = field(default=0.003)
+    actor_learning_rate: float = field(default=0.003)
+    critic_learning_rate: float = field(default=0.003)
     alpha_learning_rate: float = field(default=0.01)
     tune_entropy: bool = field(default=True)
     target_entropy: float = field(default=0.0)
@@ -40,77 +41,39 @@ class CCGEConfig(AlgorithmConfig):
         Returns:
             "CCGE":
         """
-        return CCGE(
-            device=torch.device(self.device),
-            actor=self.actor_config.instantiate(),
-            ensemble_qu=QUEnsemble(self.qu_config, num_ensemble=self.qu_num_ensemble),
-            ensemble_qu_target=QUEnsemble(
-                self.qu_config, num_ensemble=self.qu_num_ensemble
-            ),
-            learning_rate=self.learning_rate,
-            alpha_learning_rate=self.alpha_learning_rate,
-            tune_entropy=self.tune_entropy,
-            target_entropy=self.target_entropy,
-            learn_uncertainty=self.learn_uncertainty,
-            discount_factor=self.discount_factor,
-            actor_update_ratio=self.actor_update_ratio,
-            critic_update_ratio=self.critic_update_ratio,
-        )
+        return CCGE(self)
 
 
 class CCGE(Algorithm):
     """Critic Confidence Guided Exploration."""
 
-    def __init__(
-        self,
-        device: torch.device,
-        actor: Actor,
-        ensemble_qu: QUEnsemble,
-        ensemble_qu_target: QUEnsemble,
-        learning_rate: float,
-        alpha_learning_rate: float,
-        tune_entropy: bool,
-        target_entropy: float,
-        learn_uncertainty: bool,
-        discount_factor: float,
-        actor_update_ratio: int,
-        critic_update_ratio: int,
-    ):
+    def __init__(self, config: CCGEConfig):
         """__init__.
 
         Args:
-            actor (Actor): actor
-            ensemble_qu (QUEnsemble): ensemble_qu
-            ensemble_qu_target (QUEnsemble): ensemble_qu_target
-            learning_rate (float): learning_rate
-            alpha_learning_rate (float): alpha_learning_rate
-            tune_entropy (bool): tune_entropy
-            target_entropy (float): target_entropy
-            learn_uncertainty (bool): learn_uncertainty
-            discount_factor (float): discount_factor
-            actor_update_ratio (int): actor_update_ratio
-            critic_update_ratio (int): critic_update_ratio
-            device (torch.device): device
+            config (CCGEConfig): config
         """
         super().__init__()
-        self._gamma = discount_factor
-        self._tune_entropy = tune_entropy
-        self._target_entropy = target_entropy
-        self._learn_uncertainty = learn_uncertainty
-        self._actor_update_ratio = actor_update_ratio
-        self._critic_update_ratio = critic_update_ratio
+        self.config = config
+        self._device = torch.device(config.device)
 
         # actor head
-        self._actor = actor
+        self._actor = config.actor_config.instantiate()
 
         # twin delayed Q networks
-        self._critic = ensemble_qu
-        self._critic_target = ensemble_qu_target
+        self._critic = QUEnsemble(
+            config.qu_config,
+            num_ensemble=config.qu_num_ensemble,
+        )
+        self._critic_target = QUEnsemble(
+            config.qu_config,
+            num_ensemble=config.qu_num_ensemble,
+        )
 
         # move the models to the right device
-        self._actor.to(device)
-        self._critic.to(device)
-        self._critic_target.to(device)
+        self._actor.to(self._device)
+        self._critic.to(self._device)
+        self._critic_target.to(self._device)
 
         # copy weights and disable gradients for the target network
         self._critic_target.load_state_dict(self._critic.state_dict())
@@ -118,23 +81,23 @@ class CCGE(Algorithm):
             param.requires_grad = False
 
         # tune entropy using log alpha, starts with 0
-        if self._target_entropy > 0.0:
+        if config.target_entropy > 0.0:
             warnings.warn(
                 f"Target entropy is recommended to be negative,\
-                          currently it is {self._target_entropy},\
+                          currently it is {config.target_entropy},\
                           I hope you know what you're doing..."
             )
         self._log_alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True))
 
         # define the optimizers
         self._actor_optim = optim.AdamW(
-            self._actor.parameters(), lr=learning_rate, amsgrad=True
+            self._actor.parameters(), lr=config.actor_learning_rate, amsgrad=True
         )
         self._critic_optim = optim.AdamW(
-            self._critic.parameters(), lr=learning_rate, amsgrad=True
+            self._critic.parameters(), lr=config.critic_learning_rate, amsgrad=True
         )
         self._alpha_optim = optim.AdamW(
-            [self._log_alpha], lr=alpha_learning_rate, amsgrad=True
+            [self._log_alpha], lr=config.alpha_learning_rate, amsgrad=True
         )
 
     @property
@@ -315,18 +278,21 @@ class CCGE(Algorithm):
         # q_loss is [B, num_ensemble]
         target_q = (
             rew
-            + (-self._log_alpha.exp().detach() * log_probs + self._gamma * next_q)
+            + (
+                -self._log_alpha.exp().detach() * log_probs
+                + self.config.discount_factor * next_q
+            )
             * term
         )
         q_loss = (current_q - target_q) ** 2
 
-        if self._learn_uncertainty:
+        if self.config.learn_uncertainty:
             # compute the target u and loss
             # target_u is [B, 1]
             # u_loss is [B, num_ensemble]
             target_u = (
                 q_loss.mean(dim=-1, keepdim=True).detach()
-                + (self._gamma * next_u * term) ** 2
+                + (self.config.discount_factor * next_u * term) ** 2
             ).sqrt()
             u_loss = (current_u - target_u) ** 2
         else:
@@ -405,7 +371,7 @@ class CCGE(Algorithm):
         Returns:
             tuple[torch.Tensor, dict[str, Any]]:
         """
-        if not self._tune_entropy:
+        if not self.config.tune_entropy:
             return torch.zeros(1), {}
 
         # log_probs is shape [B, 1]
@@ -414,7 +380,7 @@ class CCGE(Algorithm):
 
         # Intuitively, we increase alpha when entropy is less than target entropy, vice versa.
         entropy_loss = -(
-            self._log_alpha * (self._target_entropy + log_probs).detach()
+            self._log_alpha * (self.config.target_entropy + log_probs).detach()
         ).mean()
 
         log = dict()

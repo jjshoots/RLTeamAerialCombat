@@ -32,71 +32,46 @@ class TransformerQUNetworkConfig(QUNetworkConfig):
         Returns:
             "TransformerQUNetwork":
         """
-        return TransformerQUNetwork(
-            src_size=self.src_size,
-            tgt_size=self.tgt_size,
-            act_size=self.act_size,
-            embed_dim=self.embed_dim,
-            backbone=TransformerBackbone(
-                input_dim=self.embed_dim,
-                ff_dim=self.ff_dim,
-                num_att_heads=self.num_att_heads,
-                num_decode_layers=self.num_decode_layers,
-                num_encode_layers=self.num_encode_layers,
-            ),
-        )
+        return TransformerQUNetwork(self)
 
 
 class TransformerQUNetwork(QUNetwork):
     """A classic Q network that uses a transformer backbone."""
 
-    def __init__(
-        self,
-        src_size: int,
-        tgt_size: int,
-        act_size: int,
-        embed_dim: int,
-        backbone: TransformerBackbone,
-    ) -> None:
-        """__init__.
-
-        Args:
-            src_size (int): src_size
-            tgt_size (int): tgt_size
-            act_size (int): act_size
-            embed_dim (int): embed_dim
-            backbone (TransformerBackbone): backbone
-
-        Returns:
-            None:
-        """
+    def __init__(self, config: TransformerQUNetworkConfig) -> None:
         super().__init__()
 
         # the basic backbone
-        self.backbone = backbone
+        self.backbone = TransformerBackbone(
+            input_dim=config.embed_dim,
+            ff_dim=config.ff_dim,
+            num_att_heads=config.num_att_heads,
+            num_decode_layers=config.num_decode_layers,
+            num_encode_layers=config.num_encode_layers,
+        )
 
         # network to go from src -> embed
-        _features_description = [src_size, embed_dim]
+        _features_description = [config.src_size, config.embed_dim]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.src_input_network = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
 
-        _features_description = [tgt_size, embed_dim]
+        _features_description = [config.tgt_size, config.embed_dim]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.tgt_input_network = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
 
         # network to get the action representation
-        _features_description = [act_size, embed_dim]
+        _features_description = [config.act_size, config.embed_dim]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.act_network = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
 
         # network to merge the action and obs/att representations
-        _features_description = [2 * embed_dim, 2]
+        _features_description = [2 * config.embed_dim, 2]
         _activation_description = ["relu"] * (len(_features_description) - 2) + [
             "identity"
         ]

@@ -32,40 +32,17 @@ class TransformerActorConfig(ActorConfig):
         Returns:
             "TransformerActor":
         """
-        return TransformerActor(
-            src_size=self.src_size,
-            tgt_size=self.tgt_size,
-            act_size=self.act_size,
-            embed_dim=self.embed_dim,
-            backbone=TransformerBackbone(
-                input_dim=self.embed_dim,
-                ff_dim=self.ff_dim,
-                num_att_heads=self.num_att_heads,
-                num_decode_layers=self.num_decode_layers,
-                num_encode_layers=self.num_encode_layers,
-            ),
-        )
+        return TransformerActor(self)
 
 
 class TransformerActor(Actor):
     """Actor with Gaussian prediction head."""
 
-    def __init__(
-        self,
-        src_size: int,
-        tgt_size: int,
-        act_size: int,
-        embed_dim: int,
-        backbone: TransformerBackbone,
-    ) -> None:
+    def __init__(self, config: TransformerActorConfig) -> None:
         """__init__.
 
         Args:
-            src_size (int): src_size
-            tgt_size (int): tgt_size
-            act_size (int): act_size
-            embed_dim (int): embed_dim
-            backbone (TransformerBackbone): backbone
+            config (TransformerActorConfig): config
 
         Returns:
             None:
@@ -73,23 +50,29 @@ class TransformerActor(Actor):
         super().__init__()
 
         # the basic backbone
-        self.backbone = backbone
+        self.backbone = TransformerBackbone(
+            input_dim=config.embed_dim,
+            ff_dim=config.ff_dim,
+            num_att_heads=config.num_att_heads,
+            num_decode_layers=config.num_decode_layers,
+            num_encode_layers=config.num_encode_layers,
+        )
 
         # network to go from src -> embed
-        _features_description = [src_size, embed_dim]
+        _features_description = [config.src_size, config.embed_dim]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.src_input_network = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
 
-        _features_description = [tgt_size, embed_dim]
+        _features_description = [config.tgt_size, config.embed_dim]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.tgt_input_network = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
 
         # outputs the action after all the compute before it
-        _features_description = [embed_dim, act_size * 2]
+        _features_description = [config.embed_dim, config.act_size * 2]
         _activation_description = ["relu"] * (len(_features_description) - 2) + [
             "identity"
         ]

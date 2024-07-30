@@ -21,39 +21,20 @@ class MlpQUNetworkConfig(QUNetworkConfig):
         Returns:
             QUNetwork:
         """
-        return MlpQUNetwork(
-            obs_size=self.obs_size,
-            act_size=self.act_size,
-            embed_dim=self.embed_dim,
-        )
+        return MlpQUNetwork(self)
 
 
 class MlpQUNetwork(QUNetwork):
     """A classic Q network that uses a transformer backbone."""
 
-    def __init__(
-        self,
-        obs_size: int,
-        act_size: int,
-        embed_dim: int,
-    ) -> None:
-        """__init__.
-
-        Args:
-            obs_size (int): obs_size
-            act_size (int): act_size
-            embed_dim (int): embed_dim
-
-        Returns:
-            None:
-        """
+    def __init__(self, config: MlpQUNetworkConfig) -> None:
         super().__init__()
 
         # outputs the action after all the compute before it
         _features_description = [
-            obs_size + act_size,
-            embed_dim,
-            embed_dim,
+            config.obs_size + config.act_size,
+            config.embed_dim,
+            config.embed_dim,
             2,
         ]
         _activation_description = ["relu"] * (len(_features_description) - 2) + [

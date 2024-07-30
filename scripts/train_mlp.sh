@@ -14,3 +14,5 @@ sleep 10
 for pid in ${pids[*]}; do
     wait $pid
 done
+
+poweroff
