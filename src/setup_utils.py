@@ -18,6 +18,26 @@ from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
 
 
+def setup_single_environment(wm: Wingman) -> gym.Env:
+    # define one env
+    env = gym.make(
+        wm.cfg.env_name,
+        render_mode="human" if wm.cfg.display or wm.cfg.render else None,
+        flight_mode=-1,
+    )
+    env = rescale_action.RescaleAction(env, min_action=-1.0, max_action=1.0)
+
+    # wrap in flatten if needed
+    if "waypoint" in wm.cfg.env_name.lower():
+        env = FlattenWaypointEnv(env, context_length=1)
+
+    # record observation space shape
+    wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+    wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+
+    return env
+
+
 def setup_vector_environment(wm: Wingman) -> VectorEnv:
     # make the vec env
     vec_env = AsyncVectorEnv(
@@ -43,26 +63,6 @@ def setup_ma_environment(wm: Wingman) -> ParallelEnv:
     wm.cfg.act_size = ma_env.action_space(0).shape[0]
 
     return ma_env
-
-
-def setup_single_environment(wm: Wingman) -> gym.Env:
-    # define one env
-    env = gym.make(
-        wm.cfg.env_name,
-        render_mode="human" if wm.cfg.display or wm.cfg.render else None,
-        flight_mode=-1,
-    )
-    env = rescale_action.RescaleAction(env, min_action=-1.0, max_action=1.0)
-
-    # wrap in flatten if needed
-    if "waypoint" in wm.cfg.env_name.lower():
-        env = FlattenWaypointEnv(env, context_length=1)
-
-    # record observation space shape
-    wm.cfg.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
-    wm.cfg.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
-
-    return env
 
 
 def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
