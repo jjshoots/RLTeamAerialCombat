@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from functools import cached_property
 from typing import Generic
 
 import torch
@@ -27,6 +28,17 @@ class QUNetworkConfig(BaseModel):
 
 class QUNetwork(nn.Module, Generic[Observation, Action]):
     """QUNetwork."""
+
+    @cached_property
+    def device(self) -> torch.device:
+        """device.
+
+        Args:
+
+        Returns:
+            torch.device:
+        """
+        return next(self.parameters()).device
 
     def __call__(self, obs: Observation, act: Action) -> torch.Tensor:
         """__call__.

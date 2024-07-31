@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from functools import cached_property
 from typing import Generic
 
 import torch
@@ -29,6 +30,17 @@ class ActorConfig(BaseModel):
 
 class Actor(nn.Module, Generic[Observation, Action]):
     """Actor."""
+
+    @cached_property
+    def device(self) -> torch.device:
+        """device.
+
+        Args:
+
+        Returns:
+            torch.device:
+        """
+        return next(self.parameters()).device
 
     def __call__(self, obs: Observation) -> torch.Tensor:
         """__call__.

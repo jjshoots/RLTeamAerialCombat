@@ -28,6 +28,14 @@ class MlpQUNetwork(QUNetwork):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(self, config: MlpQUNetworkConfig) -> None:
+        """__init__.
+
+        Args:
+            config (MlpQUNetworkConfig): config
+
+        Returns:
+            None:
+        """
         super().__init__()
 
         # outputs the action after all the compute before it

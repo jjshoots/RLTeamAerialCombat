@@ -39,6 +39,14 @@ class TransformerQUNetwork(QUNetwork):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(self, config: TransformerQUNetworkConfig) -> None:
+        """__init__.
+
+        Args:
+            config (TransformerQUNetworkConfig): config
+
+        Returns:
+            None:
+        """
         super().__init__()
 
         # the basic backbone
