@@ -16,7 +16,7 @@ def sa_vec_env_collect(
     env: VectorEnv,
     memory: FlatReplayBuffer,
     num_transitions: int,
-    random_actions: bool,
+    use_random_actions: bool,
 ) -> tuple[
     FlatReplayBuffer,
     dict[Literal["interactions_per_second"], float],
@@ -36,7 +36,7 @@ def sa_vec_env_collect(
         env (VectorEnv): env
         memory (FlatReplayBuffer): memory
         num_steps (int): num_steps
-        random_actions (bool): random_actions
+        use_random_actions (bool): use_random_actions
 
     Returns:
         tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
@@ -57,7 +57,7 @@ def sa_vec_env_collect(
 
     for _ in range(num_transitions // env.num_envs):
         # compute an action depending on whether we're exploring or not
-        if random_actions:
+        if use_random_actions:
             # sample an action from the env
             act = env.action_space.sample()
         else:

@@ -17,7 +17,7 @@ def ma_env_collect(
     env: ParallelEnv,
     memory: FlatReplayBuffer,
     num_transitions: int,
-    random_actions: bool,
+    use_random_actions: bool,
 ) -> tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """Runs the actor in the multiagent parallel environment and collects transitions.
 
@@ -34,7 +34,7 @@ def ma_env_collect(
         env (ParallelEnv): env
         memory (FlatReplayBuffer): memory
         num_transitions (int): num_transitions
-        random_actions (bool): random_actions
+        use_random_actions (bool): use_random_actions
 
     Returns:
         tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
@@ -60,7 +60,7 @@ def ma_env_collect(
             stack_obs = np.stack([v for v in dict_obs.values()], axis=0)
 
             # compute an action depending on whether we're exploring or not
-            if random_actions:
+            if use_random_actions:
                 # sample an action from the env
                 dict_act = {
                     agent: env.action_space(agent).sample() for agent in dict_obs.keys()
