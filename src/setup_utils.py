@@ -3,7 +3,7 @@ from __future__ import annotations
 import gymnasium as gym
 import torch
 from gymnasium.vector import AsyncVectorEnv, VectorEnv
-from gymnasium.wrappers import rescale_action
+from gymnasium.wrappers import RescaleAction
 from pettingzoo import ParallelEnv
 from wingman import Wingman
 from wingman.replay_buffer import ReplayBuffer
@@ -25,7 +25,7 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
             flight_mode=-1,
         )
-        env = rescale_action.RescaleAction(env, min_action=-1.0, max_action=1.0)
+        env = RescaleAction(env, min_action=-1.0, max_action=1.0)
 
         # wrap in flatten if needed
         if "waypoint" in wm.cfg.env_name.lower():

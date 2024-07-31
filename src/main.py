@@ -15,7 +15,8 @@ if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     # wm = Wingman(config_yaml="./configs/quad_dogfight_config.yaml")
     # wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
-    wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
+    # wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
+    wm = Wingman(config_yaml="./configs/dmc_hopper_hop_v0.yaml")
 
     if wm.cfg.mode.train:
         train(wm)
