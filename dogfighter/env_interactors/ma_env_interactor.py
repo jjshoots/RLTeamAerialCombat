@@ -1,24 +1,24 @@
 import time
 from pprint import pformat
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 import torch
 from pettingzoo import ParallelEnv
-from wingman.replay_buffer import ReplayBuffer
+from wingman.replay_buffer import FlatReplayBuffer
 from wingman.utils import cpuize, gpuize
 
-from dogfighter.bases.base_actor import Actor
+from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 @torch.no_grad()
 def ma_env_collect_to_memory(
-    actor: Actor,
+    actor: MlpActor,
     env: ParallelEnv,
-    memory: ReplayBuffer,
+    memory: FlatReplayBuffer,
     num_transitions: int,
     random_actions: bool,
-) -> tuple[ReplayBuffer, dict[Literal["interactions_per_second"], float]]:
+) -> tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """Runs the actor in the multiagent parallel environment and collects transitions.
 
     This collects `num_transitions` transitions using `num_transitions // env.num_agent` steps.
@@ -30,14 +30,14 @@ def ma_env_collect_to_memory(
     - The next 1 item be for termination.
 
     Args:
-        actor (Actor): actor
+        actor (MlpActor): actor
         env (ParallelEnv): env
-        memory (ReplayBuffer): memory
+        memory (FlatReplayBuffer): memory
         num_transitions (int): num_transitions
         random_actions (bool): random_actions
 
     Returns:
-        tuple[ReplayBuffer, dict[Literal["interactions_per_second"], float]]:
+        tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """
     # to record times
     start_time = time.time()
@@ -118,7 +118,7 @@ def ma_env_collect_to_memory(
 
 @torch.no_grad()
 def ma_env_evaluate(
-    actor: Actor,
+    actor: MlpActor,
     env: ParallelEnv,
     num_episodes: int,
 ) -> dict[
@@ -135,7 +135,7 @@ def ma_env_evaluate(
     """ma_env_evaluate.
 
     Args:
-        actor (Actor): actor
+        actor (MlpActor): actor
         env (ParallelEnv): env
         num_episodes (int): num_episodes
 

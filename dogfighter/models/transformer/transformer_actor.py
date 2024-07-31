@@ -6,8 +6,6 @@ import torch
 from wingman import NeuralBlocks
 
 from dogfighter.bases.base_actor import Actor, ActorConfig
-from dogfighter.models.transformer.transformer_backbone import \
-    TransformerBackbone
 
 
 class TransformerActorConfig(ActorConfig):

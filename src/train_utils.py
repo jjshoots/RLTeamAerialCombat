@@ -3,13 +3,13 @@ from __future__ import annotations
 import math
 
 import torch
-from wingman import Wingman
-
 from ma_env_interaction_utils import ma_env_collect_to_memory, ma_env_evaluate
-from setup_utils import (setup_algorithm, setup_ma_environment,
-                         setup_replay_buffer, setup_vector_environment)
 from vec_env_interaction_utils import (vec_env_collect_to_memory,
                                        vec_env_evaluate)
+from wingman import Wingman
+
+from setup_utils import (setup_algorithm, setup_ma_environment,
+                         setup_replay_buffer, setup_vector_environment)
 
 
 def train(wm: Wingman) -> None:

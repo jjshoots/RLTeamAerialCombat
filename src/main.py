@@ -2,21 +2,21 @@ from __future__ import annotations
 
 from signal import SIGINT, signal
 
+from ma_env_interaction_utils import ma_env_evaluate
+from vec_env_interaction_utils import vec_env_evaluate, vec_env_render_gif
 from wingman import Wingman
 from wingman.utils import shutdown_handler
 
-from ma_env_interaction_utils import ma_env_evaluate
 from setup_utils import (setup_algorithm, setup_ma_environment,
                          setup_vector_environment)
 from train_utils import train
-from vec_env_interaction_utils import vec_env_evaluate, vec_env_render_gif
 
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     # wm = Wingman(config_yaml="./configs/quad_dogfight_config.yaml")
     # wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
-    # wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
-    wm = Wingman(config_yaml="./configs/dmc_cheetah_run_config.yaml")
+    wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
+    # wm = Wingman(config_yaml="./configs/dmc_cheetah_run_config.yaml")
 
     if wm.cfg.mode.train:
         train(wm)

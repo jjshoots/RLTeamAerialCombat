@@ -6,8 +6,6 @@ import torch
 from wingman import NeuralBlocks
 
 from dogfighter.bases.base_critic import QUNetwork, QUNetworkConfig
-from dogfighter.models.transformer.transformer_backbone import \
-    TransformerBackbone
 
 
 class TransformerQUNetworkConfig(QUNetworkConfig):
