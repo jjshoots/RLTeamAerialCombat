@@ -11,10 +11,6 @@ from wingman.utils import cpuize, gpuize
 from dogfighter.bases.base_actor import Actor
 
 
-def ma_env_obs_preprocess(obs: dict[str, Any]) -> np.ndarray | dict[str, Any]:
-
-
-
 @torch.no_grad()
 def ma_env_collect_to_memory(
     actor: Actor,
