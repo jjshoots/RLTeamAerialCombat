@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 
+from pydantic import BaseModel
 import torch
 from wingman import Wingman
 from wingman.replay_buffer import ReplayBuffer
@@ -12,18 +13,22 @@ from dogfighter.bases.base_env_interactors import (CollectFunctionProtocol,
                                                    SupportedEnvTypes)
 
 
-class SynchronousRunnerSettings:
+class SynchronousRunnerSettings(BaseModel):
+    """SynchronousRunnerSettings."""
+
     max_transitions: int
     transitions_per_epoch: int
     transitions_num_exploration: int
+
     train_min_transitions: int
+    train_steps_per_epoch: int
     train_batch_size: int
-    train_gradient_steps_per_epoch: int
+
     eval_num_episodes: int
     eval_transitions_frequency: int
 
 
-def synchronous_runner(
+def run_synchronous(
     wm: Wingman,
     train_env: SupportedEnvTypes,
     eval_env: SupportedEnvTypes,
@@ -33,6 +38,21 @@ def synchronous_runner(
     memory: ReplayBuffer,
     settings: SynchronousRunnerSettings,
 ) -> None:
+    """A synchronous runner to perform train and evaluations in step.
+
+    Args:
+        wm (Wingman): wm
+        train_env (SupportedEnvTypes): train_env
+        eval_env (SupportedEnvTypes): eval_env
+        collect_fn (CollectFunctionProtocol): collect_fn
+        evaluation_fn (EvaluationFunctionProtocol): evaluation_fn
+        algorithm (Algorithm): algorithm
+        memory (ReplayBuffer): memory
+        settings (SynchronousRunnerSettings): settings
+
+    Returns:
+        None:
+    """
     # logging metrics
     num_epochs = 0
     eval_score = -math.inf
@@ -74,7 +94,7 @@ def synchronous_runner(
         info = algorithm.update(
             memory=memory,
             batch_size=settings.train_batch_size,
-            num_gradient_steps=settings.train_gradient_steps_per_epoch,
+            num_gradient_steps=settings.train_steps_per_epoch,
         )
         wm.log.update({f"train/{k}": v for k, v in info})
 

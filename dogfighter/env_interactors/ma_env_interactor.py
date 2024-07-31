@@ -12,7 +12,7 @@ from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 @torch.no_grad()
-def ma_env_collect_to_memory(
+def ma_env_collect(
     actor: MlpActor,
     env: ParallelEnv,
     memory: FlatReplayBuffer,
@@ -111,9 +111,9 @@ def ma_env_collect_to_memory(
     print(f"Collect Stats: {total_time:.2f}s @ {interaction_per_second} t/s.")
 
     # return the replay buffer and some information
-    collect_info: dict[Literal["interactions_per_second"], float] = dict()
-    collect_info["interactions_per_second"] = interaction_per_second
-    return memory, collect_info
+    return_info: dict[Literal["interactions_per_second"], float] = dict()
+    return_info["interactions_per_second"] = interaction_per_second
+    return memory, return_info
 
 
 @torch.no_grad()
@@ -121,16 +121,18 @@ def ma_env_evaluate(
     actor: MlpActor,
     env: ParallelEnv,
     num_episodes: int,
-) -> dict[
-    Literal[
-        "mean_episode_interactions",
-        "cumulative_reward",
-        "num_out_of_bounds",
-        "num_collisions",
-        "mean_hits_per_agent",
-        "eval_perf",
-    ],
+) -> tuple[
     float,
+    dict[
+        Literal[
+            "mean_episode_interactions",
+            "cumulative_reward",
+            "num_out_of_bounds",
+            "num_collisions",
+            "mean_hits_per_agent",
+        ],
+        float,
+    ],
 ]:
     """ma_env_evaluate.
 
@@ -140,6 +142,8 @@ def ma_env_evaluate(
         num_episodes (int): num_episodes
 
     Returns:
+        tuple[
+        float,
         dict[
             Literal[
                 "mean_episode_interactions",
@@ -147,10 +151,10 @@ def ma_env_evaluate(
                 "num_out_of_bounds",
                 "num_collisions",
                 "mean_hits_per_agent",
-                "eval_perf",
             ],
-            float
-        ]:
+            float,
+        ],
+    ]:
     """
     # set to eval and zero grad
     actor.eval()
@@ -197,24 +201,24 @@ def ma_env_evaluate(
         )
 
     # arrange the results
-    info: dict[
+    # TODO: fix this thing to be generic... somehow
+    return_info: dict[
         Literal[
             "mean_episode_interactions",
             "cumulative_reward",
             "num_out_of_bounds",
             "num_collisions",
             "mean_hits_per_agent",
-            "eval_perf",
         ],
         float,
     ] = dict()
-    info["mean_episode_interactions"] = float(num_interactions / num_episodes)
-    info["cumulative_reward"] = cumulative_reward / num_episodes
-    info["num_out_of_bounds"] = float(num_out_of_bounds / num_episodes)
-    info["num_collisions"] = float(num_collisions / num_episodes)
-    info["mean_hits_per_agent"] = float(num_received_hits / num_episodes)
-    info["eval_perf"] = (
-        info["mean_episode_interactions"] * 0.05 + info["mean_hits_per_agent"] * 10.0
-    ) / (info["num_collisions"] + info["num_out_of_bounds"] + 1)
-    print("Evaluation Stats:\n" f"{pformat(info, indent=2)}\n")
-    return info
+    return_info["mean_episode_interactions"] = float(num_interactions / num_episodes)
+    return_info["cumulative_reward"] = cumulative_reward / num_episodes
+    return_info["num_out_of_bounds"] = float(num_out_of_bounds / num_episodes)
+    return_info["num_collisions"] = float(num_collisions / num_episodes)
+    return_info["mean_hits_per_agent"] = float(num_received_hits / num_episodes)
+    eval_score = (
+        return_info["mean_episode_interactions"] * 0.05 + return_info["mean_hits_per_agent"] * 10.0
+    ) / (return_info["num_collisions"] + return_info["num_out_of_bounds"] + 1)
+    print("Evaluation Stats:\n" f"{pformat(return_info, indent=2)}\n")
+    return eval_score, return_info

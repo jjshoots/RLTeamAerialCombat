@@ -19,6 +19,16 @@ random_rollover: true
 replay_buffer_mode: "torch"
 replay_buffer_store_on_device: true
 
+runner:
+  max_transitions: 2000000
+  transitions_per_epoch: 8000
+  transitions_num_exploration: 20000
+  train_min_transitions: 50000
+  train_steps_per_epoch: 1000
+  train_batch_size: 2048
+  eval_num_episodes: 32
+  eval_transitions_frequency: 10000
+
 # CCGE params
 pretrained_oracle: false
 update_oracle: true
