@@ -44,12 +44,12 @@ def vec_env_collect_to_memory(
     # to record times
     start_time = time.time()
 
-    # list to store memory before big push at end
-    transitions = []
-
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()
+
+    # list to store memory before big push at end
+    transitions = []
 
     # init the first obs, infos, and reset masks
     obs, info = env.reset()
@@ -100,6 +100,7 @@ def vec_env_collect_to_memory(
     return memory, info
 
 
+@torch.no_grad()
 def vec_env_evaluate(
     actor: Actor,
     env: VectorEnv,
@@ -120,6 +121,11 @@ def vec_env_evaluate(
     assert (
         (num_episodes / env.num_envs) % 1.0 == 0
     ), f"`num_episodes` ({num_episodes}) must be clean multiple of {env.num_envs}."
+
+    # set to eval and zero grad
+    actor.eval()
+    actor.zero_grad()
+
     # start the evaluation loops
     num_valid_steps = 0
     cumulative_rewards = 0.0

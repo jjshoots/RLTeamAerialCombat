@@ -114,6 +114,7 @@ def ma_env_collect_to_memory(
     return memory, collect_info
 
 
+@torch.no_grad()
 def ma_env_evaluate(
     actor: Actor,
     env: ParallelEnv,
@@ -149,6 +150,10 @@ def ma_env_evaluate(
             float
         ]:
     """
+    # set to eval and zero grad
+    actor.eval()
+    actor.zero_grad()
+
     # start the evaluation loops
     num_interactions = 0
     cumulative_reward = 0.0
