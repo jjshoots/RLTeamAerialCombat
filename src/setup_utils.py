@@ -39,6 +39,7 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
 
     elif wm.cfg.env_name.startswith("dm_control"):
         import shimmy
+
         gym.register_envs(shimmy)
 
         env = gym.make(
