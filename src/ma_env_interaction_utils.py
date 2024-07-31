@@ -1,6 +1,6 @@
 import time
 from pprint import pformat
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import torch
@@ -9,6 +9,10 @@ from wingman.replay_buffer import ReplayBuffer
 from wingman.utils import cpuize, gpuize
 
 from dogfighter.bases.base_actor import Actor
+
+
+def ma_env_obs_preprocess(obs: dict[str, Any]) -> np.ndarray | dict[str, Any]:
+
 
 
 @torch.no_grad()

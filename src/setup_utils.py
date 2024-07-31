@@ -89,13 +89,15 @@ def setup_ma_environment(wm: Wingman) -> ParallelEnv:
 
 
 def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
-    return ReplayBufferConfig(
+    memory = ReplayBufferConfig(
         mem_size=wm.cfg.buffer_size,
         mode=wm.cfg.replay_buffer_mode,
         device=str(wm.device),
         store_on_device=wm.cfg.replay_buffer_store_on_device,
         random_rollover=wm.cfg.random_rollover,
     ).instantiate()
+
+    return memory
 
 
 def setup_algorithm(wm: Wingman) -> Algorithm:
