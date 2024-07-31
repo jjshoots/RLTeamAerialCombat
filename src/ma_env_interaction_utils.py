@@ -68,7 +68,9 @@ def ma_env_collect_to_memory(
                 stack_act = np.stack([v for v in dict_act.values()], axis=0)
             else:
                 # get an action from the actor
-                stack_act = cpuize(actor.sample(*actor(gpuize(stack_obs)))[0])
+                stack_act = cpuize(
+                    actor.sample(*actor(gpuize(stack_obs, actor.device)))[0]
+                )
                 dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
             # step the transition
@@ -99,7 +101,7 @@ def ma_env_collect_to_memory(
 
         # store stuff in contiguous mem after each episode
         memory.push(
-            [gpuize(np.concatenate(items, axis=0)) for items in zip(*transitions)],
+            [np.concatenate(items, axis=0) for items in zip(*transitions)],
             bulk=True,
         )
 
@@ -168,7 +170,7 @@ def ma_env_evaluate(
         while env.agents:
             # convert the dictionary observation into an array and move it to the GPU
             # get an action from the actor, then parse into dictionary
-            stack_obs = gpuize(np.stack([v for v in dict_obs.values()]))
+            stack_obs = gpuize(np.stack([v for v in dict_obs.values()]), actor.device)
             stack_act = actor.infer(*actor(stack_obs))
             dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
 

@@ -62,7 +62,7 @@ def vec_env_collect_to_memory(
             act = env.action_space.sample()
         else:
             # get an action from the actor, convert to CPU
-            act, _ = actor.sample(*actor(gpuize(obs)))
+            act, _ = actor.sample(*actor(gpuize(obs, actor.device)))
             act = cpuize(act)
 
         # step the transition
@@ -140,7 +140,7 @@ def vec_env_evaluate(
         while not np.all(done_envs):
             # get an action from the actor and convert to CPU
             # this is a tensor
-            act = cpuize(actor.infer(*actor(gpuize(obs))))
+            act = cpuize(actor.infer(*actor(gpuize(obs, actor.device))))
 
             # step the transition
             next_obs, rew, term, trunc, _ = env.step(act)
@@ -179,7 +179,7 @@ def vec_env_render_gif(wm: Wingman) -> Path:
     # step for one episode
     while not term and not trunc:
         # get an action from the actor
-        obs = gpuize(obs, device=wm.device).unsqueeze(0)
+        obs = gpuize(obs, device=actor.device).unsqueeze(0)
         act = actor.infer(*actor(obs))
         act = cpuize(act.squeeze(0))
 
