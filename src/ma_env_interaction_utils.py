@@ -11,8 +11,18 @@ from wingman.utils import cpuize, gpuize
 from dogfighter.bases.base_actor import Actor
 
 
-def ma_env_obs_preprocess(obs: dict[str, Any]) -> np.ndarray | dict[str, Any]:
+def ma_env_obs_preprocess(obs: dict[str, np.ndarray | dict[str, np.ndarray]]) -> np.ndarray | dict[str, np.ndarray]:
+    first_key = next(iter(obs))
+    if isinstance(obs[first_key], dict):
+        # grab the first item to use as our instance
+        stack_obs: dict[str, np.ndarray] = dict()
+        for k in obs[first_key].keys():  # pyright: ignore[reportAttributeAccessIssue]
+            stack_obs[k] = np.stack([o[k] for o in obs.values()], axis=0)
 
+    else:
+        stack_obs = np.stack([v for v in obs.values()], axis=0)  # pyright: ignore[reportCallIssue, reportArgumentType]
+
+    return stack_obs
 
 
 @torch.no_grad()
@@ -61,7 +71,7 @@ def ma_env_collect_to_memory(
         # loop interaction
         while env.agents:
             # stack the observation into an array
-            stack_obs = np.stack([v for v in dict_obs.values()], axis=0)
+            stack_obs = ma_env_obs_preprocess(dict_obs)
 
             # compute an action depending on whether we're exploring or not
             if random_actions:
@@ -81,7 +91,7 @@ def ma_env_collect_to_memory(
             dict_next_obs, dict_rew, dict_term, dict_trunc, _ = env.step(dict_act)
 
             # increment step count
-            steps_collected += stack_obs.shape[0]
+            steps_collected += stack_act.shape[0]
 
             # temporarily store the transitions
             # don't care that it's not contiguous
@@ -174,7 +184,7 @@ def ma_env_evaluate(
         while env.agents:
             # convert the dictionary observation into an array and move it to the GPU
             # get an action from the actor, then parse into dictionary
-            stack_obs = gpuize(np.stack([v for v in dict_obs.values()]), actor.device)
+            stack_obs = ma_env_obs_preprocess(dict_obs)
             stack_act = actor.infer(*actor(stack_obs))
             dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
 
