@@ -61,8 +61,9 @@ def vec_env_collect_to_memory(
             # sample an action from the env
             act = env.action_space.sample()
         else:
-            # get an action from the actor
-            act, _ = actor.sample(*actor(obs))
+            # get an action from the actor, convert to CPU
+            act, _ = actor.sample(*actor(gpuize(obs)))
+            act = cpuize(act)
 
         # step the transition
         next_obs, rew, term, trunc, info = env.step(act)
@@ -85,7 +86,7 @@ def vec_env_collect_to_memory(
 
     # push everything to memory in one big go
     memory.push(
-        [gpuize(np.concatenate(items, axis=0)) for items in zip(*transitions)],
+        [np.concatenate(items, axis=0) for items in zip(*transitions)],
         bulk=True,
     )
 
@@ -137,12 +138,9 @@ def vec_env_evaluate(
 
         # step for one episode
         while not np.all(done_envs):
-            # get an action from the actor
+            # get an action from the actor and convert to CPU
             # this is a tensor
-            act = actor.infer(*actor(obs))
-
-            # convert the action to cpu
-            act = cpuize(act)
+            act = cpuize(actor.infer(*actor(gpuize(obs))))
 
             # step the transition
             next_obs, rew, term, trunc, _ = env.step(act)
