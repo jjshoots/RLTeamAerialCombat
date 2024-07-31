@@ -112,8 +112,6 @@ class TransformerQUNetwork(QUNetwork):
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
-        # TODO: fix this
-
         # pass the tensors into the transformer
         obs_embed = self.transformer(
             src=self.src_input_network(obs["src"]),
