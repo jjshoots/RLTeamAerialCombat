@@ -75,7 +75,7 @@ def run_synchronous(
             use_random_actions=memory.count < settings.transitions_num_exploration,
             num_transitions=settings.transitions_per_epoch,
         )
-        wm.log.update({f"collect/{k}": v for k, v in info})
+        wm.log.update({f"collect/{k}": v for k, v in info.values()})
 
         # don't proceed with training until we have a minimum number of transitions
         if memory.count < settings.train_min_transitions:
@@ -96,7 +96,7 @@ def run_synchronous(
             batch_size=settings.train_batch_size,
             num_gradient_steps=settings.train_steps_per_epoch,
         )
-        wm.log.update({f"train/{k}": v for k, v in info})
+        wm.log.update({f"train/{k}": v for k, v in info.values()})
 
         """EVALUATE POLICY"""
         if memory.count >= next_eval_step:
@@ -105,7 +105,7 @@ def run_synchronous(
                 env=eval_env,
                 num_episodes=settings.eval_num_episodes,
             )
-            wm.log.update({f"eval/{k}": v for k, v in info})
+            wm.log.update({f"eval/{k}": v for k, v in info.values()})
             max_eval_score = max(max_eval_score, eval_score)
             next_eval_step = (
                 int(memory.count / settings.eval_transitions_frequency) + 1
