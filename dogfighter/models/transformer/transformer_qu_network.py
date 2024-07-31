@@ -49,13 +49,14 @@ class TransformerQUNetwork(QUNetwork):
         """
         super().__init__()
 
-        # the basic backbone
-        self.backbone = TransformerBackbone(
-            input_dim=config.embed_dim,
-            ff_dim=config.ff_dim,
-            num_att_heads=config.num_att_heads,
-            num_decode_layers=config.num_decode_layers,
-            num_encode_layers=config.num_encode_layers,
+        # the transformer model
+        self.transformer = torch.nn.Transformer(
+            d_model=config.embed_dim,
+            nhead=config.num_att_heads,
+            num_encoder_layers=config.num_encode_layers,
+            num_decoder_layers=config.num_decode_layers,
+            dim_feedforward=config.ff_dim,
+            batch_first=True,
         )
 
         # network to go from src -> embed
@@ -65,6 +66,7 @@ class TransformerQUNetwork(QUNetwork):
             _features_description, _activation_description
         )
 
+        # network to go from tgt -> embed
         _features_description = [config.tgt_size, config.embed_dim]
         _activation_description = ["relu"] * (len(_features_description) - 1)
         self.tgt_input_network = NeuralBlocks.generate_linear_stack(
@@ -94,13 +96,17 @@ class TransformerQUNetwork(QUNetwork):
 
     def forward(
         self,
-        obs: dict[Literal["src", "tgt", "mask"], torch.Tensor],
+        obs: dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor],
         act: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
 
         Args:
-            obs (dict[Literal["src", "tgt", "mask"], torch.Tensor]): [B, N, obs_size] tensors
+            obs (dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor]):
+                - "src": [batch_size, src_seq_len, obs_size] tensor
+                - "tgt": [batch_size, tgt_seq_len, obs_size] tensor
+                - "src_mask": [batch_size, src_seq_len] tensor with True elements indicating unmasked positions
+                - "tgt_mask": [batch_size, tgt_seq_len] tensor with True elements indicating unmasked positions
             act (torch.Tensor): Action of shape [B, act_size] or [num_actions, B, act_size]
 
         Returns:
@@ -108,14 +114,12 @@ class TransformerQUNetwork(QUNetwork):
         """
         # TODO: fix this
 
-        # pass obs and att through the backbone
-        # the shape here is [B, embed_dim]
-        obs_embed = self.backbone(
-            obs=dict(
-                src=self.src_input_network(obs["src"]),
-                tgt=self.tgt_input_network(obs["tgt"]),
-                mask=obs["mask"],
-            )
+        # pass the tensors into the transformer
+        obs_embed = self.transformer(
+            src=self.src_input_network(obs["src"]),
+            tgt=self.tgt_input_network(obs["tgt"]),
+            src_key_padding_mask=obs["src_mask"].logical_not(),
+            tgt_key_padding_mask=obs["tgt_mask"].logical_not(),
         )
 
         # pass the action through the action network
