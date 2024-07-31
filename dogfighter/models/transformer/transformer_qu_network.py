@@ -113,12 +113,13 @@ class TransformerQUNetwork(QUNetwork):
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
         # pass the tensors into the transformer
+        # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
         obs_embed = self.transformer(
             src=self.src_input_network(obs["src"]),
             tgt=self.tgt_input_network(obs["tgt"]),
             src_key_padding_mask=obs["src_mask"].logical_not(),
             tgt_key_padding_mask=obs["tgt_mask"].logical_not(),
-        )
+        )[:, -1, :]
 
         # pass the action through the action network
         # the shape here is either [B, embed_dim] or [num_actions, B, embed_dim]

@@ -99,12 +99,13 @@ class TransformerActor(Actor):
             torch.Tensor:
         """
         # pass the tensors into the transformer
+        # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
         obs_embed = self.transformer(
             src=self.src_input_network(obs["src"]),
             tgt=self.tgt_input_network(obs["tgt"]),
             src_key_padding_mask=obs["src_mask"].logical_not(),
             tgt_key_padding_mask=obs["tgt_mask"].logical_not(),
-        )
+        )[:, -1, :]
 
         # output here is shape [B, act_size * 2]
         output = self.head(obs_embed)
