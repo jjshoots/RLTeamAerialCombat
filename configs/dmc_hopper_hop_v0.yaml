@@ -6,12 +6,12 @@ env_name: "dm_control/hopper-hop-v0"
 # learning params
 env_transitions_per_epoch: 8000
 model_updates_per_epoch: 1000
-buffer_size: 1500000
-batch_size: 2048
-total_steps: 2500000
+buffer_size: 1000000
+batch_size: 256
+total_steps: 1000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
-discount_factor: 0.98
+discount_factor: 0.99
 learning_rate: 0.003
 exploration_steps: 25000
 min_transitions_before_training: 50000
@@ -29,7 +29,7 @@ qu_num_ensemble: 2
 embed_dim: 256
 
 # eval settings
-eval_num_episodes: 10
+eval_num_episodes: 16
 eval_steps_ratio: 8000
 
 # wingman required params
@@ -39,6 +39,7 @@ mode:
   train: false
   eval: false
   display: false
+  render: false
 
 model:
   save_directory: "weights"

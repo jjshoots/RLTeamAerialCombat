@@ -39,6 +39,7 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
 
     elif wm.cfg.env_name.startswith("dm_control"):
         import shimmy
+        from gymnasium.wrappers import FlattenObservation
 
         gym.register_envs(shimmy)
 
@@ -46,6 +47,7 @@ def setup_single_environment(wm: Wingman) -> gym.Env:
             wm.cfg.env_name,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
         )
+        env = FlattenObservation(env)
 
         # record observation space shape
         if not getattr(wm.cfg, "obs_size", None):
