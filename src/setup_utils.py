@@ -44,10 +44,6 @@ def setup_vector_environment(wm: Wingman) -> VectorEnv:
     vec_env = AsyncVectorEnv(
         [lambda _=i: setup_single_environment(wm) for i in range(wm.cfg.num_envs)]
     )
-
-    # wrapper to convert the observation to tensors
-    vec_env = VecEnvGpuizeWrapper(vec_env, wm.device)
-
     return vec_env
 
 
