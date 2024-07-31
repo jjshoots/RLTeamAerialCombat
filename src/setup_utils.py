@@ -13,7 +13,6 @@ from wingman.replay_buffer import ReplayBuffer
 from dogfighter.algorithms.ccge import CCGEConfig
 from dogfighter.bases.base_algorithm import Algorithm
 from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
-from dogfighter.env_utils.vec_env_gpuize_wrapper import VecEnvGpuizeWrapper
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
 
