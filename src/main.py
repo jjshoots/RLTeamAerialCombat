@@ -14,8 +14,8 @@ from setup_utils import (setup_algorithm, setup_ma_environment, setup_replay_buf
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     # wm = Wingman(config_yaml="./configs/quad_dogfight_config.yaml")
-    # wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
-    wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
+    wm = Wingman(config_yaml="./configs/dual_dogfight_config.yaml")
+    # wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
     # wm = Wingman(config_yaml="./configs/dmc_cheetah_run_config.yaml")
 
     # setup environment
