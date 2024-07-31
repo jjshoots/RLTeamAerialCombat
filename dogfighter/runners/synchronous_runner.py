@@ -88,7 +88,7 @@ def run_synchronous(
 
         """TRAINING RUN"""
         print(
-            f"Training epoch {wm.log['runner/epoch']}, "
+            f"Training epoch {num_epochs}, "
             f"Replay Buffer Capacity {memory.count} / {memory.mem_size}"
         )
         info = algorithm.update(
