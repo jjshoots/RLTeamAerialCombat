@@ -4,17 +4,11 @@ num_envs: 8
 env_name: "PyFlyt/QuadX-Pole-Balance-v2"
 
 # learning params
-env_transitions_per_epoch: 8000
-model_updates_per_epoch: 1000
 buffer_size: 500000
-batch_size: 2048
-total_steps: 2000000
 critic_update_multiplier: 1
 actor_update_multiplier: 1
 discount_factor: 0.98
 learning_rate: 0.003
-exploration_steps: 0
-min_transitions_before_training: 50000
 random_rollover: true
 replay_buffer_mode: "torch"
 replay_buffer_store_on_device: true
@@ -22,8 +16,8 @@ replay_buffer_store_on_device: true
 runner:
   max_transitions: 2000000
   transitions_per_epoch: 8000
-  transitions_num_exploration: 20000
-  train_min_transitions: 50000
+  transitions_num_exploration: 15000
+  train_min_transitions: 30000
   train_steps_per_epoch: 1000
   train_batch_size: 2048
   eval_num_episodes: 32
