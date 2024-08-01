@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import math
 
-from pydantic import BaseModel
 import torch
+from pydantic import BaseModel
 from wingman import Wingman
 from wingman.replay_buffer import ReplayBuffer
 

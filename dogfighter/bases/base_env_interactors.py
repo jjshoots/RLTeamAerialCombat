@@ -36,3 +36,14 @@ class EvaluationFunctionProtocol(Protocol):
         num_episodes: int,
     ) -> tuple[float, dict[str, Any]]:
         raise NotImplementedError
+
+
+@runtime_checkable
+class DisplayFunctionProtocol(Protocol):
+    def __call__(
+        self,
+        *,
+        actor: Actor,
+        env: ParallelEnv | Env,
+    ) -> None:
+        raise NotImplementedError

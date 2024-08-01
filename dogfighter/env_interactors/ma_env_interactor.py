@@ -218,7 +218,36 @@ def ma_env_evaluate(
     return_info["num_collisions"] = float(num_collisions / num_episodes)
     return_info["mean_hits_per_agent"] = float(num_received_hits / num_episodes)
     eval_score = (
-        return_info["mean_episode_interactions"] * 0.05 + return_info["mean_hits_per_agent"] * 10.0
+        return_info["mean_episode_interactions"] * 0.05
+        + return_info["mean_hits_per_agent"] * 10.0
     ) / (return_info["num_collisions"] + return_info["num_out_of_bounds"] + 1)
     print("Evaluation Stats:\n" f"{pformat(return_info, indent=2)}\n")
     return eval_score, return_info
+
+
+@torch.no_grad()
+def ma_env_display(
+    env: ParallelEnv,
+    actor: MlpActor,
+) -> None:
+    # set to eval and zero grad
+    actor.eval()
+    actor.zero_grad()
+
+    # init the first obs, infos
+    dict_obs, _ = env.reset()
+
+    while env.agents:
+        # convert the dictionary observation into an array and move it to the GPU
+        # get an action from the actor, then parse into dictionary
+        stack_obs = gpuize(np.stack([v for v in dict_obs.values()]), actor.device)
+        stack_act = actor.infer(*actor(stack_obs))
+        dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
+
+        # step a transition, next observation is current observation
+        dict_next_obs, _, dict_term, dict_trunc, _ = env.step(dict_act)
+        dict_obs = {
+            k: v
+            for k, v in dict_next_obs.items()
+            if not (dict_term[k] or dict_trunc[k])
+        }

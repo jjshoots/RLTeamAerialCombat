@@ -3,6 +3,7 @@ from typing import Literal
 
 import numpy as np
 import torch
+from gymnasium import Env
 from gymnasium.vector import VectorEnv
 from wingman.replay_buffer import FlatReplayBuffer
 from wingman.utils import cpuize, gpuize
@@ -165,3 +166,23 @@ def sa_vec_env_evaluate(
         f"{mean_cumulative_reward} mean eval score @ {return_info['mean_episode_length']} mean episode length."
     )
     return mean_cumulative_reward, return_info
+
+
+@torch.no_grad()
+def sa_env_display(
+    env: Env,
+    actor: MlpActor,
+) -> None:
+    # set to eval and zero grad
+    actor.eval()
+    actor.zero_grad()
+
+    # reset things
+    term, trunc = False, False
+    obs, _ = env.reset()
+
+    # step for one episode
+    while not term and not trunc:
+        act = cpuize(actor.infer(*actor(gpuize(obs, actor.device))))
+        next_obs, _, term, trunc, _ = env.step(act)
+        obs = next_obs

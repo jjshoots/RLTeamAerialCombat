@@ -124,7 +124,7 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
     if has_weights:
         # load the model
         alg.load_state_dict(
-            torch.load(model_file, map_location=torch.device(wm.cfg.device))
+            torch.load(model_file, map_location=torch.device(wm.device))
         )
 
     return alg
