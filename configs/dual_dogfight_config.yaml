@@ -1,6 +1,7 @@
 # env params
 env_type: "ma_env"
 team_size: 1
+aggressiveness: 0.5
 
 # learning params
 buffer_size: 1500000

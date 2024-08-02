@@ -77,6 +77,7 @@ def setup_ma_environment(wm: Wingman) -> ParallelEnv:
         team_size=wm.cfg.team_size,
         render_mode="human" if wm.cfg.mode.display else None,
         flatten_observation=True,
+        aggressiveness=wm.cfg.aggressiveness,
     )
 
     # record observation space shape
