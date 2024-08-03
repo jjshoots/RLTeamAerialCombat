@@ -70,10 +70,10 @@ def setup_vector_environment(wm: Wingman) -> VectorEnv:
 
 
 def setup_ma_environment(wm: Wingman) -> ParallelEnv:
-    from PyFlyt.pz_envs import MAFixedwingDogfightEnv
+    from PyFlyt.pz_envs import MAFixedwingDogfightEnvV2
 
     # define one env
-    ma_env = MAFixedwingDogfightEnv(
+    ma_env = MAFixedwingDogfightEnvV2(
         team_size=wm.cfg.team_size,
         render_mode="human" if wm.cfg.mode.display else None,
         flatten_observation=True,
