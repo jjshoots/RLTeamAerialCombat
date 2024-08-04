@@ -6,8 +6,8 @@ project: "dogfighter"
 name: "aggression_sweep"
 parameters:
   aggressiveness:
-    min: 0.1
-    max: 1.0
+    min: 0.2
+    max: 0.5
 command:
   - python3
   - src/main.py
