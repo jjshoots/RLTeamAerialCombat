@@ -20,6 +20,18 @@ sleep 10
 wandb agent jjshoots/dogfighter/tj7ja962 &
 pids+=($!)
 sleep 10
+wandb agent jjshoots/dogfighter/tj7ja962 &
+pids+=($!)
+sleep 10
+wandb agent jjshoots/dogfighter/tj7ja962 &
+pids+=($!)
+sleep 10
+wandb agent jjshoots/dogfighter/tj7ja962 &
+pids+=($!)
+sleep 10
+wandb agent jjshoots/dogfighter/tj7ja962 &
+pids+=($!)
+sleep 10
 
 for pid in ${pids[*]}; do
     wait $pid
