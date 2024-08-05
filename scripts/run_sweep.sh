@@ -8,16 +8,28 @@ fi
 wingman-compress-weights
 
 declare -a pids=()
-wandb agent jjshoots/dogfighter/lbyv6x8y &
+wandb agent jjshoots/dogfighter/eju6dzka &
 pids+=($!)
 sleep 10
-wandb agent jjshoots/dogfighter/lbyv6x8y &
+wandb agent jjshoots/dogfighter/eju6dzka &
 pids+=($!)
 sleep 10
-wandb agent jjshoots/dogfighter/lbyv6x8y &
+wandb agent jjshoots/dogfighter/eju6dzka &
 pids+=($!)
 sleep 10
-wandb agent jjshoots/dogfighter/lbyv6x8y &
+wandb agent jjshoots/dogfighter/eju6dzka &
+pids+=($!)
+sleep 10
+wandb agent jjshoots/dogfighter/eju6dzka &
+pids+=($!)
+sleep 10
+wandb agent jjshoots/dogfighter/eju6dzka &
+pids+=($!)
+sleep 10
+wandb agent jjshoots/dogfighter/eju6dzka &
+pids+=($!)
+sleep 10
+wandb agent jjshoots/dogfighter/eju6dzka &
 pids+=($!)
 sleep 10
 
