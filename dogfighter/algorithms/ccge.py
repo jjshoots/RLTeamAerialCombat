@@ -27,7 +27,7 @@ class CCGEConfig(AlgorithmConfig):
     critic_learning_rate: float = field(default=0.003)
     alpha_learning_rate: float = field(default=0.01)
     tune_entropy: bool = field(default=True)
-    target_entropy: float = field(default=0.0)
+    target_entropy: float
     learn_uncertainty: bool = field(default=True)
     discount_factor: float = field(default=0.99)
     actor_update_ratio: int = field(default=1)
