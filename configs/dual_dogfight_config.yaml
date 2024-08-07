@@ -13,7 +13,7 @@ replay_buffer:
   buffer_store_on_device: true
   random_rollover: true
 
-# Model params
+# model params
 model:
   embed_dim: 256
   qu_num_ensemble: 2
