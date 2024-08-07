@@ -10,14 +10,14 @@ from sa_envs.dmc_envs import setup_dmc_sa_env
 from sa_envs.pyflyt_envs import setup_pyflyt_sa_env
 
 
-def setup_sa_vec_env(wm: Wingman) -> VectorEnv:
+def setup_sa_vec_environment(wm: Wingman) -> VectorEnv:
     vec_env = AsyncVectorEnv(
-        [lambda _=i: setup_sa_env(wm) for i in range(wm.cfg.num_envs)]
+        [lambda _=i: setup_sa_environment(wm) for i in range(wm.cfg.num_envs)]
     )
     return vec_env
 
 
-def setup_sa_env(wm: Wingman) -> gym.Env:
+def setup_sa_environment(wm: Wingman) -> gym.Env:
     if wm.cfg.env.name.startswith("PyFlyt"):
         env = setup_pyflyt_sa_env(
             wm.cfg.env.name,
@@ -41,7 +41,7 @@ def setup_sa_env(wm: Wingman) -> gym.Env:
     return env
 
 
-def setup_ma_env(wm: Wingman) -> ParallelEnv:
+def setup_ma_environment(wm: Wingman) -> ParallelEnv:
     if wm.cfg.env.name == "flattened_dogfight":
         env = setup_fixedwing_dogfight_env(
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
