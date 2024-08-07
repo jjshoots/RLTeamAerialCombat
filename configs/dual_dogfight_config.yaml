@@ -1,27 +1,33 @@
 # env params
-env_type: "ma_env"
-team_size: 1
-aggressiveness: 0.5
+env:
+  name: "flattened_dogfight"
+  variant: "ma_env"
+  kwargs:
+    team_size: 1
+    aggressiveness: 0.5
 
-# learning params
-buffer_size: 1500000
-critic_update_multiplier: 1
-actor_update_multiplier: 1
-discount_factor: 0.98
-learning_rate: 0.003
-random_rollover: true
-replay_buffer_mode: "torch"
-replay_buffer_store_on_device: true
-
-# CCGE params
-pretrained_oracle: false
-update_oracle: true
-confidence_lambda: 0.1
+# replay buffer params
+replay_buffer:
+  size: 1500000
+  buffer_mode: "torch"
+  buffer_store_on_device: true
+  random_rollover: true
 
 # Model params
-qu_num_ensemble: 2
-embed_dim: 256
+model:
+  embed_dim: 256
+  qu_num_ensemble: 2
+  actor_learning_rate: 0.003
+  critic_learning_rate: 0.003
+  alpha_learning_rate: 0.01
+  tune_entropy: true
+  target_entropy_gain: 1.0
+  learn_uncertainty: true
+  discount_factor: 0.99
+  actor_update_ratio: 1
+  critic_update_ratio: 1
 
+# training config
 runner:
   max_transitions: 2500000
   transitions_per_epoch: 10000
