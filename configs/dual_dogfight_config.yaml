@@ -15,6 +15,7 @@ replay_buffer:
 
 # model params
 model:
+  type: "mlp"
   embed_dim: 256
   qu_num_ensemble: 2
   actor_learning_rate: 0.003
