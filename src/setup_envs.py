@@ -42,16 +42,9 @@ def setup_sa_environment(wm: Wingman) -> gym.Env:
 
 
 def setup_ma_environment(wm: Wingman) -> ParallelEnv:
-    if wm.cfg.env.name == "flattened_dogfight":
+    if wm.cfg.env.name == "dogfight":
         env = setup_fixedwing_dogfight_env(
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-            flatten_observation=wm.cfg.env.flatten,
-            env_kwargs=vars(wm.cfg.env.kwargs),
-        )
-    elif wm.cfg.env.name == "dogfight":
-        env = setup_fixedwing_dogfight_env(
-            render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-            flatten_observation=wm.cfg.env.flatten,
             env_kwargs=vars(wm.cfg.env.kwargs),
         )
     else:
@@ -60,9 +53,9 @@ def setup_ma_environment(wm: Wingman) -> ParallelEnv:
     if wm.cfg.env.flatten:
         # record observation and action space shapes
         if not getattr(wm.cfg, "src_size", None):
-            wm.cfg.model.obs_size = env.observation_space(0)["src"].shape[0]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
+            wm.cfg.model.obs_size = env.observation_space(0)["src"].feature_space.shape[0]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
         if not getattr(wm.cfg, "tgt_size", None):
-            wm.cfg.model.act_size = env.action_space(0)["tgt"].shape[0]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
+            wm.cfg.model.act_size = env.action_space(0)["tgt"].feature_space.shape[0]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
         if not getattr(wm.cfg, "act_size", None):
             wm.cfg.model.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
     else:

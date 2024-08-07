@@ -1,10 +1,11 @@
 # env params
 env:
-  name: "flattened_dogfight"
+  name: "dogfight"
   variant: "ma_env"
   kwargs:
     team_size: 1
     aggressiveness: 0.5
+    flatten: false
 
 # replay buffer params
 replay_buffer:
