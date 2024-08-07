@@ -14,9 +14,8 @@ from dogfighter.env_interactors.sa_vec_env_interactor import (
     sa_env_display, sa_vec_env_collect, sa_vec_env_evaluate)
 from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
-from setup_utils import (setup_algorithm, setup_ma_environment,
-                         setup_replay_buffer, setup_single_environment,
-                         setup_vector_environment)
+from setup_algorithms import setup_algorithm, setup_replay_buffer
+from setup_envs import setup_ma_environment, setup_sa_environment, setup_sa_vec_environment
 
 
 def train(wm: Wingman) -> None:
@@ -29,8 +28,8 @@ def train(wm: Wingman) -> None:
         collect_fn: CollectFunctionProtocol = ma_env_collect  # pyright: ignore[reportAssignmentType]
         evaluation_fn: EvaluationFunctionProtocol = ma_env_evaluate  # pyright: ignore[reportAssignmentType]
     elif wm.cfg.env_type == "vec_env":
-        train_env = setup_vector_environment(wm)
-        eval_env = setup_vector_environment(wm)
+        train_env = setup_sa_vec_environment(wm)
+        eval_env = setup_sa_vec_environment(wm)
         algorithm = setup_algorithm(wm)
         memory = setup_replay_buffer(wm)
         collect_fn: CollectFunctionProtocol = sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
@@ -68,7 +67,7 @@ def display(wm: Wingman) -> None:
         )
     elif wm.cfg.env_type == "vec_env":
         sa_env_display(
-            env=setup_single_environment(wm),
+            env=setup_sa_environment(wm),
             actor=setup_algorithm(wm).actor,
         )
 
