@@ -17,10 +17,8 @@ class TransformerActorConfig(ActorConfig):
     embed_dim: int
     ff_dim: int
     num_att_heads: int
-    src_input_dim: int
-    tgt_input_dim: int
-    num_decode_layers: int
     num_encode_layers: int
+    num_decode_layers: int
 
     def instantiate(self) -> "TransformerActor":
         """instantiate.
