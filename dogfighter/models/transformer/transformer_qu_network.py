@@ -110,10 +110,6 @@ class TransformerQUNetwork(QUNetwork):
         """
         # pass the tensors into the transformer
         # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
-        assert not isinstance(obs["src"], dict)
-        assert not isinstance(obs["tgt"], dict)
-        assert not isinstance(obs["src_mask"], dict)
-        assert not isinstance(obs["tgt_mask"], dict)
         obs_embed = self.transformer(
             src=self.src_input_network(obs["src"]),
             tgt=self.tgt_input_network(obs["tgt"]),
@@ -126,7 +122,7 @@ class TransformerQUNetwork(QUNetwork):
         act_embed = self.act_network(act)
 
         # if we have multiple actions per observation, stack the observation
-        if len(act.shape) != len(obs["src"].shape):
+        if len(act.shape) != len(obs_embed.shape):
             obs_embed = obs_embed.expand(act.shape[0], -1, -1)
 
         # merge things together and get the output

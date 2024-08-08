@@ -74,9 +74,13 @@ def setup_transformer_ma_environment(wm: Wingman) -> ParallelEnv:
 
     # record observation and action space shapes
     if not getattr(wm.cfg.algorithm, "src_size", None):
-        wm.cfg.algorithm.src_size = env.observation_space(0)["src"].feature_space.shape[0]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
+        wm.cfg.algorithm.src_size = env.observation_space(0)["src"].feature_space.shape[
+            0
+        ]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
     if not getattr(wm.cfg.algorithm, "tgt_size", None):
-        wm.cfg.algorithm.tgt_size = env.observation_space(0)["tgt"].feature_space.shape[0]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
+        wm.cfg.algorithm.tgt_size = env.observation_space(0)["tgt"].feature_space.shape[
+            0
+        ]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
     if not getattr(wm.cfg.algorithm, "act_size", None):
         wm.cfg.algorithm.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
 
