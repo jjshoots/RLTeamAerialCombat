@@ -88,8 +88,8 @@ class TransformerActor(Actor):
             obs (dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor]):
                 - "src": [batch_size, src_seq_len, obs_size] tensor
                 - "tgt": [batch_size, tgt_seq_len, obs_size] tensor
-                - "src_mask": [batch_size, src_seq_len] tensor
-                - "tgt_mask": [batch_size, tgt_seq_len] tensor
+                - "src_mask": [batch_size, src_seq_len] tensor with True elements indicating unmasked positions
+                - "tgt_mask": [batch_size, tgt_seq_len] tensor with True elements indicating unmasked positions
 
         Returns:
             torch.Tensor:
