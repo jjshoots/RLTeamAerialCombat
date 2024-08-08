@@ -1,14 +1,14 @@
 from __future__ import annotations
+
 from typing import Any
 
-from gymnasium import spaces
-
 import numpy as np
+from gymnasium import spaces
 from PyFlyt.pz_envs import MAFixedwingDogfightEnvV2
 
+
 class MAFixedwingDogfightTransformerEnvV2(MAFixedwingDogfightEnvV2):
-    """MAFixedwingDogfightTransformerEnv.
-    """
+    """MAFixedwingDogfightTransformerEnv."""
 
     def __init__(self, **kwargs) -> None:
         """Normal dogfight env in non-flatten mode.
@@ -23,7 +23,7 @@ class MAFixedwingDogfightTransformerEnvV2(MAFixedwingDogfightEnvV2):
                 src=super().observation_space(0)["others"],
                 tgt=spaces.Sequence(
                     space=super().observation_space(0)["self"],
-                )
+                ),
             )
         )
 
@@ -37,7 +37,9 @@ class MAFixedwingDogfightTransformerEnvV2(MAFixedwingDogfightEnvV2):
         obs, infos = super().reset(seed=seed, options=options)
         return obs, infos
 
-    def step(self, actions: dict[str, np.ndarray]) -> tuple[
+    def step(
+        self, actions: dict[str, np.ndarray]
+    ) -> tuple[
         dict[str, Any],
         dict[str, float],
         dict[str, bool],

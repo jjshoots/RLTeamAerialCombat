@@ -5,20 +5,21 @@ from typing import Literal
 import numpy as np
 import torch
 from pettingzoo import ParallelEnv
-from wingman.replay_buffer import FlatReplayBuffer
-from wingman.utils import cpuize, gpuize
+from wingman.replay_buffer.utils import listed_dict_to_dicted_list
+from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
+from wingman.utils import cpuize, gpuize, nested_cpuize, nested_gpuize
 
-from dogfighter.models.mlp.mlp_actor import MlpActor
+from dogfighter.models.transformer.transformer_actor import TransformerActor
 
 
 @torch.no_grad()
-def ma_env_collect(
-    actor: MlpActor,
+def transformer_ma_env_collect(
+    actor: TransformerActor,
     env: ParallelEnv,
-    memory: FlatReplayBuffer,
+    memory: DictReplayBufferWrapper,
     num_transitions: int,
     use_random_actions: bool,
-) -> tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
+) -> tuple[DictReplayBufferWrapper, dict[Literal["interactions_per_second"], float]]:
     """Runs the actor in the multiagent parallel environment and collects transitions.
 
     This collects `num_transitions` transitions using `num_transitions // env.num_agent` steps.
@@ -30,14 +31,14 @@ def ma_env_collect(
     - The next 1 item be for termination.
 
     Args:
-        actor (MlpActor): actor
+        actor (TransformerActor): actor
         env (ParallelEnv): env
-        memory (FlatReplayBuffer): memory
+        memory (DictReplayBufferWrapper): memory
         num_transitions (int): num_transitions
         use_random_actions (bool): use_random_actions
 
     Returns:
-        tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
+        tuple[DictReplayBufferWrapper, dict[Literal["interactions_per_second"], float]]:
     """
     # to record times
     start_time = time.time()
@@ -56,8 +57,10 @@ def ma_env_collect(
 
         # loop interaction
         while env.agents:
-            # stack the observation into an array
-            stack_obs = np.stack([v for v in dict_obs.values()], axis=0)
+            # stack the observation into a dict of arrays
+            stack_obs = listed_dict_to_dicted_list(
+                [v for v in dict_obs.values()], stack=True
+            )
 
             # compute an action depending on whether we're exploring or not
             if use_random_actions:
@@ -69,7 +72,7 @@ def ma_env_collect(
             else:
                 # get an action from the actor
                 stack_act = cpuize(
-                    actor.sample(*actor(gpuize(stack_obs, actor.device)))[0]
+                    actor.sample(*actor(nested_gpuize(stack_obs, actor.device)))[0]
                 )
                 dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
@@ -77,7 +80,7 @@ def ma_env_collect(
             dict_next_obs, dict_rew, dict_term, dict_trunc, _ = env.step(dict_act)
 
             # increment step count
-            steps_collected += stack_obs.shape[0]
+            steps_collected += stack_act.shape[0]
 
             # temporarily store the transitions
             # don't care that it's not contiguous
@@ -101,7 +104,14 @@ def ma_env_collect(
 
         # store stuff in contiguous mem after each episode
         memory.push(
-            [np.concatenate(items, axis=0) for items in zip(*transitions)],
+            [
+                (
+                    listed_dict_to_dicted_list(items, stack=False)
+                    if isinstance(items[0], dict)
+                    else np.concatenate(items, axis=0)
+                )
+                for items in zip(*transitions)
+            ],
             bulk=True,
         )
 
@@ -117,8 +127,8 @@ def ma_env_collect(
 
 
 @torch.no_grad()
-def ma_env_evaluate(
-    actor: MlpActor,
+def mlp_ma_env_evaluate(
+    actor: TransformerActor,
     env: ParallelEnv,
     num_episodes: int,
 ) -> tuple[
@@ -137,7 +147,7 @@ def ma_env_evaluate(
     """ma_env_evaluate.
 
     Args:
-        actor (MlpActor): actor
+        actor (TransformerActor): actor
         env (ParallelEnv): env
         num_episodes (int): num_episodes
 
@@ -174,9 +184,11 @@ def ma_env_evaluate(
         while env.agents:
             # convert the dictionary observation into an array and move it to the GPU
             # get an action from the actor, then parse into dictionary
-            stack_obs = gpuize(np.stack([v for v in dict_obs.values()]), actor.device)
-            stack_act = actor.infer(*actor(stack_obs))
-            dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
+            stack_obs = listed_dict_to_dicted_list(
+                [v for v in dict_obs.values()], stack=True
+            )
+            stack_act = cpuize(actor.infer(*actor(nested_gpuize(stack_obs))))
+            dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
             # step a transition, next observation is current observation
             dict_next_obs, dict_rew, dict_term, dict_trunc, dict_info = env.step(
@@ -226,9 +238,9 @@ def ma_env_evaluate(
 
 
 @torch.no_grad()
-def ma_env_display(
+def mlp_ma_env_display(
     env: ParallelEnv,
-    actor: MlpActor,
+    actor: TransformerActor,
 ) -> None:
     # set to eval and zero grad
     actor.eval()

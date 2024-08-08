@@ -7,11 +7,10 @@ from wingman.utils import shutdown_handler
 
 from dogfighter.bases.base_env_interactors import (CollectFunctionProtocol,
                                                    EvaluationFunctionProtocol)
-from dogfighter.env_interactors.ma_env_interactor import (ma_env_collect,
-                                                          ma_env_display,
-                                                          ma_env_evaluate)
-from dogfighter.env_interactors.sa_vec_env_interactor import (
-    sa_env_display, sa_vec_env_collect, sa_vec_env_evaluate)
+from dogfighter.env_interactors.mlp_ma_env_interactor import (
+    mlp_ma_env_collect, mlp_ma_env_display, mlp_ma_env_evaluate)
+from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
+    mlp_sa_env_display, mlp_sa_vec_env_collect, mlp_sa_vec_env_evaluate)
 from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
 from setup_algorithms import setup_algorithm, setup_replay_buffer
@@ -26,15 +25,15 @@ def train(wm: Wingman) -> None:
         eval_env = setup_ma_environment(wm)
         algorithm = setup_algorithm(wm)
         memory = setup_replay_buffer(wm)
-        collect_fn: CollectFunctionProtocol = ma_env_collect  # pyright: ignore[reportAssignmentType]
-        evaluation_fn: EvaluationFunctionProtocol = ma_env_evaluate  # pyright: ignore[reportAssignmentType]
+        collect_fn: CollectFunctionProtocol = mlp_ma_env_collect  # pyright: ignore[reportAssignmentType]
+        evaluation_fn: EvaluationFunctionProtocol = mlp_ma_env_evaluate  # pyright: ignore[reportAssignmentType]
     elif wm.cfg.env.variant == "vec_env":
         train_env = setup_sa_vec_environment(wm)
         eval_env = setup_sa_vec_environment(wm)
         algorithm = setup_algorithm(wm)
         memory = setup_replay_buffer(wm)
-        collect_fn: CollectFunctionProtocol = sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
-        evaluation_fn: EvaluationFunctionProtocol = sa_vec_env_evaluate  # pyright: ignore[reportAssignmentType]
+        collect_fn: CollectFunctionProtocol = mlp_sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
+        evaluation_fn: EvaluationFunctionProtocol = mlp_sa_vec_env_evaluate  # pyright: ignore[reportAssignmentType]
     else:
         raise NotImplementedError
 
@@ -62,12 +61,12 @@ def train(wm: Wingman) -> None:
 
 def display(wm: Wingman) -> None:
     if wm.cfg.env.variant == "ma_env":
-        ma_env_display(
+        mlp_ma_env_display(
             env=setup_ma_environment(wm),
             actor=setup_algorithm(wm).actor,
         )
     elif wm.cfg.env.variant == "vec_env":
-        sa_env_display(
+        mlp_sa_env_display(
             env=setup_sa_environment(wm),
             actor=setup_algorithm(wm).actor,
         )

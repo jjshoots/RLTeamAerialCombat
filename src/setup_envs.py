@@ -53,7 +53,9 @@ def setup_ma_environment(wm: Wingman) -> ParallelEnv:
     if wm.cfg.env.flatten:
         # record observation and action space shapes
         if not getattr(wm.cfg, "src_size", None):
-            wm.cfg.model.obs_size = env.observation_space(0)["src"].feature_space.shape[0]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
+            wm.cfg.model.obs_size = env.observation_space(0)["src"].feature_space.shape[
+                0
+            ]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
         if not getattr(wm.cfg, "tgt_size", None):
             wm.cfg.model.act_size = env.action_space(0)["tgt"].feature_space.shape[0]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
         if not getattr(wm.cfg, "act_size", None):

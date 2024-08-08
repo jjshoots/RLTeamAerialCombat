@@ -12,7 +12,7 @@ from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 @torch.no_grad()
-def sa_vec_env_collect(
+def mlp_sa_vec_env_collect(
     actor: MlpActor,
     env: VectorEnv,
     memory: FlatReplayBuffer,
@@ -103,7 +103,7 @@ def sa_vec_env_collect(
 
 
 @torch.no_grad()
-def sa_vec_env_evaluate(
+def mlp_sa_vec_env_evaluate(
     actor: MlpActor,
     env: VectorEnv,
     num_episodes: int,
@@ -169,7 +169,7 @@ def sa_vec_env_evaluate(
 
 
 @torch.no_grad()
-def sa_env_display(
+def mlp_sa_env_display(
     env: Env,
     actor: MlpActor,
 ) -> None:
