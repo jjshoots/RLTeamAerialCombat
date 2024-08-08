@@ -1,20 +1,21 @@
 # env params
 env:
-  name: "flattened_dogfight"
-  variant: "ma_env"
+  name: "dogfight"
+  variant: "mlp_ma_env"
   kwargs:
     team_size: 1
-    aggressiveness: 0.5
+    flatten_observation: true
 
 # replay buffer params
 replay_buffer:
-  size: 1500000
-  buffer_mode: "torch"
-  buffer_store_on_device: true
+  mem_size: 1500000
+  mode: "torch"
+  use_dict_wrapper: false
+  store_on_device: true
   random_rollover: true
 
-# model params
-model:
+# algorithm params
+algorithm:
   variant: "mlp"
   actor:
     embed_dim: 256
@@ -49,6 +50,7 @@ mode:
   train: false
   eval: false
   display: false
+  render: false
 
 model:
   save_directory: "weights"

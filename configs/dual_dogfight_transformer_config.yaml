@@ -4,7 +4,6 @@ env:
   variant: "transformer_ma_env"
   kwargs:
     team_size: 1
-    aggressiveness: 0.5
     flatten_observation: false
 
 # replay buffer params

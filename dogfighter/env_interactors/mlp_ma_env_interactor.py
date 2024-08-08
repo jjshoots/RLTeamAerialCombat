@@ -175,7 +175,7 @@ def mlp_ma_env_evaluate(
         while env.agents:
             # convert the dictionary observation into an array and move it to the GPU
             # get an action from the actor, then parse into dictionary
-            stack_obs = np.stack([v for v in dict_obs.values()]), actor.device
+            stack_obs = np.stack([v for v in dict_obs.values()])
             stack_act = cpuize(actor.infer(*actor(gpuize(stack_obs))))
             dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 

@@ -31,7 +31,7 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
         actor_config = MlpActorConfig(
             obs_size=wm.cfg.algorithm.obs_size,
             act_size=wm.cfg.algorithm.act_size,
-            embed_dim=wm.cfg.actor.embed_dim,
+            embed_dim=wm.cfg.algorithm.actor.embed_dim,
         )
         qu_config = MlpQUNetworkConfig(
             obs_size=wm.cfg.algorithm.obs_size,
