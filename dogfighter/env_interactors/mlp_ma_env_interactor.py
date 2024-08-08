@@ -42,6 +42,9 @@ def mlp_ma_env_collect(
     # to record times
     start_time = time.time()
 
+    # list to store memory address references for each transition generated
+    transitions = []
+
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()
@@ -51,8 +54,6 @@ def mlp_ma_env_collect(
         # init the first obs, infos
         dict_obs, _ = env.reset()
 
-        # list to store memory address references for each transition generated
-        transitions = []
 
         # loop interaction
         while env.agents:
@@ -99,11 +100,11 @@ def mlp_ma_env_collect(
                 if not (dict_term[k] or dict_trunc[k])
             }
 
-        # store stuff in contiguous mem after each episode
-        memory.push(
-            [np.concatenate(items, axis=0) for items in zip(*transitions)],
-            bulk=True,
-        )
+    # store stuff in contiguous mem after each episode
+    memory.push(
+        [np.concatenate(items, axis=0) for items in zip(*transitions)],
+        bulk=True,
+    )
 
     # print some recordings
     total_time = time.time() - start_time

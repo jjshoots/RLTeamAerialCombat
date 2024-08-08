@@ -185,7 +185,7 @@ def transformer_ma_env_evaluate(
         dict_obs, dict_info = env.reset()
 
         while env.agents:
-            # convert the dictionary observation into an array and move it to the GPU
+            # convert the dictionary observation into dictionary of arrays, send to GPU
             # get an action from the actor, then parse into dictionary
             stack_obs = listed_dict_to_dicted_list(
                 [v for v in dict_obs.values()], stack=True

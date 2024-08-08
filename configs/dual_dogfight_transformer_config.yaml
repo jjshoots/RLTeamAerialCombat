@@ -20,15 +20,15 @@ algorithm:
   variant: "transformer"
   actor:
     embed_dim: 32
-    ff_dim: 128
-    num_att_head: 2
+    ff_dim: 64
+    num_att_head: 4
     num_encode_layers: 1
     num_decode_layers: 1
   critic:
     embed_dim: 64
-    ff_dim: 256
+    ff_dim: 128
     num_att_head: 4
-    num_encode_layers: 2
+    num_encode_layers: 1
     num_decode_layers: 1
   qu_num_ensemble: 2
   actor_learning_rate: 0.003
