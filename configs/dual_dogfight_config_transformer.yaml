@@ -9,9 +9,10 @@ env:
 
 # replay buffer params
 replay_buffer:
-  size: 1500000
-  buffer_mode: "torch"
-  buffer_store_on_device: true
+  mem_size: 1500000
+  mode: "torch"
+  use_dict_wrapper: true
+  store_on_device: true
   random_rollover: true
 
 # model params

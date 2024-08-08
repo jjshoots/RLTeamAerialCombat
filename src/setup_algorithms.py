@@ -3,6 +3,7 @@ from __future__ import annotations
 import torch
 from wingman import Wingman
 from wingman.replay_buffer import ReplayBuffer
+from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
 
 from dogfighter.algorithms.ccge import CCGEConfig
 from dogfighter.bases.base_algorithm import Algorithm
@@ -16,15 +17,14 @@ from dogfighter.models.transformer.transformer_qu_network import \
 
 
 def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
-    memory = ReplayBufferConfig(
-        mem_size=wm.cfg.replay_buffer.size,
+    return ReplayBufferConfig(
+        mem_size=wm.cfg.replay_buffer.mem_size,
         mode=wm.cfg.replay_buffer.mode,
         device=str(wm.device),
+        use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
         store_on_device=wm.cfg.replay_buffer.store_on_device,
         random_rollover=wm.cfg.replay_buffer.random_rollover,
     ).instantiate()
-
-    return memory
 
 
 def setup_algorithm(wm: Wingman) -> Algorithm:

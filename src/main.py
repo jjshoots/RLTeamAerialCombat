@@ -15,7 +15,7 @@ from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
 from setup_algorithms import setup_algorithm, setup_replay_buffer
 from setup_envs import (setup_mlp_ma_environment, setup_mlp_sa_environment,
-                        setup_mlp_sa_vec_environment)
+                        setup_mlp_sa_vec_environment, setup_transformer_ma_environment)
 
 
 def train(wm: Wingman) -> None:
@@ -35,8 +35,8 @@ def train(wm: Wingman) -> None:
         collect_fn: CollectFunctionProtocol = mlp_sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
         evaluation_fn: EvaluationFunctionProtocol = mlp_sa_vec_env_evaluate  # pyright: ignore[reportAssignmentType]
     elif wm.cfg.env.variant == "transformer_ma_env":
-        train_env = setup_mlp_sa_vec_environment(wm)
-        eval_env = setup_mlp_sa_vec_environment(wm)
+        train_env = setup_transformer_ma_environment(wm)
+        eval_env = setup_transformer_ma_environment(wm)
         algorithm = setup_algorithm(wm)
         memory = setup_replay_buffer(wm)
         collect_fn: CollectFunctionProtocol = mlp_sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
