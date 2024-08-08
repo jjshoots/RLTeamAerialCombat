@@ -39,8 +39,8 @@ class MAFixedwingDogfightTransformerEnvV2(MAFixedwingDogfightEnvV2):
             ),
             dtype=np.float64,
         )
-        self._base_src_mask = np.zeros((self._num_agents - 1,), dtype=bool)
-        self._tgt_mask = np.array([True], dtype=bool)
+        self._base_src_mask = np.ones((self._num_agents - 1,), dtype=bool)
+        self._tgt_mask = np.array([False], dtype=bool)
 
     def observation_space(
         self, agent: Any
@@ -69,7 +69,7 @@ class MAFixedwingDogfightTransformerEnvV2(MAFixedwingDogfightEnvV2):
             src = self._base_src.copy()
             src[: len(agent_obs["others"])] = agent_obs["others"]
             src_mask = self._base_src_mask.copy()
-            src_mask[: len(agent_obs["others"])] = True
+            src_mask[: len(agent_obs["others"])] = False
 
             # deal with target
             tgt = np.expand_dims(agent_obs["self"], axis=0)
