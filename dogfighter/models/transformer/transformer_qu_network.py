@@ -81,7 +81,7 @@ class TransformerQUNetwork(QUNetwork):
         _activation_description = ["relu"] * (len(_features_description) - 2) + [
             "identity"
         ]
-        self.embed_act_merger = NeuralBlocks.generate_linear_stack(
+        self.head = NeuralBlocks.generate_linear_stack(
             _features_description, _activation_description
         )
 
@@ -110,6 +110,10 @@ class TransformerQUNetwork(QUNetwork):
         """
         # pass the tensors into the transformer
         # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
+        assert not isinstance(obs["src"], dict)
+        assert not isinstance(obs["tgt"], dict)
+        assert not isinstance(obs["src_mask"], dict)
+        assert not isinstance(obs["tgt_mask"], dict)
         obs_embed = self.transformer(
             src=self.src_input_network(obs["src"]),
             tgt=self.tgt_input_network(obs["tgt"]),
