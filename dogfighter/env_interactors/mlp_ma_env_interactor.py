@@ -54,7 +54,6 @@ def mlp_ma_env_collect(
         # init the first obs, infos
         dict_obs, _ = env.reset()
 
-
         # loop interaction
         while env.agents:
             # stack the observation into an array

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import warnings
 from dataclasses import field
 from typing import Any
@@ -150,6 +151,8 @@ class CCGE(Algorithm):
         Returns:
             dict[str, Any]:
         """
+        start_time = time.time()
+
         # initialise the update infos
         update_info = {}
 
@@ -164,6 +167,10 @@ class CCGE(Algorithm):
                 term=term,
                 next_obs=next_obs,
             )
+
+        update_info["steps_per_second"] = num_gradient_steps / (
+            time.time() - start_time
+        )
 
         return update_info
 
