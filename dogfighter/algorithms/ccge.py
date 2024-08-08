@@ -102,9 +102,9 @@ class CCGE(Algorithm):
         )
 
         # for mixed precision training
-        self._critic_scaler = torch.amp.GradScaler(self.config.device)
-        self._actor_scaler = torch.amp.GradScaler(self.config.device)
-        self._alpha_scaler = torch.amp.GradScaler(self.config.device)
+        self._critic_scaler = torch.amp.GradScaler(self.config.device, enabled=False)
+        self._actor_scaler = torch.amp.GradScaler(self.config.device, enabled=False)
+        self._alpha_scaler = torch.amp.GradScaler(self.config.device, enabled=False)
 
     @property
     def actor(self) -> Actor:
