@@ -101,11 +101,6 @@ class CCGE(Algorithm):
             [self._log_alpha], lr=config.alpha_learning_rate, amsgrad=True
         )
 
-        # for mixed precision training
-        self._critic_scaler = torch.amp.GradScaler(self.config.device, enabled=False)
-        self._actor_scaler = torch.amp.GradScaler(self.config.device, enabled=False)
-        self._alpha_scaler = torch.amp.GradScaler(self.config.device, enabled=False)
-
     @property
     def actor(self) -> Actor:
         """actor.
@@ -201,37 +196,31 @@ class CCGE(Algorithm):
 
         # update critic
         for _ in range(self.config.critic_update_ratio):
-            with torch.autocast(device_type=self.config.device, dtype=torch.float16):
-                loss, log = self._calc_critic_loss(
-                    obs=obs,
-                    act=act,
-                    rew=rew,
-                    term=term,
-                    next_obs=next_obs,
-                )
-            self._critic_scaler.scale(loss).backward()
-            self._critic_scaler.step(self._critic_optim)
-            self._critic_scaler.update()
-            self._update_q_target()
+            loss, log = self._calc_critic_loss(
+                obs=obs,
+                act=act,
+                rew=rew,
+                term=term,
+                next_obs=next_obs,
+            )
+            loss.backward()
+            self._critic_optim.step()
             self._critic_optim.zero_grad()
+            self._update_q_target()
             all_logs = {**all_logs, **log}
 
         # update actor
         for _ in range(self.config.actor_update_ratio):
-            with torch.autocast(device_type=self.config.device, dtype=torch.float16):
-                loss, log = self._calc_actor_loss(obs=obs, term=term)
-            self._actor_scaler.scale(loss).backward()
-            self._actor_scaler.step(self._actor_optim)
-            self._actor_scaler.update()
+            loss, log = self._calc_actor_loss(obs=obs, term=term)
+            loss.backward()
+            self._actor_optim.step()
             self._actor_optim.zero_grad()
             all_logs = {**all_logs, **log}
 
             # also update alpha for entropy
-            with torch.autocast(device_type=self.config.device, dtype=torch.float16):
-                loss, log = self._calc_alpha_loss(obs=obs)
-            self._alpha_scaler.scale(loss).backward()
-            self._alpha_scaler.step(self._alpha_optim)
-            self._alpha_scaler.update()
+            loss, log = self._calc_alpha_loss(obs=obs)
+            loss.backward()
+            self._alpha_optim.step()
             self._alpha_optim.zero_grad()
             all_logs = {**all_logs, **log}
 
