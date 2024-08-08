@@ -43,6 +43,9 @@ def transformer_ma_env_collect(
     # to record times
     start_time = time.time()
 
+    # list to store memory address references for each transition generated
+    transitions = []
+
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()
@@ -51,9 +54,6 @@ def transformer_ma_env_collect(
     while steps_collected < num_transitions:
         # init the first obs, infos
         dict_obs, _ = env.reset()
-
-        # list to store memory address references for each transition generated
-        transitions = []
 
         # loop interaction
         while env.agents:
@@ -78,6 +78,9 @@ def transformer_ma_env_collect(
 
             # step the transition
             dict_next_obs, dict_rew, dict_term, dict_trunc, _ = env.step(dict_act)
+            stack_next_obs = listed_dict_to_dicted_list(
+                [v for v in dict_next_obs.values()], stack=True
+            )
 
             # increment step count
             steps_collected += stack_act.shape[0]
@@ -91,7 +94,7 @@ def transformer_ma_env_collect(
                     stack_act,
                     np.stack([v for v in dict_rew.values()], axis=0)[:, None],
                     np.stack([v for v in dict_term.values()], axis=0)[:, None],
-                    np.stack([v for v in dict_next_obs.values()], axis=0),
+                    stack_next_obs,
                 )
             )
 
@@ -102,18 +105,18 @@ def transformer_ma_env_collect(
                 if not (dict_term[k] or dict_trunc[k])
             }
 
-        # store stuff in contiguous mem after each episode
-        memory.push(
-            [
-                (
-                    listed_dict_to_dicted_list(items, stack=False)
-                    if isinstance(items[0], dict)
-                    else np.concatenate(items, axis=0)
-                )
-                for items in zip(*transitions)
-            ],
-            bulk=True,
-        )
+    # store stuff in contiguous mem after each episode
+    memory.push(
+        [
+            (
+                listed_dict_to_dicted_list(items, stack=False)
+                if isinstance(items[0], dict)
+                else np.concatenate(items, axis=0)
+            )
+            for items in zip(*transitions)
+        ],
+        bulk=True,
+    )
 
     # print some recordings
     total_time = time.time() - start_time
@@ -127,7 +130,7 @@ def transformer_ma_env_collect(
 
 
 @torch.no_grad()
-def mlp_ma_env_evaluate(
+def transformer_ma_env_evaluate(
     actor: TransformerActor,
     env: ParallelEnv,
     num_episodes: int,

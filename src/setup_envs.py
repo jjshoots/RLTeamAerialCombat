@@ -33,9 +33,9 @@ def setup_mlp_sa_environment(wm: Wingman) -> gym.Env:
 
         # record observation and action space shapes
     if not getattr(wm.cfg, "obs_size", None):
-        wm.cfg.model.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+        wm.cfg.algorithm.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
     if not getattr(wm.cfg, "act_size", None):
-        wm.cfg.model.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+        wm.cfg.algorithm.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
 
     return env
 
@@ -52,10 +52,10 @@ def setup_mlp_ma_environment(wm: Wingman) -> ParallelEnv:
         raise NotImplementedError
 
     # record observation and action space shapes
-    if not getattr(wm.cfg, "obs_size", None):
-        wm.cfg.model.obs_size = env.observation_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
-    if not getattr(wm.cfg, "act_size", None):
-        wm.cfg.model.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
+    if not getattr(wm.cfg.algorithm, "obs_size", None):
+        wm.cfg.algorithm.obs_size = env.observation_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
+    if not getattr(wm.cfg.algorithm, "act_size", None):
+        wm.cfg.algorithm.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
 
     return env
 
@@ -73,11 +73,11 @@ def setup_transformer_ma_environment(wm: Wingman) -> ParallelEnv:
         raise NotImplementedError
 
     # record observation and action space shapes
-    if not getattr(wm.cfg, "src_size", None):
-        wm.cfg.model.obs_size = env.observation_space(0)["src"].feature_space.shape[0]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
-    if not getattr(wm.cfg, "tgt_size", None):
-        wm.cfg.model.act_size = env.action_space(0)["tgt"].feature_space.shape[0]  # pyright: ignore[reportIndexIssue, reportOptionalSubscript]
-    if not getattr(wm.cfg, "act_size", None):
-        wm.cfg.model.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
+    if not getattr(wm.cfg.algorithm, "src_size", None):
+        wm.cfg.algorithm.src_size = env.observation_space(0)["src"].feature_space.shape[0]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
+    if not getattr(wm.cfg.algorithm, "tgt_size", None):
+        wm.cfg.algorithm.tgt_size = env.observation_space(0)["tgt"].feature_space.shape[0]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
+    if not getattr(wm.cfg.algorithm, "act_size", None):
+        wm.cfg.algorithm.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
 
     return env

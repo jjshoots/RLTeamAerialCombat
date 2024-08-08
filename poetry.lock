@@ -406,13 +406,13 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jj-wingman"
-version = "0.17.1"
+version = "0.17.3"
 description = "Wingman library for AI projects."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "jj_wingman-0.17.1-py3-none-any.whl", hash = "sha256:1061f4237abbc9eaf8e31286e892be13e33b4fcbfe9aee8a4a15aa81dd21fc1e"},
-    {file = "jj_wingman-0.17.1.tar.gz", hash = "sha256:6b262c496afd1b1c5d6580b31c7cb382054f9226b5a926bb4047db5b1e57c7bf"},
+    {file = "jj_wingman-0.17.3-py3-none-any.whl", hash = "sha256:01d588c6b48aef2e0efb558d8edc6712102e21b0255bdd5e6075265ce7446682"},
+    {file = "jj_wingman-0.17.3.tar.gz", hash = "sha256:40da553fba4fe3b805ee5664bb3f8e8758dfdb64ab2fbdef49affb2e283093ea"},
 ]
 
 [package.dependencies]
@@ -1544,4 +1544,4 @@ workspaces = ["wandb-workspaces"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "bd3468491c0c04ea8b242aabcef10fa7aeef37f22bd4c0c21ae3116f141c3ecc"
+content-hash = "5433d24952a89b673ebcd6b566f5f2e60b0e56e7b62b404dff7cb6cbb9d241d8"

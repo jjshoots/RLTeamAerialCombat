@@ -11,11 +11,13 @@ from dogfighter.env_interactors.mlp_ma_env_interactor import (
     mlp_ma_env_collect, mlp_ma_env_display, mlp_ma_env_evaluate)
 from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
     mlp_sa_env_display, mlp_sa_vec_env_collect, mlp_sa_vec_env_evaluate)
+from dogfighter.env_interactors.transformer_ma_env_interactor import transformer_ma_env_collect, transformer_ma_env_evaluate
 from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
 from setup_algorithms import setup_algorithm, setup_replay_buffer
 from setup_envs import (setup_mlp_ma_environment, setup_mlp_sa_environment,
-                        setup_mlp_sa_vec_environment, setup_transformer_ma_environment)
+                        setup_mlp_sa_vec_environment,
+                        setup_transformer_ma_environment)
 
 
 def train(wm: Wingman) -> None:
@@ -39,8 +41,8 @@ def train(wm: Wingman) -> None:
         eval_env = setup_transformer_ma_environment(wm)
         algorithm = setup_algorithm(wm)
         memory = setup_replay_buffer(wm)
-        collect_fn: CollectFunctionProtocol = mlp_sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
-        evaluation_fn: EvaluationFunctionProtocol = mlp_sa_vec_env_evaluate  # pyright: ignore[reportAssignmentType]
+        collect_fn: CollectFunctionProtocol = transformer_ma_env_collect  # pyright: ignore[reportAssignmentType]
+        evaluation_fn: EvaluationFunctionProtocol = transformer_ma_env_evaluate  # pyright: ignore[reportAssignmentType]
     else:
         raise NotImplementedError
 

@@ -5,7 +5,7 @@ env:
   kwargs:
     team_size: 1
     aggressiveness: 0.5
-    flatten: false
+    flatten_observation: false
 
 # replay buffer params
 replay_buffer:
@@ -15,8 +15,8 @@ replay_buffer:
   store_on_device: true
   random_rollover: true
 
-# model params
-model:
+# algorithm params
+algorithm:
   variant: "transformer"
   actor:
     embed_dim: 32
@@ -59,6 +59,7 @@ mode:
   train: false
   eval: false
   display: false
+  render: false
 
 model:
   save_directory: "weights"

@@ -17,17 +17,17 @@ class MAFixedwingDogfightTransformerEnvV2(MAFixedwingDogfightEnvV2):
         "others" observation is now "src" and a gymnasium.spaces.Sequence.
         "self" observation is now "tgt" and a gymnasium.spaces.Sequence.
         """
-        assert not kwargs["flatten"]
+        assert not kwargs["flatten_observation"]
         super().__init__(**kwargs)
-        self._num_agents = super().num_possible_agents
+        self._num_agents = self.num_possible_agents
         self._transformer_space = spaces.Dict(
             dict(
                 src=super().observation_space(0)["others"],  # Sequence
                 tgt=spaces.Sequence(
                     space=super().observation_space(0)["self"],
                 ),
-                src_mask=spaces.Box(0, 1, shape=(self._num_agents - 1)),
-                tgt_mask=spaces.Box(0, 1, shape=(self._num_agents - 1)),
+                src_mask=spaces.Box(0, 1, shape=(self._num_agents - 1,)),
+                tgt_mask=spaces.Box(0, 1, shape=(self._num_agents - 1,)),
             )
         )
 
@@ -35,7 +35,7 @@ class MAFixedwingDogfightTransformerEnvV2(MAFixedwingDogfightEnvV2):
         self._base_src = np.zeros(
             (
                 self._num_agents - 1,
-                self.observation_space(0)["src"].feature_space.shape[0],  # pyright: ignore[reportOptionalSubscript]
+                self.observation_space(0)["src"].feature_space.shape[0],  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
             ),
             dtype=np.float64,
         )
