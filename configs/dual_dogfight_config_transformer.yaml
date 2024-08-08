@@ -1,7 +1,7 @@
 # env params
 env:
   name: "dogfight"
-  variant: "ma_env"
+  variant: "transformer_ma_env"
   kwargs:
     team_size: 1
     aggressiveness: 0.5

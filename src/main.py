@@ -14,22 +14,29 @@ from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
 from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
 from setup_algorithms import setup_algorithm, setup_replay_buffer
-from setup_envs import (setup_ma_environment, setup_sa_environment,
-                        setup_sa_vec_environment)
+from setup_envs import (setup_mlp_ma_environment, setup_mlp_sa_environment,
+                        setup_mlp_sa_vec_environment)
 
 
 def train(wm: Wingman) -> None:
     # setup configs
-    if wm.cfg.env.variant == "ma_env":
-        train_env = setup_ma_environment(wm)
-        eval_env = setup_ma_environment(wm)
+    if wm.cfg.env.variant == "mlp_ma_env":
+        train_env = setup_mlp_ma_environment(wm)
+        eval_env = setup_mlp_ma_environment(wm)
         algorithm = setup_algorithm(wm)
         memory = setup_replay_buffer(wm)
         collect_fn: CollectFunctionProtocol = mlp_ma_env_collect  # pyright: ignore[reportAssignmentType]
         evaluation_fn: EvaluationFunctionProtocol = mlp_ma_env_evaluate  # pyright: ignore[reportAssignmentType]
-    elif wm.cfg.env.variant == "vec_env":
-        train_env = setup_sa_vec_environment(wm)
-        eval_env = setup_sa_vec_environment(wm)
+    elif wm.cfg.env.variant == "mlp_vec_env":
+        train_env = setup_mlp_sa_vec_environment(wm)
+        eval_env = setup_mlp_sa_vec_environment(wm)
+        algorithm = setup_algorithm(wm)
+        memory = setup_replay_buffer(wm)
+        collect_fn: CollectFunctionProtocol = mlp_sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
+        evaluation_fn: EvaluationFunctionProtocol = mlp_sa_vec_env_evaluate  # pyright: ignore[reportAssignmentType]
+    elif wm.cfg.env.variant == "transformer_ma_env":
+        train_env = setup_mlp_sa_vec_environment(wm)
+        eval_env = setup_mlp_sa_vec_environment(wm)
         algorithm = setup_algorithm(wm)
         memory = setup_replay_buffer(wm)
         collect_fn: CollectFunctionProtocol = mlp_sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
@@ -62,12 +69,12 @@ def train(wm: Wingman) -> None:
 def display(wm: Wingman) -> None:
     if wm.cfg.env.variant == "ma_env":
         mlp_ma_env_display(
-            env=setup_ma_environment(wm),
+            env=setup_mlp_ma_environment(wm),
             actor=setup_algorithm(wm).actor,
         )
     elif wm.cfg.env.variant == "vec_env":
         mlp_sa_env_display(
-            env=setup_sa_environment(wm),
+            env=setup_mlp_sa_environment(wm),
             actor=setup_algorithm(wm).actor,
         )
 

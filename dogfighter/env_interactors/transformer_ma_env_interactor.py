@@ -7,7 +7,7 @@ import torch
 from pettingzoo import ParallelEnv
 from wingman.replay_buffer.utils import listed_dict_to_dicted_list
 from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
-from wingman.utils import cpuize, gpuize, nested_cpuize, nested_gpuize
+from wingman.utils import cpuize, gpuize, nested_gpuize
 
 from dogfighter.models.transformer.transformer_actor import TransformerActor
 
