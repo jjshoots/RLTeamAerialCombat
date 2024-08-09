@@ -273,6 +273,7 @@ def transformer_ma_env_display(
             [v for v in dict_obs.values()], stack=True
         )
         stack_act = cpuize(actor.infer(*actor(nested_gpuize(stack_obs))))
+        print(stack_act)
         dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
         # step a transition, next observation is current observation

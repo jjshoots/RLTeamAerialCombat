@@ -132,11 +132,11 @@ class CCGE(Algorithm):
         """Updates the model using the replay buffer.
 
         Note that this expects that `memory` has:
-        - The first `n` items be for observation.
-        - The next `n` items be for next observation.
-        - The next 1 item be for action.
-        - The next 1 item be for reward.
-        - The next 1 item be for termination.
+        - The 1st item be for observation.
+        - The 2nd item for action.
+        - The 3rd item for reward.
+        - The 4th item for termination.
+        - The 5th item be for next observation.
 
         Args:
             memory (ReplayBuffer): memory
