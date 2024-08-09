@@ -99,6 +99,8 @@ class PreLNDecoderQUNetwork(QUNetwork):
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
         # generate qkv tensors, tgt must be expanded to have more context
+        # [B, N, embed_dim] for qk
+        # [B, N * num_context, embed_dim] for v
         qk = self.src_network(obs["src"])
         v = torch.concatenate([net(obs["tgt"]) for net in self.tgt_networks], dim=-2)
 

@@ -94,6 +94,8 @@ class PreLNDecoderActor(Actor):
             torch.Tensor:
         """
         # generate qkv tensors, tgt must be expanded to have more context
+        # [B, N, embed_dim] for qk
+        # and [B, N, embed_dim] for qk
         qk = self.src_network(obs["src"])
         v = torch.concatenate([net(obs["tgt"]) for net in self.tgt_networks], dim=-2)
 
