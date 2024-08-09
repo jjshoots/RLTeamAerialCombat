@@ -43,7 +43,11 @@ class PreLNDecoder(nn.Module):
         # construct the mha layers
         self._mha_layers = nn.ModuleList(
             [
-                nn.MultiheadAttention(embed_dim=dim_model, num_heads=num_heads)
+                nn.MultiheadAttention(
+                    embed_dim=dim_model,
+                    num_heads=num_heads,
+                    batch_first=True,
+                )
                 for _ in range(num_layers)
             ]
         )
