@@ -406,13 +406,13 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jj-wingman"
-version = "0.17.4"
+version = "0.17.5"
 description = "Wingman library for AI projects."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "jj_wingman-0.17.4-py3-none-any.whl", hash = "sha256:277106b033eb1e753d6beeaa6d626312c7bad394cdcce8d5a7b27fa003acf78c"},
-    {file = "jj_wingman-0.17.4.tar.gz", hash = "sha256:e97a35d90875d9cb01d4d7e3c843adc2a36fa32902498722a60f69a5df90a0e7"},
+    {file = "jj_wingman-0.17.5-py3-none-any.whl", hash = "sha256:e6f37ade17adffa77fcc3037bf6e7ecaf8b9d56bfceb9372edc8cae5fda9fa42"},
+    {file = "jj_wingman-0.17.5.tar.gz", hash = "sha256:6204239130f0d9f5f1b84c996f242abf189b2b7c4cfe8e14808d8d8323dfda57"},
 ]
 
 [package.dependencies]

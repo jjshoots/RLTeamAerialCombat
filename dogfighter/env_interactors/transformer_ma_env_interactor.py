@@ -7,7 +7,7 @@ import torch
 from pettingzoo import ParallelEnv
 from wingman.replay_buffer.utils import listed_dict_to_dicted_list
 from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
-from wingman.utils import cpuize, gpuize, nested_gpuize
+from wingman.utils import cpuize, nested_gpuize
 
 from dogfighter.models.transformer.transformer_actor import TransformerActor
 
@@ -54,24 +54,14 @@ def transformer_ma_env_collect(
     while steps_collected < num_transitions:
         # init the first obs, infos
         dict_obs, _ = env.reset()
-
-        # indicator on whether we need to recompute stack obs
-        # this happens when num_agents at the end of the step changes
-        recompute_stack_obs = True
+        stack_obs = nested_gpuize(
+            listed_dict_to_dicted_list(
+                [v for v in dict_obs.values()], stack=True
+            )
+        )
 
         # loop interaction
         while env.agents:
-            # stack the observation into a dict of arrays, send to GPU
-            # we only need to recompute it if agent list changed
-            if recompute_stack_obs:
-                stack_obs = nested_gpuize(
-                    listed_dict_to_dicted_list(
-                        [v for v in dict_obs.values()], stack=True
-                    )
-                )
-            else:
-                stack_obs = stack_next_obs  # pyright: ignore[reportPossiblyUnboundVariable]
-
             # compute an action depending on whether we're exploring or not
             if use_random_actions:
                 # sample an action from the env
@@ -86,14 +76,16 @@ def transformer_ma_env_collect(
 
             # step the transition
             dict_next_obs, dict_rew, dict_term, dict_trunc, _ = env.step(dict_act)
+
+            # stack things
             stack_next_obs = nested_gpuize(
                 listed_dict_to_dicted_list(
                     [v for v in dict_next_obs.values()], stack=True
                 )
             )
-
-            # increment step count
-            steps_collected += stack_act.shape[0]
+            stack_rew = np.stack([v for v in dict_rew.values()], axis=0)[:, None]
+            stack_term = np.stack([v for v in dict_term.values()], axis=0)[:, None]
+            stack_trunc = np.stack([v for v in dict_trunc.values()], axis=0)[:, None]
 
             # temporarily store the transitions
             # don't care that it's not contiguous
@@ -102,21 +94,32 @@ def transformer_ma_env_collect(
                 (
                     stack_obs,
                     stack_act,
-                    np.stack([v for v in dict_rew.values()], axis=0)[:, None],
-                    np.stack([v for v in dict_term.values()], axis=0)[:, None],
+                    stack_rew,
+                    stack_term,
                     stack_next_obs,
                 )
             )
 
             # new observation is the next observation
-            dict_obs = {
-                k: v
-                for k, v in dict_next_obs.items()
-                if not (dict_term[k] or dict_trunc[k])
-            }
-            recompute_stack_obs = any(t for t in dict_term.values()) or any(
-                t for t in dict_trunc.values()
-            )
+            if np.any(stack_term) or np.any(stack_trunc):
+                # we need to reconstruct the observation if any agents term/trunc
+                dict_obs = {
+                    k: v
+                    for k, v in dict_next_obs.items()
+                    if not (dict_term[k] or dict_trunc[k])
+                }
+                if len(dict_obs):
+                    stack_obs = nested_gpuize(
+                        listed_dict_to_dicted_list(
+                            [v for v in dict_obs.values()], stack=True
+                        )
+                    )
+            else:
+                # otherwise, we can just reuse the stack
+                stack_obs = stack_next_obs
+
+            # increment step count
+            steps_collected += stack_act.shape[0]
 
     # store stuff in contiguous mem after each episode
     memory.push(
