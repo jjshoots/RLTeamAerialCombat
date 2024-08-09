@@ -18,20 +18,20 @@ replay_buffer:
 algorithm:
   variant: "transformer"
   actor:
-    embed_dim: 32
-    ff_dim: 64
-    num_att_head: 4
-    num_encode_layers: 1
-    num_decode_layers: 1
-  critic:
     embed_dim: 64
     ff_dim: 128
     num_att_head: 4
     num_encode_layers: 1
     num_decode_layers: 1
+  critic:
+    embed_dim: 128
+    ff_dim: 512
+    num_att_head: 4
+    num_encode_layers: 2
+    num_decode_layers: 1
   qu_num_ensemble: 2
-  actor_learning_rate: 0.003
-  critic_learning_rate: 0.003
+  actor_learning_rate: 0.005
+  critic_learning_rate: 0.005
   alpha_learning_rate: 0.01
   tune_entropy: true
   target_entropy_gain: 1.0
@@ -46,8 +46,8 @@ runner:
   transitions_per_epoch: 10000
   transitions_num_exploration: 10000
   train_min_transitions: 20000
-  train_steps_per_epoch: 2000
-  train_batch_size: 2048
+  train_steps_per_epoch: 1000
+  train_batch_size: 4096
   eval_num_episodes: 10
   eval_transitions_frequency: 10000
 
