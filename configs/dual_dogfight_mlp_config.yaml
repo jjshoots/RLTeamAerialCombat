@@ -18,9 +18,9 @@ replay_buffer:
 algorithm:
   variant: "mlp"
   actor:
-    embed_dim: 256
+    embed_dim: 128
   critic:
-    embed_dim: 256
+    embed_dim: 1024
   qu_num_ensemble: 2
   batch_size: 512
   grad_steps_per_update: 2000
