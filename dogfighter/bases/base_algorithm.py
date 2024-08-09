@@ -32,15 +32,11 @@ class Algorithm(nn.Module, Generic[Observation, Action]):
     def update(
         self,
         memory: ReplayBuffer,
-        batch_size: int,
-        num_gradient_steps: int,
     ) -> dict[str, Any]:
         """update.
 
         Args:
             memory (ReplayBuffer): memory
-            batch_size (int): batch_size
-            num_gradient_steps (int): num_gradient_steps
 
         Returns:
             dict[str, Any]:

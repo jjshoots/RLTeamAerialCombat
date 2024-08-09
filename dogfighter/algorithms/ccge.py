@@ -24,6 +24,8 @@ class CCGEConfig(AlgorithmConfig):
     actor_config: ActorConfig
     qu_config: QUNetworkConfig
     qu_num_ensemble: int = field(default=2)
+    batch_size: int
+    grad_steps_per_update: int
     actor_learning_rate: float = field(default=0.003)
     critic_learning_rate: float = field(default=0.003)
     alpha_learning_rate: float = field(default=0.01)
@@ -126,8 +128,6 @@ class CCGE(Algorithm):
     def update(
         self,
         memory: ReplayBuffer,
-        batch_size: int,
-        num_gradient_steps: int,
     ) -> dict[str, Any]:
         """Updates the model using the replay buffer for `num_gradient_steps`.
 
@@ -140,8 +140,6 @@ class CCGE(Algorithm):
 
         Args:
             memory (ReplayBuffer): memory
-            batch_size (int): batch_size
-            num_gradient_steps (int): num_gradient_steps
 
         Returns:
             dict[str, Any]:
@@ -153,8 +151,8 @@ class CCGE(Algorithm):
 
         # start the training!
         self.train()
-        for _ in tqdm(range(num_gradient_steps)):
-            obs, act, rew, term, next_obs = memory.sample(batch_size)
+        for _ in tqdm(range(self.config.num_gradient_steps)):
+            obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
             update_info = self.forward(
                 obs=obs,
                 act=act,

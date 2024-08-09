@@ -67,6 +67,8 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
         actor_config=actor_config,
         qu_config=qu_config,
         qu_num_ensemble=wm.cfg.algorithm.qu_num_ensemble,
+        batch_size=wm.cfg.algorithm.batch_size,
+        grad_steps_per_update=wm.cfg.algorithm.grad_steps_per_update,
         actor_learning_rate=wm.cfg.algorithm.actor_learning_rate,
         critic_learning_rate=wm.cfg.algorithm.critic_learning_rate,
         alpha_learning_rate=wm.cfg.algorithm.alpha_learning_rate,

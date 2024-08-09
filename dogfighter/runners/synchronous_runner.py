@@ -21,8 +21,6 @@ class SynchronousRunnerSettings(BaseModel):
     transitions_num_exploration: int
 
     train_min_transitions: int
-    train_steps_per_epoch: int
-    train_batch_size: int
 
     eval_num_episodes: int
     eval_transitions_frequency: int
@@ -91,11 +89,7 @@ def run_synchronous(
             f"Training epoch {num_epochs}, "
             f"Replay Buffer Capacity {memory.count} / {memory.mem_size}"
         )
-        info = algorithm.update(
-            memory=memory,
-            batch_size=settings.train_batch_size,
-            num_gradient_steps=settings.train_steps_per_epoch,
-        )
+        info = algorithm.update(memory=memory)
         wm.log.update({f"train/{k}": v for k, v in info.items()})
 
         """EVALUATE POLICY"""
