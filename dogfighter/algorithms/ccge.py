@@ -129,7 +129,7 @@ class CCGE(Algorithm):
         self,
         memory: ReplayBuffer,
     ) -> dict[str, Any]:
-        """Updates the model using the replay buffer for `num_gradient_steps`.
+        """Updates the model using the replay buffer.
 
         Note that this expects that `memory` has:
         - The first `n` items be for observation.
@@ -151,7 +151,7 @@ class CCGE(Algorithm):
 
         # start the training!
         self.train()
-        for _ in tqdm(range(self.config.num_gradient_steps)):
+        for _ in tqdm(range(self.config.grad_steps_per_update)):
             obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
             update_info = self.forward(
                 obs=obs,
@@ -161,7 +161,7 @@ class CCGE(Algorithm):
                 next_obs=next_obs,
             )
 
-        update_info["steps_per_second"] = num_gradient_steps / (
+        update_info["steps_per_second"] = self.config.grad_steps_per_update / (
             time.time() - start_time
         )
 

@@ -91,12 +91,15 @@ class PreLNDecoder(nn.Module):
         # perform decoding
         for q_ln, mha, ffn in zip(self._q_lns, self._mha_layers, self._ffn_layers):
             # residual(prelayernorm + mha)
-            q = q + mha(
-                query=q_ln(q),
-                key=k,
-                value=v,
-                key_padding_mask=k_mask,
-            )[0]
+            q = (
+                q
+                + mha(
+                    query=q_ln(q),
+                    key=k,
+                    value=v,
+                    key_padding_mask=k_mask,
+                )[0]
+            )
 
             # residual(prelayernorm + ffn)
             q = q + ffn(q)
