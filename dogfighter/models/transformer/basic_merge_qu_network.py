@@ -71,10 +71,10 @@ class BasicMergeQUNetwork(QUNetwork):
         # shape of src/tgt_embed is [batch_size, obs_size]
         # shape of act_embed is [batch_size, act_size] or [num_actions, batch_size, act_size]
         src_embed = torch.mean(
-            self.src_network(obs["src"]) * obs["src_mask"][..., None], dim=-2
+            self.src_network(obs["src"]) * obs["src_mask"][..., None].bool(), dim=-2
         )
         tgt_embed = torch.mean(
-            self.tgt_network(obs["tgt"]) * obs["tgt_mask"][..., None], dim=-2
+            self.tgt_network(obs["tgt"]) * obs["tgt_mask"][..., None].bool(), dim=-2
         )
         act_embed = self.act_network(act)
 

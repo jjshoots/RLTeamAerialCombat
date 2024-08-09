@@ -1,5 +1,3 @@
-from dataclasses import field
-
 import torch
 from torch import nn
 

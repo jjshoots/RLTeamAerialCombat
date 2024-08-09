@@ -102,7 +102,7 @@ class PreLNDecoderActor(Actor):
         # pass the tensors into the decoder
         # the result here is [B, N * num_context, embed_dim]
         # take the mean over the second last dim
-        obs_embed = self.decoder(q=q, k=kv, v=kv, k_mask=obs["src_mask"])
+        obs_embed = self.decoder(q=q, k=kv, v=kv, k_mask=obs["src_mask"].bool())
         obs_embed = torch.mean(obs_embed, dim=-2)
 
         # output here is shape [B, act_size * 2]

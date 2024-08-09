@@ -76,7 +76,7 @@ wandb:
   enable: false
   save_code: false
   run:
-    name: "1v1_dogfight"
+    name: "1v1_dogfight_transformer"
     notes: ""
   project:
     name: "dogfighter"

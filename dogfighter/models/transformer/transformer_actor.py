@@ -76,8 +76,8 @@ class TransformerActor(Actor):
         obs_embed = self.transformer(
             src=self.src_network(obs["src"]),
             tgt=self.tgt_network(obs["tgt"]),
-            src_key_padding_mask=obs["src_mask"],
-            tgt_key_padding_mask=obs["tgt_mask"],
+            src_key_padding_mask=obs["src_mask"].bool(),
+            tgt_key_padding_mask=obs["tgt_mask"].bool(),
         )[:, -1, :]
 
         # output here is shape [B, act_size * 2]
