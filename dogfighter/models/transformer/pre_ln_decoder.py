@@ -36,7 +36,9 @@ class PreLNDecoder(nn.Module):
         # we have n `v`s, but only 1 `q` and `k`
         self._q_ln = nn.LayerNorm(dim_model)
         self._k_ln = nn.LayerNorm(dim_model)
-        self._v_lns = nn.ModuleList([nn.LayerNorm(dim_model) for _ in range(num_layers)])
+        self._v_lns = nn.ModuleList(
+            [nn.LayerNorm(dim_model) for _ in range(num_layers)]
+        )
 
         # construct the mha layers
         self._mha_layers = nn.ModuleList(

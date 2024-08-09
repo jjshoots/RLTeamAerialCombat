@@ -9,12 +9,10 @@ from dogfighter.bases.base_algorithm import Algorithm
 from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
-from dogfighter.models.transformer.prelndecoder_actor import PreLNDecoderActorConfig
-from dogfighter.models.transformer.prelndecoder_qu_network import PreLNDecoderQUNetworkConfig
-from dogfighter.models.transformer.transformer_actor import \
-    TransformerActorConfig
-from dogfighter.models.transformer.transformer_qu_network import \
-    TransformerQUNetworkConfig
+from dogfighter.models.transformer.prelndecoder_actor import \
+    PreLNDecoderActorConfig
+from dogfighter.models.transformer.prelndecoder_qu_network import \
+    PreLNDecoderQUNetworkConfig
 
 
 def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
