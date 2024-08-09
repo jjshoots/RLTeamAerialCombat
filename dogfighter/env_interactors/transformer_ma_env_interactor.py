@@ -62,6 +62,7 @@ def transformer_ma_env_collect(
         # loop interaction
         while env.agents:
             # stack the observation into a dict of arrays, send to GPU
+            # we only need to recompute it if agent list changed
             if recompute_stack_obs:
                 stack_obs = nested_gpuize(
                     listed_dict_to_dicted_list(
