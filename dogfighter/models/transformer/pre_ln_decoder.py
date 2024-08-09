@@ -96,7 +96,7 @@ class PreLNDecoder(nn.Module):
                 key=k,
                 value=v_ln(v),
                 key_padding_mask=k_mask,
-            )
+            )[0]
 
             # residual(prelayernorm + ffn)
             v = v + ffn(v)
