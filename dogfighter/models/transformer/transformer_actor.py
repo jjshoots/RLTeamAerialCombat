@@ -21,13 +21,6 @@ class TransformerActorConfig(ActorConfig):
     num_decode_layers: int
 
     def instantiate(self) -> "TransformerActor":
-        """instantiate.
-
-        Args:
-
-        Returns:
-            "TransformerActor":
-        """
         return TransformerActor(self)
 
 

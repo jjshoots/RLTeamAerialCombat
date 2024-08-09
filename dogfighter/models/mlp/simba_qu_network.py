@@ -4,41 +4,40 @@ import torch
 from torch import nn
 
 from dogfighter.bases.base_critic import QUNetwork, QUNetworkConfig
+from dogfighter.models.mlp.blocks.simba_block import SimbaBlock
 
 
-class MlpQUNetworkConfig(QUNetworkConfig):
-    """MlpQUNetworkConfig."""
+class SimbaQUNetworkConfig(QUNetworkConfig):
+    """SimbaQUNetworkConfig."""
 
     obs_size: int
     act_size: int
     embed_dim: int = field(default=256)
+    num_blocks: int = field(default=2)
 
-    def instantiate(self) -> "MlpQUNetwork":
-        return MlpQUNetwork(self)
+    def instantiate(self) -> "SimbaQUNetwork":
+        return SimbaQUNetwork(self)
 
 
-class MlpQUNetwork(QUNetwork):
-    """A classic Q network that uses a transformer backbone."""
+class SimbaQUNetwork(QUNetwork):
+    """A classic Q network using Simba as the core module."""
 
-    def __init__(self, config: MlpQUNetworkConfig) -> None:
+    def __init__(self, config: SimbaQUNetworkConfig) -> None:
         """__init__.
 
         Args:
-            config (MlpQUNetworkConfig): config
+            config (SimbaQUNetworkConfig): config
 
         Returns:
             None:
         """
         super().__init__()
 
-        # outputs the action after all the compute before it
-        self.head = nn.Sequential(
-            nn.Linear(config.obs_size + config.act_size, config.embed_dim),
-            nn.ReLU(),
-            nn.Linear(config.embed_dim, config.embed_dim),
-            nn.ReLU(),
-            nn.Linear(config.embed_dim, 2),
+        self.input_network = nn.Linear(
+            config.obs_size + config.act_size, config.embed_dim
         )
+        self.simba_network = SimbaBlock(config.embed_dim, config.num_blocks)
+        self.output_network = nn.Linear(config.embed_dim, 2)
 
     def forward(
         self,
@@ -63,7 +62,9 @@ class MlpQUNetwork(QUNetwork):
 
         # get the output
         # the shape here is either [B, q_u] or [num_actions, B, q_u]
-        q_u = self.head(torch.cat([input, act], dim=-1))
+        q_u = self.output_network(
+            self.simba_network(self.input_network(torch.cat([input, act], dim=-1)))
+        )
 
         # move the qu to the first dim
         # the shape here is either [q_u, B] or [q_u, num_actions, B]

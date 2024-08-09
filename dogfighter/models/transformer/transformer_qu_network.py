@@ -21,13 +21,6 @@ class TransformerQUNetworkConfig(QUNetworkConfig):
     num_encode_layers: int
 
     def instantiate(self) -> "TransformerQUNetwork":
-        """instantiate.
-
-        Args:
-
-        Returns:
-            "TransformerQUNetwork":
-        """
         return TransformerQUNetwork(self)
 
 

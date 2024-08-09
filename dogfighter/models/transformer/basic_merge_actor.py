@@ -17,13 +17,6 @@ class BasicMergeActorConfig(ActorConfig):
     embed_dim: int
 
     def instantiate(self) -> "BasicMergeActor":
-        """instantiate.
-
-        Args:
-
-        Returns:
-            "BasicMergeActor":
-        """
         return BasicMergeActor(self)
 
 
@@ -72,8 +65,12 @@ class BasicMergeActor(Actor):
             torch.Tensor:
         """
         # shape of src/tgt_embed is [batch_size, obs_size]
-        src_embed = torch.mean(self.src_network(obs["src"]) * obs["src_mask"][..., None], dim=-2)
-        tgt_embed = torch.mean(self.tgt_network(obs["tgt"]) * obs["tgt_mask"][..., None], dim=-2)
+        src_embed = torch.mean(
+            self.src_network(obs["src"]) * obs["src_mask"][..., None], dim=-2
+        )
+        tgt_embed = torch.mean(
+            self.tgt_network(obs["tgt"]) * obs["tgt_mask"][..., None], dim=-2
+        )
 
         # output here is shape [B, act_size * 2]
         output = self.head(torch.cat([src_embed, tgt_embed], dim=-1))

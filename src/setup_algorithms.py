@@ -9,8 +9,10 @@ from dogfighter.bases.base_algorithm import Algorithm
 from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
-from dogfighter.models.transformer.basic_merge_actor import BasicMergeActorConfig
-from dogfighter.models.transformer.basic_merge_qu_network import BasicMergeQUNetworkConfig
+from dogfighter.models.transformer.basic_merge_actor import \
+    BasicMergeActorConfig
+from dogfighter.models.transformer.basic_merge_qu_network import \
+    BasicMergeQUNetworkConfig
 from dogfighter.models.transformer.prelndecoder_actor import \
     PreLNDecoderActorConfig
 from dogfighter.models.transformer.prelndecoder_qu_network import \

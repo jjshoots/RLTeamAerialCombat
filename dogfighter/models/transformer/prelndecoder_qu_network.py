@@ -6,7 +6,7 @@ import torch
 from torch import nn
 
 from dogfighter.bases.base_critic import QUNetwork, QUNetworkConfig
-from dogfighter.models.transformer.pre_ln_decoder import PreLNDecoder
+from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 
 
 class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
@@ -22,13 +22,6 @@ class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
     num_layers: int
 
     def instantiate(self) -> "PreLNDecoderQUNetwork":
-        """instantiate.
-
-        Args:
-
-        Returns:
-            "PreLNDecoderQUNetwork":
-        """
         return PreLNDecoderQUNetwork(self)
 
 

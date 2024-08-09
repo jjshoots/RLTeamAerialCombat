@@ -17,13 +17,6 @@ class BasicMergeQUNetworkConfig(QUNetworkConfig):
     embed_dim: int
 
     def instantiate(self) -> "BasicMergeQUNetwork":
-        """instantiate.
-
-        Args:
-
-        Returns:
-            "BasicMergeQUNetwork":
-        """
         return BasicMergeQUNetwork(self)
 
 
@@ -78,8 +71,12 @@ class BasicMergeQUNetwork(QUNetwork):
         """
         # shape of src/tgt_embed is [batch_size, obs_size]
         # shape of act_embed is [batch_size, act_size] or [num_actions, batch_size, act_size]
-        src_embed = torch.mean(self.src_network(obs["src"]) * obs["src_mask"][..., None], dim=-2)
-        tgt_embed = torch.mean(self.tgt_network(obs["tgt"]) * obs["tgt_mask"][..., None], dim=-2)
+        src_embed = torch.mean(
+            self.src_network(obs["src"]) * obs["src_mask"][..., None], dim=-2
+        )
+        tgt_embed = torch.mean(
+            self.tgt_network(obs["tgt"]) * obs["tgt_mask"][..., None], dim=-2
+        )
         act_embed = self.act_network(act)
 
         # pass the action through the action network

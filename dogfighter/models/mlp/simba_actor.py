@@ -4,48 +4,38 @@ import torch
 from torch import nn
 
 from dogfighter.bases.base_actor import Actor, ActorConfig
+from dogfighter.models.mlp.blocks.simba_block import SimbaBlock
 
 
-class MlpActorConfig(ActorConfig):
-    """MlpActorConfig."""
+class SimbaActorConfig(ActorConfig):
+    """SimbaActorConfig."""
 
     obs_size: int
     act_size: int
-    embed_dim: int = field(default=256)
+    embed_dim: int = field(default=64)
+    num_blocks: int = field(default=1)
 
-    def instantiate(self) -> "MlpActor":
-        """instantiate.
-
-        Args:
-
-        Returns:
-            Actor:
-        """
-        return MlpActor(self)
+    def instantiate(self) -> "SimbaActor":
+        return SimbaActor(self)
 
 
-class MlpActor(Actor):
+class SimbaActor(Actor):
     """Actor with Gaussian prediction head."""
 
-    def __init__(self, config: MlpActorConfig) -> None:
+    def __init__(self, config: SimbaActorConfig) -> None:
         """__init__.
 
         Args:
-            config (MlpActorConfig): config
+            config (SimbaActorConfig): config
 
         Returns:
             None:
         """
         super().__init__()
 
-        # outputs the action after all the compute before it
-        self.head = nn.Sequential(
-            nn.Linear(config.obs_size, config.embed_dim),
-            nn.ReLU(),
-            nn.Linear(config.embed_dim, config.embed_dim),
-            nn.ReLU(),
-            nn.Linear(config.embed_dim, config.act_size * 2),
-        )
+        self.input_network = nn.Linear(config.obs_size, config.embed_dim)
+        self.simba_network = SimbaBlock(config.embed_dim, config.num_blocks)
+        self.output_network = nn.Linear(config.embed_dim, config.act_size * 2)
 
     def forward(
         self,
@@ -60,7 +50,7 @@ class MlpActor(Actor):
             torch.Tensor:
         """
         # output here is shape [B, act_size * 2]
-        output = self.head(obs)
+        output = self.output_network(self.simba_network(self.input_network(obs)))
 
         # split the actions into mean and variance
         # shape is [B, act_size, 2]

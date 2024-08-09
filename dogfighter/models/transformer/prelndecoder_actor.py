@@ -6,7 +6,7 @@ import torch
 from torch import nn
 
 from dogfighter.bases.base_actor import Actor, ActorConfig
-from dogfighter.models.transformer.pre_ln_decoder import PreLNDecoder
+from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 
 
 class PreLNDecoderActorConfig(ActorConfig):
