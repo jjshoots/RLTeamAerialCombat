@@ -67,8 +67,11 @@ class PreLNDecoderQUNetwork(QUNetwork):
 
         # network to go from src, tgt -> embed
         self.src_network = nn.Linear(config.src_size, config.embed_dim)
-        self.tgt_network = nn.Linear(
-            config.tgt_size, config.embed_dim * config.num_tgt_context
+        self.tgt_networks = nn.ModuleList(
+            [
+                nn.Linear(config.tgt_size, config.embed_dim)
+                for _ in range(config.num_tgt_context)
+            ]
         )
 
         # network to get the action representation
@@ -97,8 +100,7 @@ class PreLNDecoderQUNetwork(QUNetwork):
         """
         # generate qkv tensors, tgt must be expanded to have more context
         qk = self.src_network(obs["src"])
-        v = self.tgt_network(obs["tgt"])
-        v = v.view(v.shape[0], -1, v.shape[-1])
+        v = torch.concatenate([net(obs["tgt"]) for net in self.tgt_networks], dim=-2)
 
         # pass the tensors into the decoder
         # the result here is [B, N * num_context, embed_dim]
