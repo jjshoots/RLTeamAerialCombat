@@ -33,12 +33,12 @@ class PreLNDecoder(nn.Module):
         self._num_layers = num_layers
 
         # construct the layer norms,
-        # we have n `v`s, but only 1 `q` and `k`
-        self._q_ln = nn.LayerNorm(dim_model)
-        self._k_ln = nn.LayerNorm(dim_model)
-        self._v_lns = nn.ModuleList(
+        # we have n `q`s, but only 1 `kv`
+        self._q_lns = nn.ModuleList(
             [nn.LayerNorm(dim_model) for _ in range(num_layers)]
         )
+        self._k_ln = nn.LayerNorm(dim_model)
+        self._v_ln = nn.LayerNorm(dim_model)
 
         # construct the mha layers
         self._mha_layers = nn.ModuleList(
@@ -75,30 +75,30 @@ class PreLNDecoder(nn.Module):
         """forward.
 
         Args:
-            q (torch.Tensor): a [batch_dim, qk_len, dim_model] tensor.
-            k (torch.Tensor): a [batch_dim, qk_len, dim_model] tensor.
-            v (torch.Tensor): a [batch_dim, v_len, dim_model] tensor.
-            k_mask (torch.Tensor): a [batch_dim, qk_len] boolean tensor with False elements indicating unmasked positions.
+            q (torch.Tensor): a [batch_dim, q_len, dim_model] tensor.
+            k (torch.Tensor): a [batch_dim, kv_len, dim_model] tensor.
+            v (torch.Tensor): a [batch_dim, kv_len, dim_model] tensor.
+            k_mask (torch.Tensor): a [batch_dim, kv_len] boolean tensor with False elements indicating unmasked positions.
 
         Returns:
-            torch.Tensor: a [batch_dim, v_len, dim_model] tensor.
+            torch.Tensor: a [batch_dim, q_len, dim_model] tensor.
         """
 
-        # perform layernorm on the q and k
-        q = self._q_ln(q)
+        # perform layernorm on kv
         k = self._k_ln(k)
+        v = self._v_ln(v)
 
         # perform decoding
-        for v_ln, mha, ffn in zip(self._v_lns, self._mha_layers, self._ffn_layers):
+        for q_ln, mha, ffn in zip(self._q_lns, self._mha_layers, self._ffn_layers):
             # residual(prelayernorm + mha)
-            v = v + mha(
-                query=q,
+            q = q + mha(
+                query=q_ln(q),
                 key=k,
-                value=v_ln(v),
+                value=v,
                 key_padding_mask=k_mask,
             )[0]
 
             # residual(prelayernorm + ffn)
-            v = v + ffn(v)
+            q = q + ffn(q)
 
-        return v
+        return q
