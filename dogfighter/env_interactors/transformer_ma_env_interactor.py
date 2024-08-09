@@ -131,8 +131,6 @@ def transformer_ma_env_collect(
         ],
         bulk=True,
     )
-    print(memory)
-    exit()
 
     # print some recordings
     total_time = time.time() - start_time
