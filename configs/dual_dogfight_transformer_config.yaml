@@ -20,11 +20,13 @@ algorithm:
   actor:
     embed_dim: 32
     ff_dim: 128
+    num_tgt_context: 4
     num_att_head: 4
     num_layers: 1
   critic:
     embed_dim: 64
     ff_dim: 256
+    num_tgt_context: 4
     num_att_head: 4
     num_layers: 1
   qu_num_ensemble: 2
