@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal
 
 import torch
-from wingman import NeuralBlocks
+from torch import nn
 
 from dogfighter.bases.base_actor import Actor, ActorConfig
 
@@ -55,28 +55,12 @@ class TransformerActor(Actor):
             batch_first=True,
         )
 
-        # network to go from src -> embed
-        _features_description = [config.src_size, config.embed_dim]
-        _activation_description = ["relu"] * (len(_features_description) - 1)
-        self.src_input_network = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
-
-        # network to go from tgt -> embed
-        _features_description = [config.tgt_size, config.embed_dim]
-        _activation_description = ["relu"] * (len(_features_description) - 1)
-        self.tgt_input_network = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
+        # network to go from src, tgt -> embed
+        self.src_network = nn.Linear(config.src_size, config.embed_dim)
+        self.tgt_network = nn.Linear(config.tgt_size, config.embed_dim)
 
         # outputs the action after all the compute before it
-        _features_description = [config.embed_dim, config.act_size * 2]
-        _activation_description = ["relu"] * (len(_features_description) - 2) + [
-            "identity"
-        ]
-        self.head = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
+        self.head = nn.Linear(config.embed_dim, config.act_size * 2)
 
     def forward(
         self,
@@ -97,8 +81,8 @@ class TransformerActor(Actor):
         # pass the tensors into the transformer
         # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
         obs_embed = self.transformer(
-            src=self.src_input_network(obs["src"]),
-            tgt=self.tgt_input_network(obs["tgt"]),
+            src=self.src_network(obs["src"]),
+            tgt=self.tgt_network(obs["tgt"]),
             src_key_padding_mask=obs["src_mask"],
             tgt_key_padding_mask=obs["tgt_mask"],
         )[:, -1, :]

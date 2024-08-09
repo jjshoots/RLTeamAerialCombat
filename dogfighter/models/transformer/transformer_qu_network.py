@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal
 
 import torch
-from wingman import NeuralBlocks
+from torch import nn
 
 from dogfighter.bases.base_critic import QUNetwork, QUNetworkConfig
 
@@ -55,40 +55,15 @@ class TransformerQUNetwork(QUNetwork):
             batch_first=True,
         )
 
-        # network to go from src -> embed
-        _features_description = [config.src_size, config.embed_dim]
-        _activation_description = ["relu"] * (len(_features_description) - 1)
-        self.src_input_network = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
-
-        # network to go from tgt -> embed
-        _features_description = [config.tgt_size, config.embed_dim]
-        _activation_description = ["relu"] * (len(_features_description) - 1)
-        self.tgt_input_network = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
+        # network to go from src, tgt -> embed
+        self.src_network = nn.Linear(config.src_size, config.embed_dim)
+        self.tgt_network = nn.Linear(config.tgt_size, config.embed_dim)
 
         # network to get the action representation
-        _features_description = [config.act_size, config.embed_dim]
-        _activation_description = ["relu"] * (len(_features_description) - 1)
-        self.act_network = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
+        self.act_network = nn.Linear(config.act_size, config.embed_dim)
 
         # network to merge the action and obs/att representations
-        _features_description = [2 * config.embed_dim, 2]
-        _activation_description = ["relu"] * (len(_features_description) - 2) + [
-            "identity"
-        ]
-        self.head = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
-
-        # register the bias for the uncertainty
-        self.register_buffer(
-            "uncertainty_bias", torch.tensor(1) * 999.9, persistent=True
-        )
+        self.head = nn.Linear(2 * config.embed_dim, 2)
 
     def forward(
         self,
@@ -111,8 +86,8 @@ class TransformerQUNetwork(QUNetwork):
         # pass the tensors into the transformer
         # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
         obs_embed = self.transformer(
-            src=self.src_input_network(obs["src"]),
-            tgt=self.tgt_input_network(obs["tgt"]),
+            src=self.src_network(obs["src"]),
+            tgt=self.tgt_network(obs["tgt"]),
             src_key_padding_mask=obs["src_mask"],
             tgt_key_padding_mask=obs["tgt_mask"],
         )[:, -1, :]

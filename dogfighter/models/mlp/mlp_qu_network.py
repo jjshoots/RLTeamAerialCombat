@@ -1,7 +1,7 @@
 from dataclasses import field
 
 import torch
-from wingman import NeuralBlocks
+from torch import nn
 
 from dogfighter.bases.base_critic import QUNetwork, QUNetworkConfig
 
@@ -39,22 +39,12 @@ class MlpQUNetwork(QUNetwork):
         super().__init__()
 
         # outputs the action after all the compute before it
-        _features_description = [
-            config.obs_size + config.act_size,
-            config.embed_dim,
-            config.embed_dim,
-            2,
-        ]
-        _activation_description = ["relu"] * (len(_features_description) - 2) + [
-            "identity"
-        ]
-        self.head = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
-
-        # register the bias for the uncertainty
-        self.register_buffer(
-            "uncertainty_bias", torch.tensor(1) * 999.9, persistent=True
+        self.head = nn.Sequential(
+            nn.Linear(config.obs_size + config.act_size, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, 2),
         )
 
     def forward(

@@ -1,7 +1,7 @@
 from dataclasses import field
 
 import torch
-from wingman import NeuralBlocks
+from torch import nn
 
 from dogfighter.bases.base_actor import Actor, ActorConfig
 
@@ -39,17 +39,12 @@ class MlpActor(Actor):
         super().__init__()
 
         # outputs the action after all the compute before it
-        _features_description = [
-            config.obs_size,
-            config.embed_dim,
-            config.embed_dim,
-            config.act_size * 2,
-        ]
-        _activation_description = ["relu"] * (len(_features_description) - 2) + [
-            "identity"
-        ]
-        self.head = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
+        self.head = nn.Sequential(
+            nn.Linear(config.obs_size, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, config.act_size * 2),
         )
 
     def forward(
