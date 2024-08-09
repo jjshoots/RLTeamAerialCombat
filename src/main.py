@@ -12,7 +12,7 @@ from dogfighter.env_interactors.mlp_ma_env_interactor import (
 from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
     mlp_sa_env_display, mlp_sa_vec_env_collect, mlp_sa_vec_env_evaluate)
 from dogfighter.env_interactors.transformer_ma_env_interactor import (
-    transformer_ma_env_collect, transformer_ma_env_evaluate)
+    transformer_ma_env_collect, transformer_ma_env_display, transformer_ma_env_evaluate)
 from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
 from setup_algorithms import setup_algorithm, setup_replay_buffer
@@ -70,16 +70,23 @@ def train(wm: Wingman) -> None:
 
 
 def display(wm: Wingman) -> None:
-    if wm.cfg.env.variant == "ma_env":
+    if wm.cfg.env.variant == "mlp_ma_env":
         mlp_ma_env_display(
             env=setup_mlp_ma_environment(wm),
             actor=setup_algorithm(wm).actor,
         )
-    elif wm.cfg.env.variant == "vec_env":
+    elif wm.cfg.env.variant == "mlp_vec_env":
         mlp_sa_env_display(
             env=setup_mlp_sa_environment(wm),
             actor=setup_algorithm(wm).actor,
         )
+    elif wm.cfg.env.variant == "transformer_ma_env":
+        transformer_ma_env_display(
+            env=setup_transformer_ma_environment(wm),
+            actor=setup_algorithm(wm).actor,
+        )
+    else:
+        raise NotImplementedError
 
 
 if __name__ == "__main__":

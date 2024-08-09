@@ -241,7 +241,7 @@ def transformer_ma_env_evaluate(
 
 
 @torch.no_grad()
-def mlp_ma_env_display(
+def transformer_ma_env_display(
     env: ParallelEnv,
     actor: TransformerActor,
 ) -> None:
@@ -255,9 +255,11 @@ def mlp_ma_env_display(
     while env.agents:
         # convert the dictionary observation into an array and move it to the GPU
         # get an action from the actor, then parse into dictionary
-        stack_obs = gpuize(np.stack([v for v in dict_obs.values()]), actor.device)
-        stack_act = actor.infer(*actor(stack_obs))
-        dict_act = {k: v for k, v in zip(dict_obs.keys(), cpuize(stack_act))}
+        stack_obs = listed_dict_to_dicted_list(
+            [v for v in dict_obs.values()], stack=True
+        )
+        stack_act = cpuize(actor.infer(*actor(nested_gpuize(stack_obs))))
+        dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
         # step a transition, next observation is current observation
         dict_next_obs, _, dict_term, dict_trunc, _ = env.step(dict_act)
