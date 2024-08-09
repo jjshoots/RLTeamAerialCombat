@@ -9,6 +9,8 @@ from dogfighter.bases.base_algorithm import Algorithm
 from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
+from dogfighter.models.mlp.simba_actor import SimbaActorConfig
+from dogfighter.models.mlp.simba_qu_network import SimbaQUNetworkConfig
 from dogfighter.models.transformer.basic_merge_actor import \
     BasicMergeActorConfig
 from dogfighter.models.transformer.basic_merge_qu_network import \
@@ -32,16 +34,28 @@ def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
 
 def setup_algorithm(wm: Wingman) -> Algorithm:
     if wm.cfg.algorithm.variant == "mlp":
-        actor_config = MlpActorConfig(
+        actor_config = SimbaActorConfig(
             obs_size=wm.cfg.algorithm.obs_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.actor.embed_dim,
+            num_blocks=wm.cfg.algorithm.actor.num_blocks,
         )
-        qu_config = MlpQUNetworkConfig(
+        qu_config = SimbaQUNetworkConfig(
             obs_size=wm.cfg.algorithm.obs_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.critic.embed_dim,
+            num_blocks=wm.cfg.algorithm.critic.num_blocks,
         )
+        # actor_config = MlpActorConfig(
+        #     obs_size=wm.cfg.algorithm.obs_size,
+        #     act_size=wm.cfg.algorithm.act_size,
+        #     embed_dim=wm.cfg.algorithm.actor.embed_dim,
+        # )
+        # qu_config = MlpQUNetworkConfig(
+        #     obs_size=wm.cfg.algorithm.obs_size,
+        #     act_size=wm.cfg.algorithm.act_size,
+        #     embed_dim=wm.cfg.algorithm.critic.embed_dim,
+        # )
     elif wm.cfg.algorithm.variant == "transformer":
         actor_config = BasicMergeActorConfig(
             src_size=wm.cfg.algorithm.src_size,

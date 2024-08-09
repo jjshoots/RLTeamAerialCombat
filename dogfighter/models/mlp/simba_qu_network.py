@@ -12,8 +12,8 @@ class SimbaQUNetworkConfig(QUNetworkConfig):
 
     obs_size: int
     act_size: int
-    embed_dim: int = field(default=256)
-    num_blocks: int = field(default=2)
+    embed_dim: int
+    num_blocks: int
 
     def instantiate(self) -> "SimbaQUNetwork":
         return SimbaQUNetwork(self)

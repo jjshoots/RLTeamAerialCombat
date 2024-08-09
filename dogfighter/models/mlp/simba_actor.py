@@ -12,8 +12,8 @@ class SimbaActorConfig(ActorConfig):
 
     obs_size: int
     act_size: int
-    embed_dim: int = field(default=64)
-    num_blocks: int = field(default=1)
+    embed_dim: int
+    num_blocks: int
 
     def instantiate(self) -> "SimbaActor":
         return SimbaActor(self)
