@@ -12,7 +12,8 @@ from dogfighter.env_interactors.mlp_ma_env_interactor import (
 from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
     mlp_sa_env_display, mlp_sa_vec_env_collect, mlp_sa_vec_env_evaluate)
 from dogfighter.env_interactors.transformer_ma_env_interactor import (
-    transformer_ma_env_collect, transformer_ma_env_display, transformer_ma_env_evaluate)
+    transformer_ma_env_collect, transformer_ma_env_display,
+    transformer_ma_env_evaluate)
 from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
 from setup_algorithms import setup_algorithm, setup_replay_buffer
@@ -93,8 +94,8 @@ if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
     # wm = Wingman(config_yaml="./configs/quad_dogfight_config.yaml")
     # wm = Wingman(config_yaml="./configs/quadx_pole_balance_config.yaml")
-    # wm = Wingman(config_yaml="./configs/dual_dogfight_transformer_config.yaml")
-    wm = Wingman(config_yaml="./configs/dual_dogfight_mlp_config.yaml")
+    wm = Wingman(config_yaml="./configs/dual_dogfight_transformer_config.yaml")
+    # wm = Wingman(config_yaml="./configs/dual_dogfight_mlp_config.yaml")
 
     if wm.cfg.mode.train:
         train(wm)

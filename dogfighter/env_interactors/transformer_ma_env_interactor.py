@@ -55,12 +55,21 @@ def transformer_ma_env_collect(
         # init the first obs, infos
         dict_obs, _ = env.reset()
 
+        # indicator on whether we need to recompute stack obs
+        # this happens when num_agents at the end of the step changes
+        recompute_stack_obs = True
+
         # loop interaction
         while env.agents:
-            # stack the observation into a dict of arrays
-            stack_obs = listed_dict_to_dicted_list(
-                [v for v in dict_obs.values()], stack=True
-            )
+            # stack the observation into a dict of arrays, send to GPU
+            if recompute_stack_obs:
+                stack_obs = nested_gpuize(
+                    listed_dict_to_dicted_list(
+                        [v for v in dict_obs.values()], stack=True
+                    )
+                )
+            else:
+                stack_obs = stack_next_obs  # pyright: ignore[reportPossiblyUnboundVariable]
 
             # compute an action depending on whether we're exploring or not
             if use_random_actions:
@@ -71,15 +80,15 @@ def transformer_ma_env_collect(
                 stack_act = np.stack([v for v in dict_act.values()], axis=0)
             else:
                 # get an action from the actor
-                stack_act = cpuize(
-                    actor.sample(*actor(nested_gpuize(stack_obs, actor.device)))[0]
-                )
+                stack_act = cpuize(actor.sample(*actor(stack_obs))[0])
                 dict_act = {k: v for k, v in zip(dict_obs.keys(), stack_act)}
 
             # step the transition
             dict_next_obs, dict_rew, dict_term, dict_trunc, _ = env.step(dict_act)
-            stack_next_obs = listed_dict_to_dicted_list(
-                [v for v in dict_next_obs.values()], stack=True
+            stack_next_obs = nested_gpuize(
+                listed_dict_to_dicted_list(
+                    [v for v in dict_next_obs.values()], stack=True
+                )
             )
 
             # increment step count
@@ -104,6 +113,9 @@ def transformer_ma_env_collect(
                 for k, v in dict_next_obs.items()
                 if not (dict_term[k] or dict_trunc[k])
             }
+            recompute_stack_obs = any(t for t in dict_term.values()) or any(
+                t for t in dict_trunc.values()
+            )
 
     # store stuff in contiguous mem after each episode
     memory.push(
