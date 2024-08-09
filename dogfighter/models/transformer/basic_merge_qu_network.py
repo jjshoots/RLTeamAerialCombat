@@ -43,7 +43,6 @@ class BasicMergeQUNetwork(QUNetwork):
 
         # network to merge the action and obs/att representations
         self.head = nn.Sequential(
-            nn.LayerNorm(3 * config.embed_dim),
             nn.Linear(3 * config.embed_dim, config.embed_dim),
             nn.ReLU(),
             nn.Linear(config.embed_dim, config.embed_dim),

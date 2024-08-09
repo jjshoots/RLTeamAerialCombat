@@ -40,7 +40,6 @@ class BasicMergeActor(Actor):
 
         # outputs the action after all the compute before it
         self.head = nn.Sequential(
-            nn.LayerNorm(2 * config.embed_dim),
             nn.Linear(2 * config.embed_dim, config.embed_dim),
             nn.ReLU(),
             nn.Linear(config.embed_dim, config.embed_dim),
