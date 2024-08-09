@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal
 
 import torch
-from wingman import NeuralBlocks
+from torch import nn
 
 from dogfighter.bases.base_actor import Actor, ActorConfig
 from dogfighter.models.transformer.pre_ln_decoder import PreLNDecoder
@@ -17,6 +17,7 @@ class PreLNDecoderActorConfig(ActorConfig):
     act_size: int
     embed_dim: int
     ff_dim: int
+    num_tgt_context: int
     num_att_heads: int
     num_layers: int
 
@@ -32,7 +33,18 @@ class PreLNDecoderActorConfig(ActorConfig):
 
 
 class PreLNDecoderActor(Actor):
-    """Actor with Gaussian prediction head."""
+    """A pre-layernorm decoder actor.
+
+    The target is expanded from
+    [batch_dim, seq_len, embed_dim]
+    to
+    [batch_dim, num_tgt_context * seq_len, embed_dim]
+    to allow there to be more context vectors that the decoder can sample from.
+
+    The output is then averaged over the num_tgt_context*seq_len dimension to form
+    [batch_dim, embed_dim]
+    before the final linear layer.
+    """
 
     def __init__(self, config: PreLNDecoderActorConfig) -> None:
         """__init__.
@@ -53,28 +65,14 @@ class PreLNDecoderActor(Actor):
             num_layers=config.num_layers,
         )
 
-        # network to go from src -> embed
-        _features_description = [config.src_size, config.embed_dim]
-        _activation_description = ["relu"] * (len(_features_description) - 1)
-        self.src_input_network = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
-
-        # network to go from tgt -> embed
-        _features_description = [config.tgt_size, config.embed_dim]
-        _activation_description = ["relu"] * (len(_features_description) - 1)
-        self.tgt_input_network = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
+        # network to go from src, tgt -> embed
+        self.src_network = nn.Linear(config.src_size, config.embed_dim)
+        self.tgt_network = nn.Linear(
+            config.tgt_size, config.embed_dim * config.num_tgt_context
         )
 
         # outputs the action after all the compute before it
-        _features_description = [config.embed_dim, config.act_size * 2]
-        _activation_description = ["relu"] * (len(_features_description) - 2) + [
-            "identity"
-        ]
-        self.head = NeuralBlocks.generate_linear_stack(
-            _features_description, _activation_description
-        )
+        self.head = nn.Linear(config.embed_dim, config.act_size * 2)
 
     def forward(
         self,
@@ -92,11 +90,16 @@ class PreLNDecoderActor(Actor):
         Returns:
             torch.Tensor:
         """
+        # generate qkv tensors, tgt must be expanded to have more context
+        qk = self.src_network(obs["src"])
+        v = self.tgt_network(obs["tgt"])
+        v = v.view(v.shape[0], -1, v.shape[-1])
+
         # pass the tensors into the decoder
-        # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
-        qk = self.src_input_network(obs["src"])
-        v = self.tgt_input_network(obs["src"])
-        obs_embed = self.decoder(q=qk, k=qk, v=v, k_mask=obs["src_mask"])[:, -1, :]
+        # the result here is [B, N * num_context, embed_dim]
+        # take the mean over the second last dim
+        obs_embed = self.decoder(q=qk, k=qk, v=v, k_mask=obs["src_mask"])
+        obs_embed = torch.mean(obs_embed, dim=-2)
 
         # output here is shape [B, act_size * 2]
         output = self.head(obs_embed)
