@@ -55,9 +55,7 @@ def transformer_ma_env_collect(
         # init the first obs, infos
         dict_obs, _ = env.reset()
         stack_obs = nested_gpuize(
-            listed_dict_to_dicted_list(
-                [v for v in dict_obs.values()], stack=True
-            )
+            listed_dict_to_dicted_list([v for v in dict_obs.values()], stack=True)
         )
 
         # loop interaction

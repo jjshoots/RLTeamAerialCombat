@@ -9,6 +9,8 @@ from dogfighter.bases.base_algorithm import Algorithm
 from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
+from dogfighter.models.transformer.prelndecoder_actor import PreLNDecoderActorConfig
+from dogfighter.models.transformer.prelndecoder_qu_network import PreLNDecoderQUNetworkConfig
 from dogfighter.models.transformer.transformer_actor import \
     TransformerActorConfig
 from dogfighter.models.transformer.transformer_qu_network import \
@@ -39,25 +41,23 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
             embed_dim=wm.cfg.algorithm.critic.embed_dim,
         )
     elif wm.cfg.algorithm.variant == "transformer":
-        actor_config = TransformerActorConfig(
+        actor_config = PreLNDecoderActorConfig(
             src_size=wm.cfg.algorithm.src_size,
             tgt_size=wm.cfg.algorithm.tgt_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.actor.embed_dim,
             ff_dim=wm.cfg.algorithm.actor.ff_dim,
             num_att_heads=wm.cfg.algorithm.actor.num_att_head,
-            num_encode_layers=wm.cfg.algorithm.actor.num_encode_layers,
-            num_decode_layers=wm.cfg.algorithm.actor.num_decode_layers,
+            num_layers=wm.cfg.algorithm.critic.num_layers,
         )
-        qu_config = TransformerQUNetworkConfig(
+        qu_config = PreLNDecoderQUNetworkConfig(
             src_size=wm.cfg.algorithm.src_size,
             tgt_size=wm.cfg.algorithm.tgt_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.critic.embed_dim,
             ff_dim=wm.cfg.algorithm.critic.ff_dim,
             num_att_heads=wm.cfg.algorithm.critic.num_att_head,
-            num_encode_layers=wm.cfg.algorithm.critic.num_encode_layers,
-            num_decode_layers=wm.cfg.algorithm.critic.num_decode_layers,
+            num_layers=wm.cfg.algorithm.critic.num_layers,
         )
     else:
         raise NotImplementedError
