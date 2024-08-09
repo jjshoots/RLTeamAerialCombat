@@ -99,15 +99,15 @@ class PreLNDecoderQUNetwork(QUNetwork):
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
         # generate qkv tensors, tgt must be expanded to have more context
-        # [B, N, embed_dim] for qk
-        # [B, N * num_context, embed_dim] for v
-        qk = self.src_network(obs["src"])
-        v = torch.concatenate([net(obs["tgt"]) for net in self.tgt_networks], dim=-2)
+        # [B, N, embed_dim] for kv
+        # [B, N * num_context, embed_dim] for q
+        kv = self.src_network(obs["src"])
+        q = torch.concatenate([net(obs["tgt"]) for net in self.tgt_networks], dim=-2)
 
         # pass the tensors into the decoder
         # the result here is [B, N * num_context, embed_dim]
         # take the mean over the second last dim
-        obs_embed = self.decoder(q=qk, k=qk, v=v, k_mask=obs["src_mask"])
+        obs_embed = self.decoder(q=q, k=kv, v=kv, k_mask=obs["src_mask"])
         obs_embed = torch.mean(obs_embed, dim=-2)
 
         # pass the action through the action network
