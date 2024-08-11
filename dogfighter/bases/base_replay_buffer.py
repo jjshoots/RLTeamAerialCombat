@@ -1,34 +1,11 @@
 from __future__ import annotations
 
-from abc import abstractmethod
-from typing import Literal, Union
+from typing import Literal
 
 import torch
 from pydantic import BaseModel
 from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
 from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
-
-
-class WrappedReplayBufferConfig(BaseModel):
-    """Replay Buffer Wrapper Configuration.
-
-    This contains the parameters of the replay buffer wrapper,
-    as well as the configuration of the `base_buffer`,
-    which can itself be a `ReplayBufferConfig` or another `WrappedReplayBufferConfig`.
-    """
-
-    base_buffer: Union[ReplayBufferConfig, "WrappedReplayBufferConfig"]
-
-    @abstractmethod
-    def instantiate(self) -> ReplayBuffer:
-        """instantiate.
-
-        Args:
-
-        Returns:
-            ReplayBuffer:
-        """
-        raise NotImplementedError
 
 
 class ReplayBufferConfig(BaseModel):
