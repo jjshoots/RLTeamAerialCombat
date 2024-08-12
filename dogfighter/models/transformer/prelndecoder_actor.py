@@ -66,11 +66,21 @@ class PreLNDecoderActor(Actor):
         )
 
         # network to go from src, tgt -> embed
-        self.src_network = nn.Linear(config.src_size, config.embed_dim)
+        self.src_network = nn.Sequential(
+            nn.Linear(config.src_size, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, config.embed_dim),
+            nn.ReLU(),
+            nn.Linear(config.embed_dim, config.embed_dim),
+            nn.ReLU(),
+        )
         self.tgt_networks = nn.ModuleList(
             [
-                nn.Linear(config.tgt_size, config.embed_dim)
-                for _ in range(config.num_tgt_context)
+                nn.Sequential(
+                    nn.Linear(config.tgt_size, config.embed_dim),
+                    nn.ReLU(),
+                    nn.Linear(config.embed_dim, config.embed_dim),
+                ) for _ in range(config.num_tgt_context)
             ]
         )
 
