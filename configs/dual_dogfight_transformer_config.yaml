@@ -49,6 +49,9 @@ runner:
   eval_num_episodes: 10
   eval_transitions_frequency: 10000
 
+post_run:
+  shutdown: false
+
 # wingman required params
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:
