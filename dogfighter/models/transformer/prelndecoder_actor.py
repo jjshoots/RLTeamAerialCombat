@@ -17,7 +17,6 @@ class PreLNDecoderActorConfig(ActorConfig):
     act_size: int
     embed_dim: int
     ff_dim: int
-    num_tgt_context: int
     num_att_heads: int
     num_layers: int
 
@@ -33,18 +32,7 @@ class PreLNDecoderActorConfig(ActorConfig):
 
 
 class PreLNDecoderActor(Actor):
-    """A pre-layernorm decoder actor.
-
-    The target is expanded from
-    [batch_dim, seq_len, embed_dim]
-    to
-    [batch_dim, num_tgt_context * seq_len, embed_dim]
-    to allow there to be more context vectors that the decoder can sample from.
-
-    The output is then averaged over the num_tgt_context*seq_len dimension to form
-    [batch_dim, embed_dim]
-    before the final linear layer.
-    """
+    """A pre-layernorm decoder actor."""
 
     def __init__(self, config: PreLNDecoderActorConfig) -> None:
         """__init__.
@@ -67,22 +55,16 @@ class PreLNDecoderActor(Actor):
 
         # network to go from src, tgt -> embed
         self.src_network = nn.Sequential(
-            nn.Linear(config.src_size, config.embed_dim),
+            nn.Linear(config.src_size, config.ff_dim),
             nn.ReLU(),
-            nn.Linear(config.embed_dim, config.embed_dim),
-            nn.ReLU(),
-            nn.Linear(config.embed_dim, config.embed_dim),
-            nn.ReLU(),
+            nn.Linear(config.ff_dim, config.embed_dim),
         )
-        self.tgt_networks = nn.ModuleList(
-            [
-                nn.Sequential(
-                    nn.Linear(config.tgt_size, config.embed_dim),
-                    nn.ReLU(),
-                    nn.Linear(config.embed_dim, config.embed_dim),
-                ) for _ in range(config.num_tgt_context)
-            ]
+        self.tgt_network = nn.Sequential(
+            nn.Linear(config.tgt_size, config.ff_dim),
+            nn.ReLU(),
+            nn.Linear(config.ff_dim, config.embed_dim),
         )
+
 
         # outputs the action after all the compute before it
         self.head = nn.Linear(config.embed_dim, config.act_size * 2)
@@ -103,17 +85,15 @@ class PreLNDecoderActor(Actor):
         Returns:
             torch.Tensor:
         """
-        # generate qkv tensors, tgt must be expanded to have more context
-        # [B, N * num_context, embed_dim] for q
-        # [B, N, embed_dim] for kv
-        q = torch.concatenate([net(obs["tgt"]) for net in self.tgt_networks], dim=-2)
+        # generate qkv tensors [B, N, embed_dim] for qkv
+        q = self.tgt_network(obs["tgt"])
         kv = self.src_network(obs["src"])
 
         # pass the tensors into the decoder
-        # the result here is [B, N * num_context, embed_dim]
-        # take the mean over the second last dim
+        # the result here is [B, N, embed_dim]
+        # take the last element over the tgt output
         obs_embed = self.decoder(q=q, k=kv, v=kv, k_mask=obs["src_mask"].bool())
-        obs_embed = torch.mean(obs_embed, dim=-2)
+        obs_embed = obs_embed[..., -1, :]
 
         # output here is shape [B, act_size * 2]
         output = self.head(obs_embed)

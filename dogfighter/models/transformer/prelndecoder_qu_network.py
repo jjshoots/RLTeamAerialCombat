@@ -17,7 +17,6 @@ class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
     act_size: int
     embed_dim: int
     ff_dim: int
-    num_tgt_context: int
     num_att_heads: int
     num_layers: int
 
@@ -26,18 +25,7 @@ class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
 
 
 class PreLNDecoderQUNetwork(QUNetwork):
-    """A pre-layernorm decoder actor.
-
-    The target is expanded from
-    [batch_dim, seq_len, embed_dim]
-    to
-    [batch_dim, num_tgt_context * seq_len, embed_dim]
-    to allow there to be more context vectors that the decoder can sample from.
-
-    The output is then averaged over the num_tgt_context*seq_len dimension to form
-    [batch_dim, embed_dim]
-    before the final linear layer.
-    """
+    """A pre-layernorm decoder qu network."""
 
     def __init__(self, config: PreLNDecoderQUNetworkConfig) -> None:
         """__init__.
@@ -59,16 +47,23 @@ class PreLNDecoderQUNetwork(QUNetwork):
         )
 
         # network to go from src, tgt -> embed
-        self.src_network = nn.Linear(config.src_size, config.embed_dim)
-        self.tgt_networks = nn.ModuleList(
-            [
-                nn.Linear(config.tgt_size, config.embed_dim)
-                for _ in range(config.num_tgt_context)
-            ]
+        self.src_network = nn.Sequential(
+            nn.Linear(config.src_size, config.ff_dim),
+            nn.ReLU(),
+            nn.Linear(config.ff_dim, config.embed_dim),
+        )
+        self.tgt_network = nn.Sequential(
+            nn.Linear(config.tgt_size, config.ff_dim),
+            nn.ReLU(),
+            nn.Linear(config.ff_dim, config.embed_dim),
         )
 
         # network to get the action representation
-        self.act_network = nn.Linear(config.act_size, config.embed_dim)
+        self.act_network = nn.Sequential(
+            nn.Linear(config.act_size, config.ff_dim),
+            nn.ReLU(),
+            nn.Linear(config.ff_dim, config.embed_dim),
+        )
 
         # network to merge the action and obs/att representations
         self.head = nn.Linear(2 * config.embed_dim, 2)
@@ -91,17 +86,15 @@ class PreLNDecoderQUNetwork(QUNetwork):
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
-        # generate qkv tensors, tgt must be expanded to have more context
-        # [B, N * num_context, embed_dim] for q
-        # [B, N, embed_dim] for kv
-        q = torch.concatenate([net(obs["tgt"]) for net in self.tgt_networks], dim=-2)
+        # generate qkv tensors [B, N, embed_dim] for qkv
+        q = self.tgt_network(obs["tgt"])
         kv = self.src_network(obs["src"])
 
         # pass the tensors into the decoder
-        # the result here is [B, N * num_context, embed_dim]
-        # take the mean over the second last dim
+        # the result here is [B, N, embed_dim]
+        # take the last element over the tgt output
         obs_embed = self.decoder(q=q, k=kv, v=kv, k_mask=obs["src_mask"].bool())
-        obs_embed = torch.mean(obs_embed, dim=-2)
+        obs_embed = obs_embed[..., -1, :]
 
         # pass the action through the action network
         # the shape here is either [B, embed_dim] or [num_actions, B, embed_dim]

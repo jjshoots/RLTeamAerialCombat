@@ -75,7 +75,6 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.actor.embed_dim,
             ff_dim=wm.cfg.algorithm.actor.ff_dim,
-            num_tgt_context=wm.cfg.algorithm.actor.num_tgt_context,
             num_att_heads=wm.cfg.algorithm.actor.num_att_head,
             num_layers=wm.cfg.algorithm.critic.num_layers,
         )
@@ -85,7 +84,6 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.critic.embed_dim,
             ff_dim=wm.cfg.algorithm.critic.ff_dim,
-            num_tgt_context=wm.cfg.algorithm.actor.num_tgt_context,
             num_att_heads=wm.cfg.algorithm.critic.num_att_head,
             num_layers=wm.cfg.algorithm.critic.num_layers,
         )
