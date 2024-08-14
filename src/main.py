@@ -101,8 +101,3 @@ if __name__ == "__main__":
         display(wm)
     else:
         print("So this is life now.")
-
-    if wm.cfg.post_run.shutdown:
-        import os
-        os.system("shutdown -s")
-

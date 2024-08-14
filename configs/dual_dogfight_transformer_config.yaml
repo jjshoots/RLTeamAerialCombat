@@ -8,7 +8,7 @@ env:
 
 # replay buffer params
 replay_buffer:
-  mem_size: 500000
+  mem_size: 1000000
   mode: "torch"
   use_dict_wrapper: true
   store_on_device: true
@@ -42,17 +42,13 @@ algorithm:
 
 # training config
 runner:
-  max_transitions: 500000
+  max_transitions: 3000000
   transitions_per_epoch: 10000
   transitions_num_exploration: 10000
   train_min_transitions: 20000
   eval_num_episodes: 10
   eval_transitions_frequency: 10000
 
-post_run:
-  shutdown: false
-
-# wingman required params
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:
   debug: false
