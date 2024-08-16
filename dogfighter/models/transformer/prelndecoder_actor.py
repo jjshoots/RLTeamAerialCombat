@@ -67,7 +67,11 @@ class PreLNDecoderActor(Actor):
 
 
         # outputs the action after all the compute before it
-        self.head = nn.Linear(config.embed_dim, config.act_size * 2)
+        self.head = nn.Sequential(
+            nn.Linear(config.embed_dim, config.ff_dim),
+            nn.ReLU(),
+            nn.Linear(config.ff_dim, config.act_size * 2),
+        )
 
     def forward(
         self,

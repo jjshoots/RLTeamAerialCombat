@@ -59,14 +59,14 @@ class PreLNDecoderQUNetwork(QUNetwork):
         )
 
         # network to get the action representation
-        self.act_network = nn.Sequential(
-            nn.Linear(config.act_size, config.ff_dim),
-            nn.ReLU(),
-            nn.Linear(config.ff_dim, config.embed_dim),
-        )
+        self.act_network = nn.Linear(config.act_size, config.embed_dim)
 
         # network to merge the action and obs/att representations
-        self.head = nn.Linear(2 * config.embed_dim, 2)
+        self.head = nn.Sequential(
+            nn.Linear(config.embed_dim * 2, config.ff_dim),
+            nn.ReLU(),
+            nn.Linear(config.ff_dim, 2),
+        )
 
     def forward(
         self,

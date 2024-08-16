@@ -52,19 +52,6 @@ class PreLNDecoder(nn.Module):
             ]
         )
 
-        # construct the ffn part
-        self._ffn_layers = nn.ModuleList(
-            [
-                nn.Sequential(
-                    nn.LayerNorm(dim_model),
-                    nn.Linear(dim_model, dim_feedforward),
-                    nn.ReLU(),
-                    nn.Linear(dim_feedforward, dim_model),
-                )
-                for _ in range(num_layers)
-            ]
-        )
-
     def forward(
         self,
         q: torch.Tensor,
@@ -89,7 +76,7 @@ class PreLNDecoder(nn.Module):
         v = self._v_ln(v)
 
         # perform decoding
-        for q_ln, mha, ffn in zip(self._q_lns, self._mha_layers, self._ffn_layers):
+        for q_ln, mha, in zip(self._q_lns, self._mha_layers):
             # residual(prelayernorm + mha)
             q = (
                 q
@@ -100,8 +87,5 @@ class PreLNDecoder(nn.Module):
                     key_padding_mask=k_mask,
                 )[0]
             )
-
-            # residual(prelayernorm + ffn)
-            q = q + ffn(q)
 
         return q
