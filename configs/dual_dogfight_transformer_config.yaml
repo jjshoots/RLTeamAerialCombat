@@ -20,7 +20,7 @@ algorithm:
   actor:
     embed_dim: 32
     ff_dim: 128
-    num_att_head: 4
+    num_att_head: 2
     num_layers: 1
   critic:
     embed_dim: 64
