@@ -72,17 +72,15 @@ def get_transformer_ma_env_config(wm: Wingman) -> MAEnvConfig:
     if not _src or not _tgt or not _act:
         dummy_env = env_config.instantiate()
         if not _src:
-            wm.cfg.algorithm.src_size = dummy_env.observation_space(0)[
+            wm.cfg.algorithm.src_size = dummy_env.observation_space(0)[  # pyright: ignore[reportIndexIssue]
                 "src"
-            ].feature_space.shape[0]  # pyright: ignore[reportIndexIssue]
+            ].feature_space.shape[0]
         if not _tgt:
-            wm.cfg.algorithm.tgt_size = dummy_env.observation_space(0)[
+            wm.cfg.algorithm.tgt_size = dummy_env.observation_space(0)[  # pyright: ignore[reportIndexIssue]
                 "tgt"
-            ].feature_space.shape[0]  # pyright: ignore[reportIndexIssue]
+            ].feature_space.shape[0]
         if not _act:
-            wm.cfg.algorithm.act_size = dummy_env.observation_space(0)[
-                "act"
-            ].feature_space.shape[0]  # pyright: ignore[reportIndexIssue]
+            wm.cfg.algorithm.act_size = dummy_env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
         dummy_env.close()
 
     return env_config
