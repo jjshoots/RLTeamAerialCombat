@@ -1,0 +1,64 @@
+# env params
+env_type: "vec_env"
+num_envs: 8
+env_name: "PyFlyt/QuadX-Pole-Balance-v2"
+
+# learning params
+buffer_size: 500000
+critic_update_multiplier: 1
+actor_update_multiplier: 1
+discount_factor: 0.98
+learning_rate: 0.003
+random_rollover: true
+replay_buffer_mode: "torch"
+replay_buffer_store_on_device: true
+
+# CCGE params
+pretrained_oracle: false
+update_oracle: true
+confidence_lambda: 0.1
+
+# Model params
+qu_num_ensemble: 2
+embed_dim: 256
+
+runner:
+  max_transitions: 2000000
+  transitions_per_epoch: 8000
+  transitions_num_exploration: 15000
+  train_min_transitions: 30000
+  train_steps_per_epoch: 1000
+  train_batch_size: 2048
+  eval_num_episodes: 32
+  eval_transitions_frequency: 10000
+
+# wingman required params
+# https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
+mode:
+  debug: false
+  train: false
+  eval: false
+  display: false
+  render: false
+
+model:
+  save_directory: "weights"
+  id: ""
+  ckpt: 0
+  increment_ckpt: false
+
+logging:
+  interval: 10
+  max_skips: 5
+  greater_than: 0.0
+  filename: ""
+
+wandb:
+  enable: false
+  save_code: false
+  run:
+    name: "1v1_dogfight"
+    notes: ""
+  project:
+    name: "dogfighter"
+    entity: "jjshoots"
