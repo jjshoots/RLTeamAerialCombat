@@ -82,22 +82,22 @@ def train(wm: Wingman) -> None:
 def display(wm: Wingman) -> None:
     # TODO: this is kind of hacky now, try to streamline it
     if wm.cfg.env.variant == "mlp_sa_env":
-        env=get_mlp_sa_env_config(wm).instantiate()
-        alg=get_algorithm_config(wm).instantiate()
+        env = get_mlp_sa_env_config(wm).instantiate()
+        alg = get_algorithm_config(wm).instantiate()
         has_weights, model_file, _ = wm.get_weight_files()
         if has_weights:
             alg.load(model_file)
         mlp_sa_env_display(env=env, actor=alg.actor)
     elif wm.cfg.env.variant == "mlp_ma_env":
-        env=get_mlp_ma_env_config(wm).instantiate()
-        alg=get_algorithm_config(wm).instantiate()
+        env = get_mlp_ma_env_config(wm).instantiate()
+        alg = get_algorithm_config(wm).instantiate()
         has_weights, model_file, _ = wm.get_weight_files()
         if has_weights:
             alg.load(model_file)
         mlp_ma_env_display(env=env, actor=alg.actor)
     elif wm.cfg.env.variant == "transformer_ma_env":
-        env=get_transformer_ma_env_config(wm).instantiate()
-        alg=get_algorithm_config(wm).instantiate()
+        env = get_transformer_ma_env_config(wm).instantiate()
+        alg = get_algorithm_config(wm).instantiate()
         has_weights, model_file, _ = wm.get_weight_files()
         if has_weights:
             alg.load(model_file)
