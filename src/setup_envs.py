@@ -8,15 +8,15 @@ from sa_envs.pyflyt_envs import PyFlytMAEnvConfig, PyFlytSAEnvConfig
 
 
 def get_mlp_sa_env_config(wm: Wingman) -> SAEnvConfig:
-    if wm.cfg.env.name.startswith("PyFlyt"):
+    if wm.cfg.env.id.startswith("PyFlyt"):
         env_config = PyFlytSAEnvConfig(
-            env_id=wm.cfg.env.name,
+            env_id=wm.cfg.env.id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
             env_kwargs=vars(wm.cfg.env.kwargs),
         )
-    elif wm.cfg.env.name.startswith("dm_control"):
+    elif wm.cfg.env.id.startswith("dm_control"):
         env_config = DMCSAEnvConfig(
-            env_id=wm.cfg.env.name,
+            env_id=wm.cfg.env.id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
             env_kwargs=vars(wm.cfg.env.kwargs),
         )
@@ -39,7 +39,7 @@ def get_mlp_sa_env_config(wm: Wingman) -> SAEnvConfig:
 
 def get_mlp_ma_env_config(wm: Wingman) -> MAEnvConfig:
     env_config = PyFlytMAEnvConfig(
-        env_id=wm.cfg.env.name,
+        env_id=wm.cfg.env.id,
         render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
         env_kwargs=vars(wm.cfg.env.kwargs),
     )
@@ -60,7 +60,7 @@ def get_mlp_ma_env_config(wm: Wingman) -> MAEnvConfig:
 
 def get_transformer_ma_env_config(wm: Wingman) -> MAEnvConfig:
     env_config = PyFlytMAEnvConfig(
-        env_id=wm.cfg.env.name,
+        env_id=wm.cfg.env.id,
         render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
         env_kwargs=vars(wm.cfg.env.kwargs),
     )

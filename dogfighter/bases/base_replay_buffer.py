@@ -17,9 +17,9 @@ class ReplayBufferConfig(BaseModel):
     mem_size: StrictInt
     mode: Literal["torch", "numpy"]
     device: StrictStr
-    use_dict_wrapper: StrictBool
-    store_on_device: StrictBool
-    random_rollover: StrictBool
+    use_dict_wrapper: StrictBool = False
+    store_on_device: StrictBool = True
+    random_rollover: StrictBool = True
 
     def instantiate(self) -> ReplayBuffer:
         """instantiate.

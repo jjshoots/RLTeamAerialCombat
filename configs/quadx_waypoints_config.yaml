@@ -1,56 +1,76 @@
 # env params
-num_envs: 8
-env_name: "PyFlyt/QuadX-Waypoints-v2"
+env:
+  id: "PyFlyt/QuadX-Waypoints-v3"
+  variant: "mlp_sa_env"
+  num_envs: 10
+  kwargs:
+    flight_mode: 0
 
-# learning params
-env_transitions_per_epoch: 8000
-model_updates_per_epoch: 1000
-buffer_size: 500000
-batch_size: 2048
-total_steps: 2000000
-critic_update_multiplier: 1
-actor_update_multiplier: 1
-discount_factor: 0.98
-learning_rate: 0.003
-exploration_steps: 0
-random_rollover: true
-replay_buffer_mode: "torch"
-replay_buffer_store_on_device: true
+# replay buffer params
+replay_buffer:
+  mem_size: 500000
+  mode: "torch"
+  use_dict_wrapper: false
+  store_on_device: true
+  random_rollover: true
 
-# CCGE params
-pretrained_oracle: false
-update_oracle: true
-confidence_lambda: 0.1
+# algorithm params
+algorithm:
+  variant: "mlp"
+  actor:
+    embed_dim: 64
+    num_blocks: 1
+  critic:
+    embed_dim: 256
+    num_blocks: 2
+  qu_num_ensemble: 2
+  batch_size: 2048
+  grad_steps_per_update: 1000
+  actor_learning_rate: 0.001
+  critic_learning_rate: 0.001
+  alpha_learning_rate: 0.003
+  tune_entropy: true
+  target_entropy_gain: 1.0
+  learn_uncertainty: true
+  discount_factor: 0.99
+  actor_update_ratio: 1
+  critic_update_ratio: 1
 
-# Model params
-qu_num_ensemble: 2
-embed_dim: 256
+# training config
+runner:
+  max_transitions: 2000000
+  transitions_per_epoch: 10000
+  transitions_num_exploration: 5000
+  train_min_transitions: 10000
+  eval_num_episodes: 10
+  eval_transitions_frequency: 10000
 
-# eval settings
-eval_num_episodes: 32
-eval_steps_ratio: 2000
-
-# wingman required params
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
-train: false
-eval: false
-display: false
-render: false
-debug: false
+mode:
+  debug: false
+  train: false
+  eval: false
+  display: false
+  render: false
 
-save_directory: 'weights'
-model_id: null
-ckpt_number: 0
-log_status: false
+model:
+  save_directory: "weights"
+  id: ""
+  ckpt: 0
+  increment_ckpt: false
 
-increment: false
-logging_interval: 10
-max_skips: 5
-greater_than: 0.0
+logging:
+  interval: 10
+  max_skips: 5
+  greater_than: 0.0
+  filename: ""
 
-wandb: false
-wandb_name: 'classic_waypoints'
-wandb_notes: ''
-wandb_id: ''
-wandb_entity: 'jjshoots'
-wandb_project: 'dogfighter'
+wandb:
+  enable: false
+  save_code: false
+  run:
+    name: "classic_waypoints"
+    notes: ""
+  project:
+    name: "dogfighter"
+    entity: "jjshoots"

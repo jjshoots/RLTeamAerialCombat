@@ -16,7 +16,6 @@ class SAVecEnvConfig(BaseModel):
     sa_env_config: SAEnvConfig
     num_envs: int
 
-    @abstractmethod
     def instantiate(self) -> VectorEnv:
         return AsyncVectorEnv(
             [lambda _=i: self.sa_env_config.instantiate() for i in range(self.num_envs)]
