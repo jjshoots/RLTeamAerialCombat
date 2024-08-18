@@ -82,17 +82,17 @@ def train(wm: Wingman) -> None:
 def display(wm: Wingman) -> None:
     if wm.cfg.env.variant == "mlp_ma_env":
         mlp_ma_env_display(
-            env=get_mlp_ma_env_config(wm),
+            env=get_mlp_ma_env_config(wm).instantiate(),
             actor=get_algorithm_config(wm).instantiate().actor,
         )
     elif wm.cfg.env.variant == "mlp_vec_env":
         mlp_sa_env_display(
-            env=get_mlp_sa_env_config(wm),
+            env=get_mlp_sa_env_config(wm).instantiate(),
             actor=get_algorithm_config(wm).instantiate().actor,
         )
     elif wm.cfg.env.variant == "transformer_ma_env":
         transformer_ma_env_display(
-            env=get_transformer_ma_env_config(wm),
+            env=get_transformer_ma_env_config(wm).instantiate(),
             actor=get_algorithm_config(wm).instantiate().actor,
         )
     else:
