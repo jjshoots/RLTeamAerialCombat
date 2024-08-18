@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import math
 
-import torch
 from pydantic import BaseModel
 from wingman import Wingman
-from wingman.replay_buffer import ReplayBuffer
 
-from dogfighter.bases.base_algorithm import Algorithm
+from dogfighter.bases.base_algorithm import AlgorithmConfig
+from dogfighter.bases.base_env_creators import MAEnvConfig, SAVecEnvConfig
 from dogfighter.bases.base_env_interactors import (CollectFunctionProtocol,
-                                                   EvaluationFunctionProtocol,
-                                                   SupportedEnvTypes)
+                                                   EvaluationFunctionProtocol)
+from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 
 
 class SynchronousRunnerSettings(BaseModel):
@@ -28,29 +27,40 @@ class SynchronousRunnerSettings(BaseModel):
 
 def run_synchronous(
     wm: Wingman,
-    train_env: SupportedEnvTypes,
-    eval_env: SupportedEnvTypes,
+    train_env_config: SAVecEnvConfig | MAEnvConfig,
+    eval_env_config: SAVecEnvConfig | MAEnvConfig,
+    algorithm_config: AlgorithmConfig,
+    memory_config: ReplayBufferConfig,
     collect_fn: CollectFunctionProtocol,
     evaluation_fn: EvaluationFunctionProtocol,
-    algorithm: Algorithm,
-    memory: ReplayBuffer,
     settings: SynchronousRunnerSettings,
 ) -> None:
     """A synchronous runner to perform train and evaluations in step.
 
     Args:
         wm (Wingman): wm
-        train_env (SupportedEnvTypes): train_env
-        eval_env (SupportedEnvTypes): eval_env
+        train_env_config (SAVecEnvConfig | MAEnvConfig): train_env_config
+        eval_env_config (SAVecEnvConfig | MAEnvConfig): eval_env_config
+        algorithm_config (AlgorithmConfig): algorithm_config
+        memory_config (ReplayBufferConfig): memory_config
         collect_fn (CollectFunctionProtocol): collect_fn
         evaluation_fn (EvaluationFunctionProtocol): evaluation_fn
-        algorithm (Algorithm): algorithm
-        memory (ReplayBuffer): memory
         settings (SynchronousRunnerSettings): settings
 
     Returns:
         None:
     """
+    # instantiate everything
+    train_env = train_env_config.instantiate()
+    eval_env = eval_env_config.instantiate()
+    algorithm = algorithm_config.instantiate()
+    memory = memory_config.instantiate()
+
+    # get latest weight files
+    has_weights, model_file, _ = wm.get_weight_files()
+    if has_weights:
+        algorithm.load(model_file)
+
     # logging metrics
     num_epochs = 0
     eval_score = -math.inf
@@ -116,4 +126,4 @@ def run_synchronous(
         # save weights
         to_update, model_file, _ = wm.checkpoint(loss=-eval_score, step=memory.count)
         if to_update:
-            torch.save(algorithm.state_dict(), model_file)
+            algorithm.save(model_file)

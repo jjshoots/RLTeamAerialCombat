@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal
 
 import torch
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
 from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
 from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
 
@@ -14,12 +14,12 @@ class ReplayBufferConfig(BaseModel):
     This just returns a FlatReplayBuffer.
     """
 
-    mem_size: int
+    mem_size: StrictInt
     mode: Literal["torch", "numpy"]
-    device: str
-    use_dict_wrapper: bool
-    store_on_device: bool = True
-    random_rollover: bool = True
+    device: StrictStr
+    use_dict_wrapper: StrictBool
+    store_on_device: StrictBool
+    random_rollover: StrictBool
 
     def instantiate(self) -> ReplayBuffer:
         """instantiate.

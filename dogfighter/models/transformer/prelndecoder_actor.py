@@ -65,7 +65,6 @@ class PreLNDecoderActor(Actor):
             nn.Linear(config.ff_dim, config.embed_dim),
         )
 
-
         # outputs the action after all the compute before it
         self.head = nn.Sequential(
             nn.Linear(config.embed_dim, config.ff_dim),

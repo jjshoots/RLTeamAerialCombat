@@ -20,6 +20,7 @@ from dogfighter.models.qu_ensemble import QUEnsemble
 class CCGEConfig(AlgorithmConfig):
     """Critic Confidence Guided Exploration."""
 
+    compile: bool
     device: str
     actor_config: ActorConfig
     qu_config: QUNetworkConfig
@@ -44,7 +45,10 @@ class CCGEConfig(AlgorithmConfig):
         Returns:
             "CCGE":
         """
-        return CCGE(self)
+        algorithm = CCGE(self)
+        if self.compile:
+            torch.compile(algorithm)
+        return algorithm
 
 
 class CCGE(Algorithm):

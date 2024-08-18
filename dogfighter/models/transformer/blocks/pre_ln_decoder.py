@@ -76,7 +76,10 @@ class PreLNDecoder(nn.Module):
         v = self._v_ln(v)
 
         # perform decoding
-        for q_ln, mha, in zip(self._q_lns, self._mha_layers):
+        for (
+            q_ln,
+            mha,
+        ) in zip(self._q_lns, self._mha_layers):
             # residual(prelayernorm + mha)
             q = (
                 q

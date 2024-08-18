@@ -1,87 +1,88 @@
 from __future__ import annotations
 
-import gymnasium as gym
-from gymnasium.vector import AsyncVectorEnv, VectorEnv
-from pettingzoo import ParallelEnv
 from wingman import Wingman
 
-from sa_envs.dmc_envs import setup_dmc_sa_env
-from sa_envs.pyflyt_envs import setup_pyflyt_sa_env
+from dogfighter.bases.base_env_creators import MAEnvConfig, SAEnvConfig
+from sa_envs.dmc_envs import DMCSAEnvConfig
+from sa_envs.pyflyt_envs import PyFlytMAEnvConfig, PyFlytSAEnvConfig
 
 
-def setup_mlp_sa_vec_environment(wm: Wingman) -> VectorEnv:
-    vec_env = AsyncVectorEnv(
-        [lambda _=i: setup_mlp_sa_environment(wm) for i in range(wm.cfg.num_envs)]
-    )
-    return vec_env
-
-
-def setup_mlp_sa_environment(wm: Wingman) -> gym.Env:
+def get_mlp_sa_env_config(wm: Wingman) -> SAEnvConfig:
     if wm.cfg.env.name.startswith("PyFlyt"):
-        env = setup_pyflyt_sa_env(
-            wm.cfg.env.name,
+        env_config = PyFlytSAEnvConfig(
+            env_id=wm.cfg.env.name,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-            flight_mode=-1,
+            env_kwargs=vars(wm.cfg.env.kwargs),
         )
     elif wm.cfg.env.name.startswith("dm_control"):
-        env = setup_dmc_sa_env(
-            wm.cfg.env.name,
+        env_config = DMCSAEnvConfig(
+            env_id=wm.cfg.env.name,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
+            env_kwargs=vars(wm.cfg.env.kwargs),
         )
     else:
         raise NotImplementedError
 
-        # record observation and action space shapes
-    if not getattr(wm.cfg, "obs_size", None):
-        wm.cfg.algorithm.obs_size = env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
-    if not getattr(wm.cfg, "act_size", None):
-        wm.cfg.algorithm.act_size = env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+    # record observation and action space shapes if needed
+    _obs = getattr(wm.cfg.algorithm, "obs_size", None)
+    _act = getattr(wm.cfg.algorithm, "act_size", None)
+    if not _obs or not _act:
+        dummy_env = env_config.instantiate()
+        if not _obs:
+            wm.cfg.algorithm.obs_size = dummy_env.observation_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+        if not _act:
+            wm.cfg.algorithm.act_size = dummy_env.action_space.shape[0]  # pyright: ignore[reportOptionalSubscript]
+        dummy_env.close()
 
-    return env
+    return env_config
 
 
-def setup_mlp_ma_environment(wm: Wingman) -> ParallelEnv:
-    from PyFlyt.pz_envs import MAFixedwingDogfightEnvV2
+def get_mlp_ma_env_config(wm: Wingman) -> MAEnvConfig:
+    env_config = PyFlytMAEnvConfig(
+        env_id=wm.cfg.env.name,
+        render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
+        env_kwargs=vars(wm.cfg.env.kwargs),
+    )
 
-    if wm.cfg.env.name == "dogfight":
-        env = MAFixedwingDogfightEnvV2(
-            render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-            **vars(wm.cfg.env.kwargs),
-        )
-    else:
-        raise NotImplementedError
+    # record observation and action space shapes if needed
+    _obs = getattr(wm.cfg.algorithm, "obs_size", None)
+    _act = getattr(wm.cfg.algorithm, "act_size", None)
+    if not _obs or not _act:
+        dummy_env = env_config.instantiate()
+        if not _obs:
+            wm.cfg.algorithm.obs_size = dummy_env.observation_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
+        if not _act:
+            wm.cfg.algorithm.act_size = dummy_env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
+        dummy_env.close()
+
+    return env_config
+
+
+def get_transformer_ma_env_config(wm: Wingman) -> MAEnvConfig:
+    env_config = PyFlytMAEnvConfig(
+        env_id=wm.cfg.env.name,
+        render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
+        env_kwargs=vars(wm.cfg.env.kwargs),
+    )
 
     # record observation and action space shapes
-    if not getattr(wm.cfg.algorithm, "obs_size", None):
-        wm.cfg.algorithm.obs_size = env.observation_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
-    if not getattr(wm.cfg.algorithm, "act_size", None):
-        wm.cfg.algorithm.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
+    _src = getattr(wm.cfg.algorithm, "src_size", None)
+    _tgt = getattr(wm.cfg.algorithm, "tgt_size", None)
+    _act = getattr(wm.cfg.algorithm, "act_size", None)
+    if not _src or not _tgt or not _act:
+        dummy_env = env_config.instantiate()
+        if not _src:
+            wm.cfg.algorithm.src_size = dummy_env.observation_space(0)[
+                "src"
+            ].feature_space.shape[0]  # pyright: ignore[reportIndexIssue]
+        if not _tgt:
+            wm.cfg.algorithm.tgt_size = dummy_env.observation_space(0)[
+                "tgt"
+            ].feature_space.shape[0]  # pyright: ignore[reportIndexIssue]
+        if not _act:
+            wm.cfg.algorithm.act_size = dummy_env.observation_space(0)[
+                "act"
+            ].feature_space.shape[0]  # pyright: ignore[reportIndexIssue]
+        dummy_env.close()
 
-    return env
-
-
-def setup_transformer_ma_environment(wm: Wingman) -> ParallelEnv:
-    from ma_envs.dogfight_transformer import \
-        MAFixedwingDogfightTransformerEnvV2
-
-    if wm.cfg.env.name == "dogfight":
-        env = MAFixedwingDogfightTransformerEnvV2(
-            render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-            **vars(wm.cfg.env.kwargs),
-        )
-    else:
-        raise NotImplementedError
-
-    # record observation and action space shapes
-    if not getattr(wm.cfg.algorithm, "src_size", None):
-        wm.cfg.algorithm.src_size = env.observation_space(0)["src"].feature_space.shape[
-            0
-        ]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
-    if not getattr(wm.cfg.algorithm, "tgt_size", None):
-        wm.cfg.algorithm.tgt_size = env.observation_space(0)["tgt"].feature_space.shape[
-            0
-        ]  # pyright: ignore[reportAttributeAccessIssue, reportOptionalSubscript]
-    if not getattr(wm.cfg.algorithm, "act_size", None):
-        wm.cfg.algorithm.act_size = env.action_space(0).shape[0]  # pyright: ignore[reportOptionalSubscript]
-
-    return env
+    return env_config

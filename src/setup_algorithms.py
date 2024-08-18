@@ -1,14 +1,9 @@
 from __future__ import annotations
 
-import torch
 from wingman import Wingman
-from wingman.replay_buffer import ReplayBuffer
 
 from dogfighter.algorithms.ccge import CCGEConfig
-from dogfighter.bases.base_algorithm import Algorithm
-from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
-from dogfighter.models.mlp.mlp_actor import MlpActorConfig
-from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
+from dogfighter.bases.base_algorithm import AlgorithmConfig
 from dogfighter.models.mlp.simba_actor import SimbaActorConfig
 from dogfighter.models.mlp.simba_qu_network import SimbaQUNetworkConfig
 from dogfighter.models.transformer.basic_merge_actor import \
@@ -21,18 +16,7 @@ from dogfighter.models.transformer.prelndecoder_qu_network import \
     PreLNDecoderQUNetworkConfig
 
 
-def setup_replay_buffer(wm: Wingman) -> ReplayBuffer:
-    return ReplayBufferConfig(
-        mem_size=wm.cfg.replay_buffer.mem_size,
-        mode=wm.cfg.replay_buffer.mode,
-        device=str(wm.device),
-        use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
-        store_on_device=wm.cfg.replay_buffer.store_on_device,
-        random_rollover=wm.cfg.replay_buffer.random_rollover,
-    ).instantiate()
-
-
-def setup_algorithm(wm: Wingman) -> Algorithm:
+def get_algorithm_config(wm: Wingman) -> AlgorithmConfig:
     if wm.cfg.algorithm.variant == "mlp":
         actor_config = SimbaActorConfig(
             obs_size=wm.cfg.algorithm.obs_size,
@@ -46,16 +30,6 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
             embed_dim=wm.cfg.algorithm.critic.embed_dim,
             num_blocks=wm.cfg.algorithm.critic.num_blocks,
         )
-        # actor_config = MlpActorConfig(
-        #     obs_size=wm.cfg.algorithm.obs_size,
-        #     act_size=wm.cfg.algorithm.act_size,
-        #     embed_dim=wm.cfg.algorithm.actor.embed_dim,
-        # )
-        # qu_config = MlpQUNetworkConfig(
-        #     obs_size=wm.cfg.algorithm.obs_size,
-        #     act_size=wm.cfg.algorithm.act_size,
-        #     embed_dim=wm.cfg.algorithm.critic.embed_dim,
-        # )
     elif wm.cfg.algorithm.variant == "transformer":
         # actor_config = BasicMergeActorConfig(
         #     src_size=wm.cfg.algorithm.src_size,
@@ -90,7 +64,8 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
     else:
         raise NotImplementedError
 
-    alg = CCGEConfig(
+    alg_config = CCGEConfig(
+        compile=(not wm.cfg.mode.debug),
         device=str(wm.device),
         actor_config=actor_config,
         qu_config=qu_config,
@@ -107,17 +82,6 @@ def setup_algorithm(wm: Wingman) -> Algorithm:
         discount_factor=wm.cfg.algorithm.discount_factor,
         actor_update_ratio=wm.cfg.algorithm.actor_update_ratio,
         critic_update_ratio=wm.cfg.algorithm.critic_update_ratio,
-    ).instantiate()
+    )
 
-    if not wm.cfg.mode.debug:
-        torch.compile(alg)
-
-    # get latest weight files
-    has_weights, model_file, _ = wm.get_weight_files()
-    if has_weights:
-        # load the model
-        alg.load_state_dict(
-            torch.load(model_file, map_location=torch.device(wm.device))
-        )
-
-    return alg
+    return alg_config

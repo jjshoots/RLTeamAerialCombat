@@ -2,19 +2,22 @@ from __future__ import annotations
 
 import gymnasium as gym
 
+from dogfighter.bases.base_env_creators import SAEnvConfig
 
-def setup_dmc_sa_env(env_id: str, render_mode: str | None, **env_kwargs) -> gym.Env:
-    import shimmy
-    from gymnasium.wrappers import FlattenObservation, RescaleAction
 
-    gym.register_envs(shimmy)
+class DMCSAEnvConfig(SAEnvConfig):
+    def instantiate(self) -> gym.Env:
+        import shimmy
+        from gymnasium.wrappers import FlattenObservation, RescaleAction
 
-    env = gym.make(
-        env_id,
-        render_mode=render_mode,
-        **env_kwargs,
-    )
-    env = FlattenObservation(env)
-    env = RescaleAction(env, min_action=-1.0, max_action=1.0)
+        gym.register_envs(shimmy)
 
-    return env
+        env = gym.make(
+            self.env_id,
+            render_mode=self.render_mode,
+            **self.env_kwargs,
+        )
+        env = FlattenObservation(env)
+        env = RescaleAction(env, min_action=-1.0, max_action=1.0)
+
+        return env

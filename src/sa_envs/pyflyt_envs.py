@@ -1,23 +1,45 @@
 from __future__ import annotations
 
 import gymnasium as gym
+from pettingzoo import ParallelEnv
+
+from dogfighter.bases.base_env_creators import MAEnvConfig, SAEnvConfig
 
 
-def setup_pyflyt_sa_env(env_id: str, render_mode: str | None, **env_kwargs) -> gym.Env:
-    from gymnasium.wrappers import RescaleAction
-    from PyFlyt.gym_envs import FlattenWaypointEnv
+class PyFlytSAEnvConfig(SAEnvConfig):
+    def instantiate(self) -> gym.Env:
+        from gymnasium.wrappers import RescaleAction
+        from PyFlyt import gym_envs as pf_envs
+        from PyFlyt.gym_envs import FlattenWaypointEnv
 
-    env = gym.make(
-        env_id,
-        render_mode=render_mode,
-        **env_kwargs,
-    )
-    env = RescaleAction(env, min_action=-1.0, max_action=1.0)
+        gym.register_envs(pf_envs)
 
-    # wrap in flatten if needed
-    if "waypoint" in env_id.lower():
-        env = FlattenWaypointEnv(env, context_length=1)
+        env = gym.make(
+            self.env_id,
+            render_mode=self.render_mode,
+            **self.env_kwargs,
+        )
+        env = RescaleAction(env, min_action=-1.0, max_action=1.0)
 
-    env = RescaleAction(env, min_action=-1.0, max_action=1.0)
+        # wrap in flatten if needed
+        if "waypoint" in self.env_id.lower():
+            env = FlattenWaypointEnv(env, context_length=1)
 
-    return env
+        env = RescaleAction(env, min_action=-1.0, max_action=1.0)
+
+        return env
+
+
+class PyFlytMAEnvConfig(MAEnvConfig):
+    def instantiate(self) -> ParallelEnv:
+        from PyFlyt.pz_envs import MAFixedwingDogfightEnvV2
+
+        if self.env_id == "dogfight":
+            env = MAFixedwingDogfightEnvV2(
+                render_mode=self.render_mode,
+                **self.env_kwargs,
+            )
+        else:
+            raise NotImplementedError
+
+        return env
