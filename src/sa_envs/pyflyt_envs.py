@@ -4,7 +4,6 @@ import gymnasium as gym
 from pettingzoo import ParallelEnv
 
 from dogfighter.bases.base_env_creators import MAEnvConfig, SAEnvConfig
-from ma_envs.dogfight_transformer import MAFixedwingDogfightTransformerEnvV2
 
 
 class PyFlytSAEnvConfig(SAEnvConfig):
@@ -34,6 +33,7 @@ class PyFlytSAEnvConfig(SAEnvConfig):
 class PyFlytMAEnvConfig(MAEnvConfig):
     def instantiate(self) -> ParallelEnv:
         from PyFlyt.pz_envs import MAFixedwingDogfightEnvV2
+        from ma_envs.dogfight_transformer import MAFixedwingDogfightTransformerEnvV2
 
         if self.env_id == "dogfight":
             if self.env_kwargs.get("flatten"):
