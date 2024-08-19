@@ -69,7 +69,7 @@ wandb:
   enable: false
   save_code: false
   run:
-    name: "classic_waypoints"
+    name: "ball_in_cup"
     notes: ""
   project:
     name: "dogfighter"
