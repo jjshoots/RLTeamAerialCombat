@@ -1,6 +1,10 @@
 #!/bin/bash
 
-source .venv/bin/activate
+if [ -d .venv ]; then
+  source .venv/bin/activate
+else
+  source venv/bin/activate
+fi
 wingman-compress-weights
 
 declare -a pids=()
