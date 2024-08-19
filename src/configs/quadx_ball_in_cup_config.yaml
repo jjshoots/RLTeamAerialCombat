@@ -38,8 +38,8 @@ algorithm:
 
 # training config
 runner:
-  max_transitions: 2000000
-  transitions_per_epoch: 10000
+  max_transitions: 500000
+  transitions_per_epoch: 50000
   transitions_num_exploration: 5000
   train_min_transitions: 10000
   eval_num_episodes: 10
