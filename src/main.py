@@ -110,10 +110,12 @@ def display(wm: Wingman) -> None:
 if __name__ == "__main__":
     signal(SIGINT, shutdown_handler)
 
+    # fmt: off
     # config_yaml = Path(__file__).parent / "configs/quadx_waypoints_config.yaml"
-    config_yaml = (
-        Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml"
-    )
+    # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
+    # fmt: on
+
     wm = Wingman(config_yaml=config_yaml)
 
     if wm.cfg.mode.train:
