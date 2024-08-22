@@ -33,7 +33,9 @@ class PyFlytSAEnvConfig(SAEnvConfig):
 class PyFlytMAEnvConfig(MAEnvConfig):
     def instantiate(self) -> ParallelEnv:
         from PyFlyt.pz_envs import MAFixedwingDogfightEnvV2
-        from ma_envs.dogfight_transformer import MAFixedwingDogfightTransformerEnvV2
+
+        from ma_envs.dogfight_transformer import \
+            MAFixedwingDogfightTransformerEnvV2
 
         if self.env_id == "dogfight":
             if self.env_kwargs.get("flatten"):
@@ -43,7 +45,6 @@ class PyFlytMAEnvConfig(MAEnvConfig):
                 )
             else:
                 env = MAFixedwingDogfightTransformerEnvV2(**self.env_kwargs)
-
 
         else:
             raise NotImplementedError

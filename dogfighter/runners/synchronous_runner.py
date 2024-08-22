@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import math
+import time
 
 from pydantic import BaseModel
 from wingman import Wingman
-import time
 
 from dogfighter.bases.base_algorithm import AlgorithmConfig
 from dogfighter.bases.base_env_creators import MAEnvConfig, SAVecEnvConfig
