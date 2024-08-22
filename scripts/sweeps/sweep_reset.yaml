@@ -1,4 +1,4 @@
-method: random
+method: grid
 metric:
   name: eval/max_score
   goal: maximize
@@ -6,8 +6,15 @@ project: "dogfighter"
 name: "reset_sweep"
 parameters:
   reset_percentage:
-    min: 0.01
-    max: 1.0
+    values:
+    - 0.01
+    - 0.05
+    - 0.1
+    - 0.3
+    - 0.5
+    - 0.9
+    - 0.99
+    - 1.0
 command:
   - python3
   - src/main.py

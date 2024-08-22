@@ -8,21 +8,13 @@ fi
 wingman-compress-weights
 
 declare -a pids=()
-wandb agent jjshoots/dogfighter/04tdg1uu &
+wandb agent jjshoots/dogfighter/66pydiub &
 pids+=($!)
 sleep 10
-wandb agent jjshoots/dogfighter/04tdg1uu &
-pids+=($!)
-sleep 10
-wandb agent jjshoots/dogfighter/04tdg1uu &
-pids+=($!)
-sleep 10
-wandb agent jjshoots/dogfighter/04tdg1uu &
+wandb agent jjshoots/dogfighter/66pydiub &
 pids+=($!)
 sleep 10
 
 for pid in ${pids[*]}; do
     wait $pid
 done
-
-poweroff
