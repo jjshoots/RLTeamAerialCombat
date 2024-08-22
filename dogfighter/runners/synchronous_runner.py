@@ -125,7 +125,7 @@ def run_synchronous(
         loop_start_time = time.time()
         eta_completion = (
             (settings.max_transitions - memory.count)
-            * (settings.transitions_per_epoch / looptime)
+            * (looptime / settings.transitions_per_epoch)
         )
         print(f"ETA to completion: {eta_completion:.0f} seconds...")
 
