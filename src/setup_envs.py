@@ -12,13 +12,13 @@ def get_mlp_sa_env_config(wm: Wingman) -> SAEnvConfig:
         env_config = PyFlytSAEnvConfig(
             env_id=wm.cfg.env.id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-            env_kwargs=vars(wm.cfg.env.kwargs),
+            env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
         )
     elif wm.cfg.env.id.startswith("dm_control"):
         env_config = DMCSAEnvConfig(
             env_id=wm.cfg.env.id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-            env_kwargs=vars(wm.cfg.env.kwargs),
+            env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
         )
     else:
         raise NotImplementedError
@@ -41,7 +41,7 @@ def get_mlp_ma_env_config(wm: Wingman) -> MAEnvConfig:
     env_config = PyFlytMAEnvConfig(
         env_id=wm.cfg.env.id,
         render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-        env_kwargs=vars(wm.cfg.env.kwargs),
+            env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
     )
 
     # record observation and action space shapes if needed
@@ -62,7 +62,7 @@ def get_transformer_ma_env_config(wm: Wingman) -> MAEnvConfig:
     env_config = PyFlytMAEnvConfig(
         env_id=wm.cfg.env.id,
         render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
-        env_kwargs=vars(wm.cfg.env.kwargs),
+        env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
     )
 
     # record observation and action space shapes
