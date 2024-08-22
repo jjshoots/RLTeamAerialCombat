@@ -134,7 +134,7 @@ def run_synchronous(
         wm.log["runner/memory_size"] = memory.__len__()
         wm.log["runner/num_transitions"] = memory.count
         wm.log["runner/looptime"] = looptime
-        wm.log["runner/eta_completion"] =
+        wm.log["runner/eta_completion"] = eta_completion
 
         # save weights
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
