@@ -8,7 +8,7 @@ from dogfighter.bases.base_env_creators import SAEnvConfig
 class DMCSAEnvConfig(SAEnvConfig):
     def instantiate(self) -> gym.Env:
         import shimmy
-        from gymnasium.wrappers import FlattenObservation, RescaleAction
+        from gymnasium.wrappers import FlattenObservation
 
         gym.register_envs(shimmy)
 
