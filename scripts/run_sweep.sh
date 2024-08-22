@@ -25,4 +25,4 @@ for pid in ${pids[*]}; do
     wait $pid
 done
 
-# poweroff
+poweroff

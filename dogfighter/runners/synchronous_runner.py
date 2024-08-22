@@ -75,7 +75,7 @@ def run_synchronous(
 
     # start the main training loop
     while memory.count <= settings.max_transitions:
-        if not has_reset and memory.count > 10000:
+        if not has_reset and memory.count > 500000:
             algorithm.reinit_weights(reset_percentage)
 
         print("\n\n")
