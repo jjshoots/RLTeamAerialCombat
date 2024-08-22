@@ -2,11 +2,11 @@
 env:
   id: "dm_control/cheetah-run-v0"
   variant: "mlp_sa_env"
-  num_envs: 8
+  num_envs: 2
 
 # replay buffer params
 replay_buffer:
-  mem_size: 1000000
+  mem_size: 500000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -14,18 +14,18 @@ replay_buffer:
 
 # algorithm params
 algorithm:
-  variant: "mlp"
+  variant: "simba"
   actor:
-    embed_dim: 256
+    embed_dim: 64
     num_blocks: 1
   critic:
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
-  batch_size: 4096
-  grad_steps_per_update: 1000
-  actor_learning_rate: 0.001
-  critic_learning_rate: 0.001
+  batch_size: 512
+  grad_steps_per_update: 2000
+  actor_learning_rate: 0.0003
+  critic_learning_rate: 0.0003
   alpha_learning_rate: 0.003
   tune_entropy: true
   target_entropy_gain: 1.0
@@ -37,11 +37,11 @@ algorithm:
 # training config
 runner:
   max_transitions: 1000000
-  transitions_per_epoch: 8000
-  transitions_num_exploration: 8000
-  train_min_transitions: 8000
-  eval_num_episodes: 32
-  eval_transitions_frequency: 8000
+  transitions_per_epoch: 2000
+  transitions_num_exploration: 10000
+  train_min_transitions: 10000
+  eval_num_episodes: 20
+  eval_transitions_frequency: 2000
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:
