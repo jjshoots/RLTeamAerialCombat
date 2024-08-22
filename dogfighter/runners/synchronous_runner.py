@@ -57,9 +57,9 @@ def run_synchronous(
     memory = memory_config.instantiate()
 
     # get latest weight files
-    has_weights, model_file, _ = wm.get_weight_files()
+    has_weights, _, ckpt_dir = wm.get_weight_files()
     if has_weights:
-        algorithm.load(model_file)
+        algorithm.load(ckpt_dir / "weights.pth")
 
     # logging metrics
     num_epochs = 0
@@ -124,6 +124,6 @@ def run_synchronous(
         wm.log["eval/max_score"] = max_eval_score
 
         # save weights
-        to_update, model_file, _ = wm.checkpoint(loss=-eval_score, step=memory.count)
+        to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
         if to_update:
-            algorithm.save(model_file)
+            algorithm.save(ckpt_dir / "weights.pth")
