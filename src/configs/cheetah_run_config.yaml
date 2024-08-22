@@ -16,7 +16,7 @@ replay_buffer:
 algorithm:
   variant: "simba"
   actor:
-    embed_dim: 64
+    embed_dim: 256
     num_blocks: 1
   critic:
     embed_dim: 256

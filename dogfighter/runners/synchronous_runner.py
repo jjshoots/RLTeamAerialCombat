@@ -4,6 +4,7 @@ import math
 
 from pydantic import BaseModel
 from wingman import Wingman
+import time
 
 from dogfighter.bases.base_algorithm import AlgorithmConfig
 from dogfighter.bases.base_env_creators import MAEnvConfig, SAVecEnvConfig
@@ -66,6 +67,7 @@ def run_synchronous(
     eval_score = -math.inf
     max_eval_score = -math.inf
     next_eval_step = 0
+    loop_start_time = time.time()
 
     # start the main training loop
     while memory.count <= settings.max_transitions:
@@ -114,14 +116,28 @@ def run_synchronous(
             next_eval_step = (
                 int(memory.count / settings.eval_transitions_frequency) + 1
             ) * settings.eval_transitions_frequency
+        wm.log["eval/score"] = eval_score
+        wm.log["eval/max_score"] = max_eval_score
 
-        """WANDB"""
+        """LOGGING"""
+        # record looptimes
+        looptime = time.time() - loop_start_time
+        loop_start_time = time.time()
+        print(
+            "ETA to completion: "
+            f"{
+                (
+                    (settings.max_transitions - memory.count)
+                    * (settings.transitions_per_epoch / looptime)
+                ):.0f
+            } seconds..."
+        )
+
         # collect some statistics
         wm.log["runner/epoch"] = 0
         wm.log["runner/memory_size"] = memory.__len__()
         wm.log["runner/num_transitions"] = memory.count
-        wm.log["eval/score"] = eval_score
-        wm.log["eval/max_score"] = max_eval_score
+        wm.log["runner/looptime"] = looptime
 
         # save weights
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
