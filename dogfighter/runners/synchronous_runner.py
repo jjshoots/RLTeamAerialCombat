@@ -35,6 +35,7 @@ def run_synchronous(
     collect_fn: CollectFunctionProtocol,
     evaluation_fn: EvaluationFunctionProtocol,
     settings: SynchronousRunnerSettings,
+    reset_percentage: float,
 ) -> None:
     """A synchronous runner to perform train and evaluations in step.
 
@@ -51,6 +52,9 @@ def run_synchronous(
     Returns:
         None:
     """
+    # mid reset stuff
+    has_reset = False
+
     # instantiate everything
     train_env = train_env_config.instantiate()
     eval_env = eval_env_config.instantiate()
@@ -71,6 +75,9 @@ def run_synchronous(
 
     # start the main training loop
     while memory.count <= settings.max_transitions:
+        if not has_reset and memory.count > 10000:
+            algorithm.reinit_weights(reset_percentage)
+
         print("\n\n")
         print(
             f"New epoch @ {memory.count} / {settings.max_transitions} total transitions."

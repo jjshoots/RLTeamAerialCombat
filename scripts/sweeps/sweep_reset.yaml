@@ -1,0 +1,15 @@
+method: random
+metric:
+  name: eval/max_score
+  goal: maximize
+project: "dogfighter"
+name: "reset_sweep"
+parameters:
+  reset_percentage:
+    min: 0.01
+    max: 1.0
+command:
+  - python3
+  - src/main.py
+  - "--mode.train"
+  - "--wandb.enable"

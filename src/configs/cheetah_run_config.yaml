@@ -1,3 +1,5 @@
+reset_percentage: 0.1
+
 # env params
 env:
   id: "dm_control/cheetah-run-v0"

@@ -107,6 +107,38 @@ class CCGE(Algorithm):
             [self._log_alpha], lr=config.alpha_learning_rate, amsgrad=True
         )
 
+    def reinit_weights(self, percentage: float) -> None:
+        for param in self.parameters():
+            if param.requires_grad and param.dim() > 1:  # skip biases or 1D parameters
+                num_elements = param.numel()
+                num_to_reinitialize = int(percentage * num_elements)
+
+                # Create a mask with the specified percentage of 1's
+                mask = torch.zeros_like(param).flatten()
+                mask[:num_to_reinitialize] = 1
+                mask = mask[torch.randperm(mask.size(0))].view_as(param)
+
+                # Reinitialize the selected weights
+                with torch.no_grad():
+                    nn.init.xavier_uniform_(param.masked_fill(mask.bool(), 0.0))
+
+        # reset optimizers
+        self._actor_optim = optim.AdamW(
+            self._actor.parameters(), lr=self.config.actor_learning_rate, amsgrad=True
+        )
+        self._critic_optim = optim.AdamW(
+            self._critic.parameters(), lr=self.config.critic_learning_rate, amsgrad=True
+        )
+        self._alpha_optim = optim.AdamW(
+            [self._log_alpha], lr=self.config.alpha_learning_rate, amsgrad=True
+        )
+
+        print("RESETTING")
+        print("RESETTING")
+        print("RESETTING")
+        print("RESETTING")
+        print("RESETTING")
+
     @property
     def actor(self) -> Actor:
         """actor.
