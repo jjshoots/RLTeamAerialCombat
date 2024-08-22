@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dogfighter.models.mlp.mlp_actor import MlpActorConfig
+from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
 from wingman import Wingman
 
 from dogfighter.algorithms.ccge import CCGEConfig
@@ -18,6 +20,17 @@ from dogfighter.models.transformer.prelndecoder_qu_network import \
 
 def get_algorithm_config(wm: Wingman) -> AlgorithmConfig:
     if wm.cfg.algorithm.variant == "mlp":
+        actor_config = MlpActorConfig(
+            obs_size=wm.cfg.algorithm.obs_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.actor.embed_dim,
+        )
+        qu_config = MlpQUNetworkConfig(
+            obs_size=wm.cfg.algorithm.obs_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.critic.embed_dim,
+        )
+    elif wm.cfg.algorithm.variant == "simba":
         actor_config = SimbaActorConfig(
             obs_size=wm.cfg.algorithm.obs_size,
             act_size=wm.cfg.algorithm.act_size,

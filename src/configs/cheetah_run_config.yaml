@@ -16,13 +16,13 @@ replay_buffer:
 algorithm:
   variant: "mlp"
   actor:
-    embed_dim: 64
+    embed_dim: 256
     num_blocks: 1
   critic:
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
-  batch_size: 2048
+  batch_size: 4096
   grad_steps_per_update: 1000
   actor_learning_rate: 0.001
   critic_learning_rate: 0.001
@@ -67,7 +67,7 @@ wandb:
   enable: false
   save_code: false
   run:
-    name: "ball_in_cup"
+    name: "half_cheetah"
     notes: ""
   project:
     name: "dogfighter"
