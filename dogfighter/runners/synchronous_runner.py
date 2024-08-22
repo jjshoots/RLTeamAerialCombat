@@ -123,21 +123,18 @@ def run_synchronous(
         # record looptimes
         looptime = time.time() - loop_start_time
         loop_start_time = time.time()
-        print(
-            "ETA to completion: "
-            f"{
-                (
-                    (settings.max_transitions - memory.count)
-                    * (settings.transitions_per_epoch / looptime)
-                ):.0f
-            } seconds..."
+        eta_completion = (
+            (settings.max_transitions - memory.count)
+            * (settings.transitions_per_epoch / looptime)
         )
+        print(f"ETA to completion: {eta_completion:.0f} seconds...")
 
         # collect some statistics
         wm.log["runner/epoch"] = 0
         wm.log["runner/memory_size"] = memory.__len__()
         wm.log["runner/num_transitions"] = memory.count
         wm.log["runner/looptime"] = looptime
+        wm.log["runner/eta_completion"] =
 
         # save weights
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
