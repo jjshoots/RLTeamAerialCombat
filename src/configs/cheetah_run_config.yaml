@@ -14,9 +14,9 @@ replay_buffer:
 
 # algorithm params
 algorithm:
-  variant: "mlp"
+  variant: "simba"
   actor:
-    embed_dim: 256
+    embed_dim: 64
     num_blocks: 1
   critic:
     embed_dim: 256
