@@ -85,23 +85,23 @@ def display(wm: Wingman) -> None:
     if wm.cfg.env.variant == "mlp_sa_env":
         env = get_mlp_sa_env_config(wm).instantiate()
         alg = get_algorithm_config(wm).instantiate()
-        has_weights, model_file, _ = wm.get_weight_files()
+        has_weights, _, ckpt_dir = wm.get_weight_files()
         if has_weights:
-            alg.load(model_file)
+            alg.load(ckpt_dir / "weights.pth")
         mlp_sa_env_display(env=env, actor=alg.actor)
     elif wm.cfg.env.variant == "mlp_ma_env":
         env = get_mlp_ma_env_config(wm).instantiate()
         alg = get_algorithm_config(wm).instantiate()
-        has_weights, model_file, _ = wm.get_weight_files()
+        has_weights, _, ckpt_dir = wm.get_weight_files()
         if has_weights:
-            alg.load(model_file)
+            alg.load(ckpt_dir / "weights.pth")
         mlp_ma_env_display(env=env, actor=alg.actor)
     elif wm.cfg.env.variant == "transformer_ma_env":
         env = get_transformer_ma_env_config(wm).instantiate()
         alg = get_algorithm_config(wm).instantiate()
-        has_weights, model_file, _ = wm.get_weight_files()
+        has_weights, _, ckpt_dir = wm.get_weight_files()
         if has_weights:
-            alg.load(model_file)
+            alg.load(ckpt_dir / "weights.pth")
         transformer_ma_env_display(env=env, actor=alg.actor)
     else:
         raise NotImplementedError
