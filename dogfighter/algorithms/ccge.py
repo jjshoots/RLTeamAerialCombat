@@ -211,7 +211,7 @@ class CCGE(Algorithm):
             loss.backward()
             self._critic_optim.step()
             self._update_q_target()
-            all_logs = {**all_logs, **log}
+            all_logs.update(log)
 
         # update actor
         for _ in range(self.config.actor_update_ratio):
@@ -219,14 +219,14 @@ class CCGE(Algorithm):
             loss, log = self._calc_actor_loss(obs=obs, term=term)
             loss.backward()
             self._actor_optim.step()
-            all_logs = {**all_logs, **log}
+            all_logs.update(log)
 
             # also update alpha for entropy
             self._alpha_optim.zero_grad()
             loss, log = self._calc_alpha_loss(obs=obs)
             loss.backward()
             self._alpha_optim.step()
-            all_logs = {**all_logs, **log}
+            all_logs.update(log)
 
         return all_logs
 
