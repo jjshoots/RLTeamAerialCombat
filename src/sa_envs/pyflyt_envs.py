@@ -19,7 +19,6 @@ class PyFlytSAEnvConfig(SAEnvConfig):
             render_mode=self.render_mode,
             **self.env_kwargs,
         )
-        env = RescaleAction(env, min_action=-1.0, max_action=1.0)
 
         # wrap in flatten if needed
         if "waypoint" in self.env_id.lower():
