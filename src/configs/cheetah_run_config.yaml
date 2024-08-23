@@ -2,7 +2,7 @@
 env:
   id: "dm_control/cheetah-run-v0"
   variant: "mlp_sa_env"
-  num_envs: 2
+  num_envs: 8
 
 # replay buffer params
 replay_buffer:
@@ -38,11 +38,11 @@ algorithm:
 # training config
 runner:
   max_transitions: 1000000
-  transitions_per_epoch: 2000
-  transitions_num_exploration: 2000
-  train_min_transitions: 20000
-  eval_num_episodes: 10
-  eval_transitions_frequency: 2000
+  transitions_per_epoch: 8000
+  transitions_num_exploration: 25000
+  train_min_transitions: 25000
+  eval_num_episodes: 16
+  eval_transitions_frequency: 8000
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:
