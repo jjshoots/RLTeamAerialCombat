@@ -149,13 +149,13 @@ def mlp_sa_vec_env_evaluate(
             # step the transition
             next_obs, rew, term, trunc, _ = env.step(act)
 
-            # roll observation and record the done envs
-            obs = next_obs
-            done_envs |= term | trunc
-
             # record the cumulative rewards and episode length
             cumulative_rewards += np.sum(rew * (1.0 - done_envs))
             num_valid_steps += np.sum(1.0 - done_envs)
+
+            # roll observation and record the done envs
+            obs = next_obs
+            done_envs |= term | trunc
 
     # arrange the results
     return_info = dict()

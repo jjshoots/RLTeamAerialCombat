@@ -30,6 +30,7 @@ class CCGEConfig(AlgorithmConfig):
     actor_learning_rate: float = field(default=0.003)
     critic_learning_rate: float = field(default=0.003)
     alpha_learning_rate: float = field(default=0.01)
+    target_smoothing_coefficient: float = field(default=0.005)
     tune_entropy: bool = field(default=True)
     target_entropy: float
     learn_uncertainty: bool = field(default=True)
@@ -260,7 +261,7 @@ class CCGE(Algorithm):
 
         return all_logs
 
-    def _update_q_target(self, tau=0.02):
+    def _update_q_target(self):
         """update_q_target.
 
         Args:
@@ -270,7 +271,10 @@ class CCGE(Algorithm):
         for target, source in zip(
             self._critic_target.parameters(), self._critic.parameters()
         ):
-            target.data.copy_(target.data * (1.0 - tau) + source.data * tau)
+            target.data.copy_(
+                target.data * (1.0 - self.config.target_smoothing_coefficient)
+                + source.data * self.config.target_smoothing_coefficient
+            )
 
     def _calc_critic_loss(
         self,
