@@ -90,8 +90,9 @@ def get_algorithm_config(wm: Wingman) -> AlgorithmConfig:
         alpha_learning_rate=wm.cfg.algorithm.alpha_learning_rate,
         target_smoothing_coefficient=wm.cfg.algorithm.target_smoothing_coefficient,
         tune_entropy=wm.cfg.algorithm.tune_entropy,
-        target_entropy=(-wm.cfg.algorithm.act_size)
-        * wm.cfg.algorithm.target_entropy_gain,
+        target_entropy=(
+            -wm.cfg.algorithm.act_size * wm.cfg.algorithm.target_entropy_gain
+        ),
         learn_uncertainty=wm.cfg.algorithm.learn_uncertainty,
         discount_factor=wm.cfg.algorithm.discount_factor,
         actor_update_ratio=wm.cfg.algorithm.actor_update_ratio,

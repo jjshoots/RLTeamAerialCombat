@@ -27,7 +27,7 @@ algorithm:
   actor_learning_rate: 0.003
   critic_learning_rate: 0.003
   alpha_learning_rate: 0.01
-  target_smoothing_coefficient: 0.01
+  target_smoothing_coefficient: 0.001
   tune_entropy: true
   target_entropy_gain: 1.0
   learn_uncertainty: true

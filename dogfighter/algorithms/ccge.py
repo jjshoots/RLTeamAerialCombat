@@ -24,19 +24,19 @@ class CCGEConfig(AlgorithmConfig):
     device: str
     actor_config: ActorConfig
     qu_config: QUNetworkConfig
-    qu_num_ensemble: int = field(default=2)
+    qu_num_ensemble: int
     batch_size: int
     grad_steps_per_update: int
-    actor_learning_rate: float = field(default=0.003)
-    critic_learning_rate: float = field(default=0.003)
-    alpha_learning_rate: float = field(default=0.01)
-    target_smoothing_coefficient: float = field(default=0.005)
-    tune_entropy: bool = field(default=True)
+    actor_learning_rate: float
+    critic_learning_rate: float
+    alpha_learning_rate: float
+    target_smoothing_coefficient: float
+    tune_entropy: bool
     target_entropy: float
-    learn_uncertainty: bool = field(default=True)
-    discount_factor: float = field(default=0.99)
-    actor_update_ratio: int = field(default=1)
-    critic_update_ratio: int = field(default=1)
+    learn_uncertainty: bool
+    discount_factor: float
+    actor_update_ratio: int
+    critic_update_ratio: int
 
     def instantiate(self) -> "CCGE":
         """instantiate.
@@ -272,8 +272,8 @@ class CCGE(Algorithm):
             self._critic_target.parameters(), self._critic.parameters()
         ):
             target.data.copy_(
-                target.data * (1.0 - self.config.target_smoothing_coefficient)
-                + source.data * self.config.target_smoothing_coefficient
+                (target.data * (1.0 - self.config.target_smoothing_coefficient))
+                + (source.data * self.config.target_smoothing_coefficient)
             )
 
     def _calc_critic_loss(
