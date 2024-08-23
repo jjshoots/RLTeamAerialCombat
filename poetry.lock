@@ -1348,6 +1348,33 @@ doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-
 test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test", "mypy (==1.11.*)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (<0.4)", "pytest-ruff (>=0.2.1)", "pytest-ruff (>=0.3.2)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel (>=0.44.0)"]
 
 [[package]]
+name = "shimmy"
+version = "2.0.0"
+description = "An API conversion tool providing Gymnasium and PettingZoo bindings for popular external reinforcement learning environments."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "Shimmy-2.0.0-py3-none-any.whl", hash = "sha256:4244e693b0ff28bd5ce55e73c636cab953df2a1fafe639718158ee6510613dfe"},
+    {file = "Shimmy-2.0.0.tar.gz", hash = "sha256:a42d07806fc1ca5460439cb4799f32d4855a9e1138b39a39031e72fb8460a508"},
+]
+
+[package.dependencies]
+gymnasium = ">=1.0.0a1"
+numpy = ">=1.18.0"
+
+[package.extras]
+all = ["bsuite (>=0.3.5)", "dm-control (>=1.0.10)", "dm-env (>=1.6)", "dm-meltingpot (>=2.2.2)", "gym (>=0.26.2)", "h5py (>=3.7.0)", "imageio", "open-spiel (>=1.2)", "pettingzoo (>=1.23)"]
+bsuite = ["bsuite (>=0.3.5)"]
+dm-control = ["dm-control (>=1.0.10)", "h5py (>=3.7.0)", "imageio"]
+dm-control-multi-agent = ["dm-control (>=1.0.10)", "h5py (>=3.7.0)", "imageio", "pettingzoo (>=1.23)"]
+dm-lab = ["dm-env (>=1.6)"]
+gym-v21 = ["gym (>=0.21.0,<0.26)", "pyglet (==1.5.11)"]
+gym-v26 = ["gym (>=0.26.2)"]
+meltingpot = ["dm-meltingpot (>=2.2.2)", "pettingzoo (>=1.23)"]
+openspiel = ["open-spiel (>=1.2)", "pettingzoo (>=1.23)"]
+testing = ["pillow (>=9.3.0)", "pytest (>=7.1.3)"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1571,4 +1598,4 @@ workspaces = ["wandb-workspaces"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "21f943b7d393846bd440000b36f763493fa90023dfade5cfd2b39d8b658cf4f4"
+content-hash = "4c6ff96d34c9ca26e07e8fbf24c894db947d027ecae866569efbd376343850bd"
