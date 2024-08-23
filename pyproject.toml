@@ -14,6 +14,7 @@ pydantic = "^2.7.4"
 numpy = "<2.0.0"
 tqdm = "^4.66.4"
 imageio = {extras = ["ffmpeg"], version = "^2.34.2"}
+pettingzoo = "^1.24.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.2.2"
