@@ -108,37 +108,6 @@ class CCGE(Algorithm):
             [self._log_alpha], lr=config.alpha_learning_rate, amsgrad=True
         )
 
-    def reinit_weights(self, percentage: float) -> None:
-        for param in self.parameters():
-            if param.requires_grad and param.dim() > 1:  # skip biases or 1D parameters
-                num_elements = param.numel()
-                num_to_reinitialize = int(percentage * num_elements)
-
-                # Create a mask with the specified percentage of 1's
-                mask = torch.zeros_like(param).flatten()
-                mask[:num_to_reinitialize] = 1
-                mask = mask[torch.randperm(mask.size(0))].view_as(param)
-
-                # Reinitialize the selected weights
-                with torch.no_grad():
-                    nn.init.xavier_uniform_(param.masked_fill(mask.bool(), 0.0))
-
-        # reset optimizers
-        self._actor_optim = optim.AdamW(
-            self._actor.parameters(), lr=self.config.actor_learning_rate, amsgrad=True
-        )
-        self._critic_optim = optim.AdamW(
-            self._critic.parameters(), lr=self.config.critic_learning_rate, amsgrad=True
-        )
-        self._alpha_optim = optim.AdamW(
-            [self._log_alpha], lr=self.config.alpha_learning_rate, amsgrad=True
-        )
-
-        print("RESETTING")
-        print("RESETTING")
-        print("RESETTING")
-        print("RESETTING")
-        print("RESETTING")
 
     @property
     def actor(self) -> Actor:
@@ -231,6 +200,7 @@ class CCGE(Algorithm):
 
         # update critic
         for _ in range(self.config.critic_update_ratio):
+            self._critic_optim.zero_grad()
             loss, log = self._calc_critic_loss(
                 obs=obs,
                 act=act,
@@ -240,23 +210,22 @@ class CCGE(Algorithm):
             )
             loss.backward()
             self._critic_optim.step()
-            self._critic_optim.zero_grad()
             self._update_q_target()
             all_logs = {**all_logs, **log}
 
         # update actor
         for _ in range(self.config.actor_update_ratio):
+            self._actor_optim.zero_grad()
             loss, log = self._calc_actor_loss(obs=obs, term=term)
             loss.backward()
             self._actor_optim.step()
-            self._actor_optim.zero_grad()
             all_logs = {**all_logs, **log}
 
             # also update alpha for entropy
+            self._alpha_optim.zero_grad()
             loss, log = self._calc_alpha_loss(obs=obs)
             loss.backward()
             self._alpha_optim.step()
-            self._alpha_optim.zero_grad()
             all_logs = {**all_logs, **log}
 
         return all_logs
