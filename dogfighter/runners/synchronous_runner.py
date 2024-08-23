@@ -51,9 +51,6 @@ def run_synchronous(
     Returns:
         None:
     """
-    # mid reset stuff
-    has_reset = False
-
     # instantiate everything
     train_env = train_env_config.instantiate()
     eval_env = eval_env_config.instantiate()
