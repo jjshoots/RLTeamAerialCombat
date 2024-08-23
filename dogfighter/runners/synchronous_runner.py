@@ -35,7 +35,6 @@ def run_synchronous(
     collect_fn: CollectFunctionProtocol,
     evaluation_fn: EvaluationFunctionProtocol,
     settings: SynchronousRunnerSettings,
-    reset_percentage: float,
 ) -> None:
     """A synchronous runner to perform train and evaluations in step.
 

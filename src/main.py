@@ -77,7 +77,6 @@ def train(wm: Wingman) -> None:
             eval_num_episodes=wm.cfg.runner.eval_num_episodes,
             eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
         ),
-        reset_percentage=wm.cfg.reset_percentage,
     )
 
 
