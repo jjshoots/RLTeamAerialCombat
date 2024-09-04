@@ -6,7 +6,7 @@ env:
 
 # replay buffer params
 replay_buffer:
-  mem_size: 500000
+  mem_size: 1000000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -37,7 +37,7 @@ algorithm:
 
 # training config
 runner:
-  max_transitions: 1000000
+  max_transitions: 2000000
   transitions_per_epoch: 8000
   transitions_num_exploration: 25000
   train_min_transitions: 50000
