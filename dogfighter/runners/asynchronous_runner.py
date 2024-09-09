@@ -16,7 +16,6 @@ from dogfighter.bases.base_env_interactors import (CollectFunctionProtocol,
 from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from wingman.replay_buffer import ReplayBuffer
 
-import random
 from concurrent.futures import ThreadPoolExecutor, Future
 import tempfile
 
@@ -24,7 +23,7 @@ class AsynchronousRunnerSettings(BaseModel):
     """SynchronousRunnerSettings."""
 
     num_parallel_rollouts: int
-    queue_scale_ratio: int = 2
+    queue_scale_ratio: int
 
     transitions_per_epoch: int
     transitions_num_exploration: int
@@ -121,7 +120,6 @@ def run_asynchronous(
     eval_score = -math.inf
     max_eval_score = -math.inf
     next_eval_step = 0
-    loop_start_time = time.time()
 
     # run things using executor
     with ThreadPoolExecutor(max_workers=settings.num_parallel_rollouts) as exe:
@@ -187,8 +185,6 @@ def run_asynchronous(
                 if futures[future] == _WorkerMode.COLLECT:
                     collect_memory, info = future.result()
                     memory.merge(collect_memory)
-                    print("merging")
-                    exit()
                     wm.log.update({f"collect/{k}": v for k, v in info.items()})
                 # collect eval score from workers
                 elif futures[future] == _WorkerMode.EVAL:
@@ -207,17 +203,8 @@ def run_asynchronous(
             # don't proceed with training until we have a minimum number of transitions
             if memory.count < settings.transitions_min_for_train:
                 time.sleep(5)
-                print(
-                    "Haven't reached minimum number of transitions "
-                    f"({memory.count} / {settings.transitions_min_for_train}) "
-                    "required before training, continuing with sampling..."
-                )
                 continue
 
-            print(
-                f"Training epoch {num_epochs}, "
-                f"Replay Buffer Capacity {memory.count} / {memory.mem_size}"
-            )
             info = algorithm.update(memory=memory)
             wm.log.update({f"train/{k}": v for k, v in info.items()})
 

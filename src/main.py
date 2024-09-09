@@ -98,6 +98,7 @@ def train(wm: Wingman) -> None:
             ),
             settings=AsynchronousRunnerSettings(
                 num_parallel_rollouts=wm.cfg.runner.num_parallel_rollouts,
+                queue_scale_ratio=wm.cfg.runner.queue_scale_ratio,
                 max_transitions=wm.cfg.runner.max_transitions,
                 transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
                 transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,

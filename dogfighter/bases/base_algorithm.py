@@ -39,7 +39,11 @@ class Algorithm(nn.Module, Generic[Observation, Action]):
     def load(self, filepath: str | Path) -> None:
         """load."""
         self.load_state_dict(
-            torch.load(filepath, map_location=torch.device(self._device))
+            torch.load(
+                filepath,
+                map_location=torch.device(self._device),
+                weights_only=True,
+            )
         )
 
     @abstractmethod

@@ -14,7 +14,7 @@ replay_buffer:
 
 # algorithm params
 algorithm:
-  variant: "simba"
+  variant: "mlp"
   actor:
     embed_dim: 64
     num_blocks: 1
@@ -38,7 +38,8 @@ algorithm:
 # training config
 runner:
   variant: "async"
-  num_parallel_rollouts: 2
+  num_parallel_rollouts: 1
+  queue_scale_ratio: 8
   transitions_per_epoch: 8000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000
