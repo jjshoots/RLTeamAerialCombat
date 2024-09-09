@@ -37,13 +37,16 @@ class PyFlytMAEnvConfig(MAEnvConfig):
             MAFixedwingDogfightTransformerEnvV2
 
         if self.env_id == "dogfight":
-            if self.env_kwargs.get("flatten"):
+            if self.env_kwargs.get("flatten_observation"):
                 env = MAFixedwingDogfightEnvV2(
                     render_mode=self.render_mode,
                     **self.env_kwargs,
                 )
             else:
-                env = MAFixedwingDogfightTransformerEnvV2(**self.env_kwargs)
+                env = MAFixedwingDogfightTransformerEnvV2(
+                    render_mode=self.render_mode,
+                    **self.env_kwargs,
+                )
 
         else:
             raise NotImplementedError
