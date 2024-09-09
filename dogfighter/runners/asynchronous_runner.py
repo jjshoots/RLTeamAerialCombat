@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import math
 import os
-from pathlib import Path
 import time
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from pydantic import BaseModel
 from wingman import Wingman
 
-from dogfighter.bases.base_algorithm import Algorithm, AlgorithmConfig
+from dogfighter.bases.base_algorithm import AlgorithmConfig
 from dogfighter.bases.base_env_creators import MAEnvConfig, SAVecEnvConfig
 from dogfighter.bases.base_env_interactors import (CollectFunctionProtocol,
                                                    EvaluationFunctionProtocol)
@@ -18,7 +17,7 @@ from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from wingman.replay_buffer import ReplayBuffer
 
 import random
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, Future
 import tempfile
 
 class AsynchronousRunnerSettings(BaseModel):
@@ -125,7 +124,7 @@ def run_asynchronous(
 
     # run things using executor
     with ThreadPoolExecutor(max_workers=settings.num_parallel_rollouts) as exe:
-        futures = {}
+        futures: dict[Future, _WorkerMode] = {}
 
         while memory.count <= settings.max_transitions:
             """TASK ASSIGNMENT"""
@@ -177,7 +176,14 @@ def run_asynchronous(
                 ] = _WorkerMode.COLLECT
 
             """RESULTS COLLECTION"""
-            for future in as_completed(futures):
+            # check all futures for done tasks
+            done_futures = []
+            for future in list(futures.keys()):
+                print(len(futures))
+                # skip this future if it's not done
+                if not future.done():
+                    continue
+
                 # collect memory from workers
                 if futures[future] == _WorkerMode.COLLECT:
                     collect_memory, info = future.result()
@@ -193,6 +199,8 @@ def run_asynchronous(
                 else:
                     raise NotImplementedError
 
+                # clear the future from the list
+                del futures[future]
 
             """TRAINING RUN"""
             print(
