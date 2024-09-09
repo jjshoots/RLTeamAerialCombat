@@ -75,7 +75,7 @@ def train(wm: Wingman) -> None:
                 max_transitions=wm.cfg.runner.max_transitions,
                 transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
                 transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,
-                transitions_min_for_train=wm.cfg.runner.train_min_transitions,
+                transitions_min_for_train=wm.cfg.runner.transitions_min_for_train,
                 eval_num_episodes=wm.cfg.runner.eval_num_episodes,
                 eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
             ),
@@ -101,7 +101,7 @@ def train(wm: Wingman) -> None:
                 max_transitions=wm.cfg.runner.max_transitions,
                 transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
                 transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,
-                transitions_min_for_train=wm.cfg.runner.train_min_transitions,
+                transitions_min_for_train=wm.cfg.runner.transitions_min_for_train,
                 eval_num_episodes=wm.cfg.runner.eval_num_episodes,
                 eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
             )
