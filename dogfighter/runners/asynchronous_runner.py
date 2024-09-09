@@ -190,6 +190,8 @@ def run_asynchronous(
                     wm.log.update({f"eval/{k}": v for k, v in info.items()})
                     wm.log["eval/score"] = eval_score
                     wm.log["eval/max_score"] = max_eval_score
+                else:
+                    raise NotImplementedError
 
 
             """TRAINING RUN"""

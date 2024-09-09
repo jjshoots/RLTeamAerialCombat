@@ -37,6 +37,7 @@ algorithm:
 
 # training config
 runner:
+  variant: "sync"
   max_transitions: 1000000
   transitions_per_epoch: 8000
   transitions_num_exploration: 25000

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from signal import SIGINT, signal
 
+from dogfighter.runners.asynchronous_runner import AsynchronousRunnerSettings, run_asynchronous
 from wingman import Wingman
 from wingman.utils import shutdown_handler
 
@@ -54,30 +55,57 @@ def train(wm: Wingman) -> None:
         raise NotImplementedError
 
     # perform a run
-    run_synchronous(
-        wm=wm,
-        train_env_config=train_env_config,
-        eval_env_config=eval_env_config,
-        collect_fn=collect_fn,
-        evaluation_fn=evaluation_fn,
-        algorithm_config=algorithm_config,
-        memory_config=ReplayBufferConfig(
-            mem_size=wm.cfg.replay_buffer.mem_size,
-            mode=wm.cfg.replay_buffer.mode,
-            device=str(wm.device),
-            use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
-            store_on_device=wm.cfg.replay_buffer.store_on_device,
-            random_rollover=wm.cfg.replay_buffer.random_rollover,
-        ),
-        settings=SynchronousRunnerSettings(
-            max_transitions=wm.cfg.runner.max_transitions,
-            transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
-            transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,
-            transitions_min_for_train=wm.cfg.runner.train_min_transitions,
-            eval_num_episodes=wm.cfg.runner.eval_num_episodes,
-            eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
-        ),
-    )
+    if wm.cfg.runner.variant == "sync":
+        run_synchronous(
+            wm=wm,
+            train_env_config=train_env_config,
+            eval_env_config=eval_env_config,
+            collect_fn=collect_fn,
+            evaluation_fn=evaluation_fn,
+            algorithm_config=algorithm_config,
+            memory_config=ReplayBufferConfig(
+                mem_size=wm.cfg.replay_buffer.mem_size,
+                mode=wm.cfg.replay_buffer.mode,
+                device=str(wm.device),
+                use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
+                store_on_device=wm.cfg.replay_buffer.store_on_device,
+                random_rollover=wm.cfg.replay_buffer.random_rollover,
+            ),
+            settings=SynchronousRunnerSettings(
+                max_transitions=wm.cfg.runner.max_transitions,
+                transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
+                transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,
+                transitions_min_for_train=wm.cfg.runner.train_min_transitions,
+                eval_num_episodes=wm.cfg.runner.eval_num_episodes,
+                eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
+            ),
+        )
+    elif wm.cfg.runner.variant == "async":
+        run_asynchronous(
+            wm=wm,
+            train_env_config=train_env_config,
+            eval_env_config=eval_env_config,
+            collect_fn=collect_fn,
+            evaluation_fn=evaluation_fn,
+            algorithm_config=algorithm_config,
+            memory_config=ReplayBufferConfig(
+                mem_size=wm.cfg.replay_buffer.mem_size,
+                mode=wm.cfg.replay_buffer.mode,
+                device=str(wm.device),
+                use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
+                store_on_device=wm.cfg.replay_buffer.store_on_device,
+                random_rollover=wm.cfg.replay_buffer.random_rollover,
+            ),
+            settings=AsynchronousRunnerSettings(
+                num_parallel_rollouts=wm.cfg.runner.num_parallel_rollouts,
+                max_transitions=wm.cfg.runner.max_transitions,
+                transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
+                transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,
+                transitions_min_for_train=wm.cfg.runner.train_min_transitions,
+                eval_num_episodes=wm.cfg.runner.eval_num_episodes,
+                eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
+            )
+        )
 
 
 def display(wm: Wingman) -> None:
@@ -112,9 +140,10 @@ if __name__ == "__main__":
 
     # fmt: off
     # config_yaml = Path(__file__).parent / "configs/quadx_waypoints_config.yaml"
-    config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
+    # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/async_cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # fmt: on
 
