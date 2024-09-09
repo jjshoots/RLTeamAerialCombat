@@ -38,7 +38,7 @@ algorithm:
 # training config
 runner:
   variant: "async"
-  num_parallel_rollouts: 4
+  num_parallel_rollouts: 2
   transitions_per_epoch: 8000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000

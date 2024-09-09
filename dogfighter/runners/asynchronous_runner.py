@@ -24,7 +24,7 @@ class AsynchronousRunnerSettings(BaseModel):
     """SynchronousRunnerSettings."""
 
     num_parallel_rollouts: int
-    queue_scale_ratio: int = 8
+    queue_scale_ratio: int = 2
 
     transitions_per_epoch: int
     transitions_num_exploration: int
@@ -109,6 +109,7 @@ def run_asynchronous(
     # instantiate everything
     algorithm = algorithm_config.instantiate()
     memory = memory_config.instantiate()
+    collect_memory_config = memory_config.model_copy(update={"mem_size": settings.transitions_per_epoch})
 
     # get latest weight files
     has_weights, _, ckpt_dir = wm.get_weight_files()
@@ -169,7 +170,7 @@ def run_asynchronous(
                         weight_path=weight_path,
                         env_config=eval_env_config,
                         algorithm_config=algorithm_config,
-                        memory_config=memory_config,
+                        memory_config=collect_memory_config,
                         collect_fn=collect_fn,
                         settings=settings,
                     )
@@ -177,9 +178,7 @@ def run_asynchronous(
 
             """RESULTS COLLECTION"""
             # check all futures for done tasks
-            done_futures = []
             for future in list(futures.keys()):
-                print(len(futures))
                 # skip this future if it's not done
                 if not future.done():
                     continue
@@ -187,8 +186,10 @@ def run_asynchronous(
                 # collect memory from workers
                 if futures[future] == _WorkerMode.COLLECT:
                     collect_memory, info = future.result()
-                    wm.log.update({f"collect/{k}": v for k, v in info.items()})
                     memory.merge(collect_memory)
+                    print("merging")
+                    exit()
+                    wm.log.update({f"collect/{k}": v for k, v in info.items()})
                 # collect eval score from workers
                 elif futures[future] == _WorkerMode.EVAL:
                     eval_score, info = future.result()
@@ -203,6 +204,16 @@ def run_asynchronous(
                 del futures[future]
 
             """TRAINING RUN"""
+            # don't proceed with training until we have a minimum number of transitions
+            if memory.count < settings.transitions_min_for_train:
+                time.sleep(5)
+                print(
+                    "Haven't reached minimum number of transitions "
+                    f"({memory.count} / {settings.transitions_min_for_train}) "
+                    "required before training, continuing with sampling..."
+                )
+                continue
+
             print(
                 f"Training epoch {num_epochs}, "
                 f"Replay Buffer Capacity {memory.count} / {memory.mem_size}"
