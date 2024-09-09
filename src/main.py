@@ -112,8 +112,8 @@ if __name__ == "__main__":
 
     # fmt: off
     # config_yaml = Path(__file__).parent / "configs/quadx_waypoints_config.yaml"
-    # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
-    config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
+    # config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # fmt: on
