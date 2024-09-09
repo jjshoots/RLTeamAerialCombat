@@ -19,8 +19,7 @@ class SynchronousRunnerSettings(BaseModel):
     max_transitions: int
     transitions_per_epoch: int
     transitions_num_exploration: int
-
-    train_min_transitions: int
+    transitions_min_for_train: int
 
     eval_num_episodes: int
     eval_transitions_frequency: int
@@ -88,10 +87,10 @@ def run_synchronous(
         wm.log.update({f"collect/{k}": v for k, v in info.items()})
 
         # don't proceed with training until we have a minimum number of transitions
-        if memory.count < settings.train_min_transitions:
+        if memory.count < settings.transitions_min_for_train:
             print(
                 "Haven't reached minimum number of transitions "
-                f"({memory.count} / {settings.train_min_transitions}) "
+                f"({memory.count} / {settings.transitions_min_for_train}) "
                 "required before training, continuing with sampling..."
             )
             continue

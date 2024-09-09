@@ -7,5 +7,5 @@ else
 fi
 wingman-compress-weights
 
-rsync -rav --progress --stats "icy-pony:~/Sandboxes/RLTeamAerialCombat/weights/$1" ./weights
+rsync -rav --progress --stats "arctic-linx:~/Sandboxes/dogfighter/weights/$1" ./weights
 python3 src/main.py --mode.display --model.id="$1"

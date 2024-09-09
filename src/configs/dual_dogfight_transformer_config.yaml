@@ -46,7 +46,7 @@ runner:
   max_transitions: 3000000
   transitions_per_epoch: 10000
   transitions_num_exploration: 10000
-  train_min_transitions: 50000
+  transitions_min_for_train: 50000
   eval_num_episodes: 10
   eval_transitions_frequency: 10000
 
