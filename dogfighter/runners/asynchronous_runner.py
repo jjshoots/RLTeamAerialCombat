@@ -108,7 +108,7 @@ def run_asynchronous(
     # instantiate everything
     algorithm = algorithm_config.instantiate()
     memory = memory_config.instantiate()
-    collect_memory_config = memory_config.model_copy(update={"mem_size": settings.transitions_per_epoch})
+    collect_memory_config = memory_config.model_copy(update={"mem_size": int(settings.transitions_per_epoch * 1.2)})
 
     # get latest weight files
     has_weights, _, ckpt_dir = wm.get_weight_files()
@@ -203,8 +203,17 @@ def run_asynchronous(
             # don't proceed with training until we have a minimum number of transitions
             if memory.count < settings.transitions_min_for_train:
                 time.sleep(5)
+                print(
+                    "Haven't reached minimum number of transitions "
+                    f"({memory.count} / {settings.transitions_min_for_train}) "
+                    "required before training, continuing with sampling..."
+                )
                 continue
 
+            print(
+                f"Training epoch {num_epochs}, "
+                f"Replay Buffer Capacity {memory.count} / {memory.mem_size}"
+            )
             info = algorithm.update(memory=memory)
             wm.log.update({f"train/{k}": v for k, v in info.items()})
 

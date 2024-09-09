@@ -1,0 +1,84 @@
+# env params
+env:
+  id: "dogfight"
+  variant: "transformer_ma_env"
+  kwargs:
+    team_size: 1
+    flatten_observation: false
+
+# replay buffer params
+replay_buffer:
+  mem_size: 1000000
+  mode: "torch"
+  use_dict_wrapper: true
+  store_on_device: true
+  random_rollover: true
+
+# algorithm params
+algorithm:
+  variant: "transformer"
+  actor:
+    embed_dim: 32
+    ff_dim: 128
+    num_att_head: 4
+    num_layers: 1
+  critic:
+    embed_dim: 64
+    ff_dim: 256
+    num_att_head: 8
+    num_layers: 1
+  qu_num_ensemble: 2
+  batch_size: 2048
+  grad_steps_per_update: 1000
+  actor_learning_rate: 0.003
+  critic_learning_rate: 0.003
+  alpha_learning_rate: 0.01
+  target_smoothing_coefficient: 0.005
+  tune_entropy: true
+  target_entropy_gain: 1.0
+  learn_uncertainty: true
+  discount_factor: 0.99
+  actor_update_ratio: 1
+  critic_update_ratio: 1
+
+# training config
+runner:
+  variant: "async"
+  num_parallel_rollouts: 1
+  queue_scale_ratio: 1
+  transitions_per_epoch: 10000
+  transitions_num_exploration: 10000
+  transitions_min_for_train: 25000
+  max_transitions: 1000000
+  eval_num_episodes: 10
+  eval_transitions_frequency: 10000
+
+# https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
+mode:
+  debug: false
+  train: false
+  eval: false
+  display: false
+  render: false
+
+model:
+  save_directory: "weights"
+  id: ""
+  ckpt: 0
+  increment_ckpt: false
+
+logging:
+  interval: 10
+  max_skips: 5
+  greater_than: 0.0
+  filename: ""
+
+wandb:
+  enable: false
+  save_code: false
+  run:
+    name: "1v1_dogfight_transformer"
+    notes: ""
+  project:
+    name: "dogfighter"
+    entity: "jjshoots"
