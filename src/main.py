@@ -1,23 +1,19 @@
-from __future__ import annotations
-
 from pathlib import Path
 from signal import SIGINT, signal
 
-from dogfighter.runners.asynchronous_runner import AsynchronousRunnerSettings, run_asynchronous
 from wingman import Wingman
 from wingman.utils import shutdown_handler
 
-from dogfighter.bases.base_env_creators import SAVecEnvConfig
-from dogfighter.bases.base_env_interactors import (CollectFunctionProtocol,
-                                                   EvaluationFunctionProtocol)
-from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from dogfighter.env_interactors.mlp_ma_env_interactor import (
-    mlp_ma_env_collect, mlp_ma_env_display, mlp_ma_env_evaluate)
+    MLPMAEnvInteractorConfig, mlp_ma_env_display)
 from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
-    mlp_sa_env_display, mlp_sa_vec_env_collect, mlp_sa_vec_env_evaluate)
+    MLPSAEnvInteractorConfig, mlp_sa_env_display)
 from dogfighter.env_interactors.transformer_ma_env_interactor import (
-    transformer_ma_env_collect, transformer_ma_env_display,
-    transformer_ma_env_evaluate)
+    TransformerMAEnvInteractorConfig, transformer_ma_env_display)
+from dogfighter.envs.base import SAVecEnvConfig
+from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
+from dogfighter.runners.asynchronous_runner import (AsynchronousRunnerSettings,
+                                                    run_asynchronous)
 from dogfighter.runners.synchronous_runner import (SynchronousRunnerSettings,
                                                    run_synchronous)
 from setup_algorithms import get_algorithm_config
@@ -37,22 +33,28 @@ def train(wm: Wingman) -> None:
             num_envs=wm.cfg.env.num_envs,
         )
         algorithm_config = get_algorithm_config(wm)
-        collect_fn: CollectFunctionProtocol = mlp_sa_vec_env_collect  # pyright: ignore[reportAssignmentType]
-        evaluation_fn: EvaluationFunctionProtocol = mlp_sa_vec_env_evaluate  # pyright: ignore[reportAssignmentType]
+        interactor_config = MLPSAEnvInteractorConfig()
     elif wm.cfg.env.variant == "mlp_ma_env":
         train_env_config = get_mlp_ma_env_config(wm)
         eval_env_config = get_mlp_ma_env_config(wm)
         algorithm_config = get_algorithm_config(wm)
-        collect_fn: CollectFunctionProtocol = mlp_ma_env_collect  # pyright: ignore[reportAssignmentType]
-        evaluation_fn: EvaluationFunctionProtocol = mlp_ma_env_evaluate  # pyright: ignore[reportAssignmentType]
+        interactor_config = MLPMAEnvInteractorConfig()
     elif wm.cfg.env.variant == "transformer_ma_env":
         train_env_config = get_transformer_ma_env_config(wm)
         eval_env_config = get_transformer_ma_env_config(wm)
         algorithm_config = get_algorithm_config(wm)
-        collect_fn: CollectFunctionProtocol = transformer_ma_env_collect  # pyright: ignore[reportAssignmentType]
-        evaluation_fn: EvaluationFunctionProtocol = transformer_ma_env_evaluate  # pyright: ignore[reportAssignmentType]
+        interactor_config = TransformerMAEnvInteractorConfig()
     else:
         raise NotImplementedError
+
+    memory_config = ReplayBufferConfig(
+        mem_size=wm.cfg.replay_buffer.mem_size,
+        mode=wm.cfg.replay_buffer.mode,
+        device=str(wm.device),
+        use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
+        store_on_device=wm.cfg.replay_buffer.store_on_device,
+        random_rollover=wm.cfg.replay_buffer.random_rollover,
+    )
 
     # perform a run
     if wm.cfg.runner.variant == "sync":
@@ -60,17 +62,9 @@ def train(wm: Wingman) -> None:
             wm=wm,
             train_env_config=train_env_config,
             eval_env_config=eval_env_config,
-            collect_fn=collect_fn,
-            evaluation_fn=evaluation_fn,
             algorithm_config=algorithm_config,
-            memory_config=ReplayBufferConfig(
-                mem_size=wm.cfg.replay_buffer.mem_size,
-                mode=wm.cfg.replay_buffer.mode,
-                device=str(wm.device),
-                use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
-                store_on_device=wm.cfg.replay_buffer.store_on_device,
-                random_rollover=wm.cfg.replay_buffer.random_rollover,
-            ),
+            memory_config=memory_config,
+            interactor_config=interactor_config,
             settings=SynchronousRunnerSettings(
                 max_transitions=wm.cfg.runner.max_transitions,
                 transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
@@ -85,17 +79,9 @@ def train(wm: Wingman) -> None:
             wm=wm,
             train_env_config=train_env_config,
             eval_env_config=eval_env_config,
-            collect_fn=collect_fn,
-            evaluation_fn=evaluation_fn,
             algorithm_config=algorithm_config,
-            memory_config=ReplayBufferConfig(
-                mem_size=wm.cfg.replay_buffer.mem_size,
-                mode=wm.cfg.replay_buffer.mode,
-                device=str(wm.device),
-                use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
-                store_on_device=wm.cfg.replay_buffer.store_on_device,
-                random_rollover=wm.cfg.replay_buffer.random_rollover,
-            ),
+            memory_config=memory_config,
+            interactor_config=interactor_config,
             settings=AsynchronousRunnerSettings(
                 num_parallel_rollouts=wm.cfg.runner.num_parallel_rollouts,
                 queue_scale_ratio=wm.cfg.runner.queue_scale_ratio,
@@ -105,7 +91,7 @@ def train(wm: Wingman) -> None:
                 transitions_min_for_train=wm.cfg.runner.transitions_min_for_train,
                 eval_num_episodes=wm.cfg.runner.eval_num_episodes,
                 eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
-            )
+            ),
         )
 
 

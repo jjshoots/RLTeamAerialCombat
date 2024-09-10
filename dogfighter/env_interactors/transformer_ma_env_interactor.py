@@ -9,7 +9,22 @@ from wingman.replay_buffer.utils import listed_dict_to_dicted_list
 from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
 from wingman.utils import cpuize, nested_gpuize
 
+from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
+                                             DisplayFunctionProtocol,
+                                             EnvInteractorConfig,
+                                             EvaluationFunctionProtocol)
 from dogfighter.models.transformer.transformer_actor import TransformerActor
+
+
+class TransformerMAEnvInteractorConfig(EnvInteractorConfig):
+    def get_collect_fn(self) -> CollectionFunctionProtocol:
+        raise transformer_ma_env_collect  # pyright: ignore[reportGeneralTypeIssues]
+
+    def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
+        raise transformer_ma_env_evaluate  # pyright: ignore[reportGeneralTypeIssues]
+
+    def get_display_fn(self) -> DisplayFunctionProtocol:
+        raise transformer_ma_env_display  # pyright: ignore[reportGeneralTypeIssues]
 
 
 @torch.no_grad()

@@ -1,9 +1,7 @@
-from __future__ import annotations
-
 from wingman import Wingman
 
+from dogfighter.algorithms.base import AlgorithmConfig
 from dogfighter.algorithms.ccge import CCGEConfig
-from dogfighter.bases.base_algorithm import AlgorithmConfig
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
 from dogfighter.models.mlp.simba_actor import SimbaActorConfig

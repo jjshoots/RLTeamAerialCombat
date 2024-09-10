@@ -1,15 +1,14 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, Generic
+from typing import Any, Generic, TypeVar
 
 import torch
 import torch.nn as nn
 from pydantic import BaseModel, StrictBool
 from wingman.replay_buffer import ReplayBuffer
 
-from dogfighter.bases.base_types import Action, Observation
+Observation = TypeVar("Observation")
+Action = TypeVar("Action")
 
 
 class AlgorithmConfig(BaseModel):
@@ -18,7 +17,7 @@ class AlgorithmConfig(BaseModel):
     compile: StrictBool
 
     @abstractmethod
-    def instantiate(self) -> Algorithm:
+    def instantiate(self) -> "Algorithm":
         """instantiate.
 
         Args:

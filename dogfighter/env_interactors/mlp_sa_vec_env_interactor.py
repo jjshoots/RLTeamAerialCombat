@@ -8,7 +8,22 @@ from gymnasium.vector import VectorEnv
 from wingman.replay_buffer import FlatReplayBuffer
 from wingman.utils import cpuize, gpuize
 
+from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
+                                             DisplayFunctionProtocol,
+                                             EnvInteractorConfig,
+                                             EvaluationFunctionProtocol)
 from dogfighter.models.mlp.mlp_actor import MlpActor
+
+
+class MLPSAEnvInteractorConfig(EnvInteractorConfig):
+    def get_collect_fn(self) -> CollectionFunctionProtocol:
+        raise mlp_sa_vec_env_collect  # pyright: ignore[reportGeneralTypeIssues]
+
+    def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
+        raise mlp_sa_vec_env_evaluate  # pyright: ignore[reportGeneralTypeIssues]
+
+    def get_display_fn(self) -> DisplayFunctionProtocol:
+        raise mlp_sa_env_display  # pyright: ignore[reportGeneralTypeIssues]
 
 
 @torch.no_grad()

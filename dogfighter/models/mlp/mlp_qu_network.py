@@ -3,7 +3,7 @@ from dataclasses import field
 import torch
 from torch import nn
 
-from dogfighter.bases.base_critic import QUNetwork, QUNetworkConfig
+from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
 
 
 class MlpQUNetworkConfig(QUNetworkConfig):

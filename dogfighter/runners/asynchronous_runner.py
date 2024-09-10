@@ -1,23 +1,22 @@
-from __future__ import annotations
-
 import math
 import os
+import tempfile
 import time
+from concurrent.futures import Future, ThreadPoolExecutor
 from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
 from wingman import Wingman
-
-from dogfighter.bases.base_algorithm import AlgorithmConfig
-from dogfighter.bases.base_env_creators import MAEnvConfig, SAVecEnvConfig
-from dogfighter.bases.base_env_interactors import (CollectFunctionProtocol,
-                                                   EvaluationFunctionProtocol)
-from dogfighter.bases.base_replay_buffer import ReplayBufferConfig
 from wingman.replay_buffer import ReplayBuffer
 
-from concurrent.futures import ThreadPoolExecutor, Future
-import tempfile
+from dogfighter.algorithms.base import AlgorithmConfig
+from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
+                                             EnvInteractorConfig,
+                                             EvaluationFunctionProtocol)
+from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
+from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
+
 
 class AsynchronousRunnerSettings(BaseModel):
     """SynchronousRunnerSettings."""
@@ -35,6 +34,8 @@ class AsynchronousRunnerSettings(BaseModel):
 
 
 class _WorkerMode(Enum):
+    """_WorkerMode."""
+
     COLLECT = 1
     EVAL = 2
 
@@ -44,9 +45,22 @@ def _collect_worker(
     env_config: SAVecEnvConfig | MAEnvConfig,
     algorithm_config: AlgorithmConfig,
     memory_config: ReplayBufferConfig,
-    collect_fn: CollectFunctionProtocol,
+    collection_fn: CollectionFunctionProtocol,
     settings: AsynchronousRunnerSettings,
 ) -> tuple[ReplayBuffer, dict[str, Any]]:
+    """_collect_worker.
+
+    Args:
+        weight_path (None | str): weight_path
+        env_config (SAVecEnvConfig | MAEnvConfig): env_config
+        algorithm_config (AlgorithmConfig): algorithm_config
+        memory_config (ReplayBufferConfig): memory_config
+        collection_fn (CollectionFunctionProtocol): collection_fn
+        settings (AsynchronousRunnerSettings): settings
+
+    Returns:
+        tuple[ReplayBuffer, dict[str, Any]]:
+    """
     # instantiate things
     env = env_config.instantiate()
     algorithm = algorithm_config.instantiate()
@@ -58,7 +72,7 @@ def _collect_worker(
         os.remove(weight_path)
 
     # run a collect task
-    memory, info = collect_fn(
+    memory, info = collection_fn(
         actor=algorithm.actor,
         env=env,
         memory=memory,
@@ -75,7 +89,19 @@ def _eval_worker(
     algorithm_config: AlgorithmConfig,
     evaluation_fn: EvaluationFunctionProtocol,
     settings: AsynchronousRunnerSettings,
-) -> tuple[ReplayBuffer, dict[str, Any]]:
+) -> tuple[float, dict[str, Any]]:
+    """_eval_worker.
+
+    Args:
+        weight_path (None | str): weight_path
+        env_config (SAVecEnvConfig | MAEnvConfig): env_config
+        algorithm_config (AlgorithmConfig): algorithm_config
+        evaluation_fn (EvaluationFunctionProtocol): evaluation_fn
+        settings (AsynchronousRunnerSettings): settings
+
+    Returns:
+        tuple[float, dict[str, Any]]:
+    """
     # instantiate things
     env = env_config.instantiate()
     algorithm = algorithm_config.instantiate()
@@ -101,14 +127,31 @@ def run_asynchronous(
     eval_env_config: SAVecEnvConfig | MAEnvConfig,
     algorithm_config: AlgorithmConfig,
     memory_config: ReplayBufferConfig,
-    collect_fn: CollectFunctionProtocol,
-    evaluation_fn: EvaluationFunctionProtocol,
+    interactor_config: EnvInteractorConfig,
     settings: AsynchronousRunnerSettings,
 ) -> None:
+    """run_asynchronous.
+
+    Args:
+        wm (Wingman): wm
+        train_env_config (SAVecEnvConfig | MAEnvConfig): train_env_config
+        eval_env_config (SAVecEnvConfig | MAEnvConfig): eval_env_config
+        algorithm_config (AlgorithmConfig): algorithm_config
+        memory_config (ReplayBufferConfig): memory_config
+        interactor_config (EnvInteractorConfig): interactor_config
+        settings (AsynchronousRunnerSettings): settings
+
+    Returns:
+        None:
+    """
     # instantiate everything
     algorithm = algorithm_config.instantiate()
     memory = memory_config.instantiate()
-    collect_memory_config = memory_config.model_copy(update={"mem_size": int(settings.transitions_per_epoch * 1.2)})
+    collection_fn = interactor_config.get_collection_fn()
+    evaluation_fn = interactor_config.get_evaluation_fn()
+    collect_memory_config = memory_config.model_copy(
+        update={"mem_size": int(settings.transitions_per_epoch * 1.2)}
+    )
 
     # get latest weight files
     has_weights, _, ckpt_dir = wm.get_weight_files()
@@ -153,7 +196,10 @@ def run_asynchronous(
                 ) * settings.eval_transitions_frequency
 
             # add as many collect tasks as needed
-            while len(futures) < settings.num_parallel_rollouts * settings.queue_scale_ratio:
+            while (
+                len(futures)
+                < settings.num_parallel_rollouts * settings.queue_scale_ratio
+            ):
                 # if we can start using weights, we need to assign weights paths
                 if memory.count >= settings.transitions_num_exploration:
                     fd, weight_path = tempfile.mkstemp(suffix=".pth")
@@ -169,7 +215,7 @@ def run_asynchronous(
                         env_config=eval_env_config,
                         algorithm_config=algorithm_config,
                         memory_config=collect_memory_config,
-                        collect_fn=collect_fn,
+                        collection_fn=collection_fn,
                         settings=settings,
                     )
                 ] = _WorkerMode.COLLECT

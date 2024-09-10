@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 import time
 import warnings
-from dataclasses import field
-from typing import Any
+from typing import Any, TypeVar
 
 import torch
 import torch.nn as nn
-import torch.optim as optim
+from torch.optim.adamw import AdamW
 from tqdm import tqdm
 from wingman.replay_buffer import ReplayBuffer
 
-from dogfighter.bases.base_actor import Actor, ActorConfig
-from dogfighter.bases.base_algorithm import Algorithm, AlgorithmConfig
-from dogfighter.bases.base_critic import QUNetworkConfig
-from dogfighter.bases.base_types import Observation
-from dogfighter.models.qu_ensemble import QUEnsemble
+from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
+from dogfighter.models.base.base_actor import Actor, ActorConfig
+from dogfighter.models.base.base_critic import QUNetworkConfig
+from dogfighter.models.base.qu_ensemble import QUEnsemble
+
+Observation = TypeVar("Observation")
+Action = TypeVar("Action")
 
 
 class CCGEConfig(AlgorithmConfig):
@@ -98,16 +99,15 @@ class CCGE(Algorithm):
         self._log_alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True))
 
         # define the optimizers
-        self._actor_optim = optim.AdamW(
+        self._actor_optim = AdamW(
             self._actor.parameters(), lr=config.actor_learning_rate, amsgrad=True
         )
-        self._critic_optim = optim.AdamW(
+        self._critic_optim = AdamW(
             self._critic.parameters(), lr=config.critic_learning_rate, amsgrad=True
         )
-        self._alpha_optim = optim.AdamW(
+        self._alpha_optim = AdamW(
             [self._log_alpha], lr=config.alpha_learning_rate, amsgrad=True
         )
-
 
     @property
     def actor(self) -> Actor:

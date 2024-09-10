@@ -1,21 +1,20 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from functools import cached_property
-from typing import Generic
+from typing import Generic, TypeVar
 
 import torch
 import torch.nn as nn
 from pydantic import BaseModel
 
-from dogfighter.bases.base_types import Action, Observation
+Observation = TypeVar("Observation")
+Action = TypeVar("Action")
 
 
 class QUNetworkConfig(BaseModel):
     """QUNetworkConfig for creating QU Networks."""
 
     @abstractmethod
-    def instantiate(self) -> QUNetwork:
+    def instantiate(self) -> "QUNetwork":
         """instantiate.
 
         Args:

@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 import gymnasium as gym
 
-from dogfighter.bases.base_env_creators import SAEnvConfig
+from dogfighter.envs.base import SAEnvConfig
 
 
 class DMCSAEnvConfig(SAEnvConfig):

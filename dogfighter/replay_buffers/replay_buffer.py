@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Literal
 
 import torch
@@ -11,7 +9,7 @@ from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
 class ReplayBufferConfig(BaseModel):
     """Replay Buffer Configuration.
 
-    This just returns a FlatReplayBuffer.
+    This just returns a Wingman Replay Buffer.
     """
 
     mem_size: StrictInt

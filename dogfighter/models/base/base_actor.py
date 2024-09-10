@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from functools import cached_property
-from typing import Generic
+from typing import Generic, TypeVar
 
 import torch
 import torch.distributions as dist
@@ -10,14 +8,15 @@ import torch.nn as nn
 import torch.nn.functional as func
 from pydantic import BaseModel
 
-from dogfighter.bases.base_types import Action, Observation
+Observation = TypeVar("Observation")
+Action = TypeVar("Action")
 
 
 class ActorConfig(BaseModel):
     """ActorConfig for creating actors."""
 
     @abstractmethod
-    def instantiate(self) -> Actor:
+    def instantiate(self) -> "Actor":
         """instantiate.
 
         Args:

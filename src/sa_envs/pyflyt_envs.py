@@ -1,9 +1,7 @@
-from __future__ import annotations
-
 import gymnasium as gym
 from pettingzoo import ParallelEnv
 
-from dogfighter.bases.base_env_creators import MAEnvConfig, SAEnvConfig
+from dogfighter.envs.base import MAEnvConfig, SAEnvConfig
 
 
 class PyFlytSAEnvConfig(SAEnvConfig):

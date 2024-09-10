@@ -1,12 +1,12 @@
-from __future__ import annotations
-
-from typing import Generic
+from typing import Generic, TypeVar
 
 import torch
 import torch.nn as nn
 
-from dogfighter.bases.base_critic import QUNetworkConfig
-from dogfighter.bases.base_types import Action, Observation
+from dogfighter.models.base.base_critic import QUNetworkConfig
+
+Observation = TypeVar("Observation")
+Action = TypeVar("Action")
 
 
 class QUEnsemble(nn.Module, Generic[Observation, Action]):

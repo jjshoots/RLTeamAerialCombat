@@ -3,7 +3,7 @@ from dataclasses import field
 import torch
 from torch import nn
 
-from dogfighter.bases.base_actor import Actor, ActorConfig
+from dogfighter.models.base.base_actor import Actor, ActorConfig
 
 
 class MlpActorConfig(ActorConfig):

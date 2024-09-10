@@ -1,8 +1,6 @@
-from __future__ import annotations
-
 from wingman import Wingman
 
-from dogfighter.bases.base_env_creators import MAEnvConfig, SAEnvConfig
+from dogfighter.envs.base import MAEnvConfig, SAEnvConfig
 from sa_envs.dmc_envs import DMCSAEnvConfig
 from sa_envs.pyflyt_envs import PyFlytMAEnvConfig, PyFlytSAEnvConfig
 
