@@ -596,7 +596,7 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
-name = "jj_wingman"
+name = "jj-wingman"
 version = "0.20.0"
 description = "Wingman library for AI projects."
 optional = false
