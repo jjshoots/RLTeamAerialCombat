@@ -1,42 +1,42 @@
 import time
-from typing import Literal
+from typing import Any
 
 import numpy as np
 import torch
 from gymnasium import Env
 from gymnasium.vector import VectorEnv
+from memorial import ReplayBuffer
 from memorial.replay_buffers import FlatReplayBuffer
 from wingman.utils import cpuize, gpuize
 
 from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
                                              DisplayFunctionProtocol,
                                              EnvInteractorConfig,
-                                             EvaluationFunctionProtocol)
+                                             EvaluationFunctionProtocol,
+                                             SupportedEnvTypes)
+from dogfighter.models.base.base_actor import Actor
 from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 class MLPSAEnvInteractorConfig(EnvInteractorConfig):
     def get_collection_fn(self) -> CollectionFunctionProtocol:
-        return mlp_sa_vec_env_collect  # pyright: ignore[reportReturnType]
+        return mlp_sa_vec_env_collect
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
-        return mlp_sa_vec_env_evaluate  # pyright: ignore[reportReturnType]
+        return mlp_sa_vec_env_evaluate
 
     def get_display_fn(self) -> DisplayFunctionProtocol:
-        return mlp_sa_env_display  # pyright: ignore[reportReturnType]
+        return mlp_sa_env_display
 
 
 @torch.no_grad()
 def mlp_sa_vec_env_collect(
-    actor: MlpActor,
-    env: VectorEnv,
-    memory: FlatReplayBuffer,
+    actor: Actor,
+    env: SupportedEnvTypes,
+    memory: ReplayBuffer,
     num_transitions: int,
     use_random_actions: bool,
-) -> tuple[
-    FlatReplayBuffer,
-    dict[Literal["interactions_per_second"], float],
-]:
+) -> tuple[ReplayBuffer, dict[str, Any]]:
     """Runs the actor in the vector environment and collects transitions.
 
     This collects `num_transitions` transitions using `num_transitions // vev_env.num_envs` steps.
@@ -57,6 +57,10 @@ def mlp_sa_vec_env_collect(
     Returns:
         tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
     """
+    assert isinstance(actor, MlpActor)
+    assert isinstance(env, VectorEnv)
+    assert isinstance(memory, FlatReplayBuffer)
+
     # to record times
     start_time = time.time()
 
@@ -119,25 +123,22 @@ def mlp_sa_vec_env_collect(
 
 @torch.no_grad()
 def mlp_sa_vec_env_evaluate(
-    actor: MlpActor,
-    env: VectorEnv,
+    actor: Actor,
+    env: SupportedEnvTypes,
     num_episodes: int,
-) -> tuple[
-    float,
-    dict[Literal["mean_episode_length"], float],
-]:
-    """Performs an evaluation run using the given actor on the vectorized environment.
-
-    Note that `env.num_envs` must cleanly divide num_episodes.
+) -> tuple[float, dict[str, Any]]:
+    """mlp_sa_vec_env_evaluate.
 
     Args:
-        actor (MlpActor): actor
-        env (VectorEnv): env
+        actor (Actor): actor
+        env (SupportedEnvTypes): env
         num_episodes (int): num_episodes
 
     Returns:
-        dict[Literal["cumulative_reward", "mean_episode_length"], float]:
+        tuple[float, dict[str, Any]]:
     """
+    assert isinstance(actor, MlpActor)
+    assert isinstance(env, VectorEnv)
     assert (
         (num_episodes / env.num_envs) % 1.0 == 0
     ), f"`num_episodes` ({num_episodes}) must be clean multiple of {env.num_envs}."
@@ -185,9 +186,21 @@ def mlp_sa_vec_env_evaluate(
 
 @torch.no_grad()
 def mlp_sa_env_display(
-    env: Env,
-    actor: MlpActor,
+    actor: Actor,
+    env: SupportedEnvTypes,
 ) -> None:
+    """mlp_sa_env_display.
+
+    Args:
+        actor (Actor): actor
+        env (SupportedEnvTypes): env
+
+    Returns:
+        None:
+    """
+    assert isinstance(actor, MlpActor)
+    assert isinstance(env, Env)
+
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()

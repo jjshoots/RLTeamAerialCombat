@@ -2,9 +2,9 @@ from typing import Any, Protocol, runtime_checkable
 
 from gymnasium import Env
 from gymnasium.vector import VectorEnv
+from memorial import ReplayBuffer
 from pettingzoo import ParallelEnv
 from pydantic import BaseModel
-from memorial import ReplayBuffer
 
 from dogfighter.models.base.base_actor import Actor
 

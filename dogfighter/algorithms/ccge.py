@@ -5,9 +5,9 @@ from typing import Any, TypeVar
 
 import torch
 import torch.nn as nn
+from memorial import ReplayBuffer
 from torch.optim.adamw import AdamW
 from tqdm import tqdm
-from memorial import ReplayBuffer
 
 from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
 from dogfighter.models.base.base_actor import Actor, ActorConfig

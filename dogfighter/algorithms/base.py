@@ -4,8 +4,8 @@ from typing import Any, Generic, TypeVar
 
 import torch
 import torch.nn as nn
-from pydantic import BaseModel, StrictBool
 from memorial import ReplayBuffer
+from pydantic import BaseModel, StrictBool
 
 Observation = TypeVar("Observation")
 Action = TypeVar("Action")

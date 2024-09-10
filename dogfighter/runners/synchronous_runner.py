@@ -1,16 +1,16 @@
 import math
 import time
 
-from pydantic import BaseModel
 from wingman import Wingman
 
 from dogfighter.algorithms.base import AlgorithmConfig
 from dogfighter.env_interactors.base import EnvInteractorConfig
 from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
+from dogfighter.runners.base import RunnerSettings
 
 
-class SynchronousRunnerSettings(BaseModel):
+class SynchronousRunnerSettings(RunnerSettings):
     """SynchronousRunnerSettings."""
 
     max_transitions: int
@@ -29,7 +29,7 @@ def run_synchronous(
     algorithm_config: AlgorithmConfig,
     memory_config: ReplayBufferConfig,
     interactor_config: EnvInteractorConfig,
-    settings: SynchronousRunnerSettings,
+    settings: RunnerSettings,
 ) -> None:
     """A synchronous runner to perform train and evaluations in step.
 
@@ -45,6 +45,8 @@ def run_synchronous(
     Returns:
         None:
     """
+    assert isinstance(settings, SynchronousRunnerSettings)
+
     # instantiate everything
     train_env = train_env_config.instantiate()
     eval_env = eval_env_config.instantiate()

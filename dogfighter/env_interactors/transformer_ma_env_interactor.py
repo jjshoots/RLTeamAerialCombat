@@ -1,40 +1,43 @@
 import time
 from pprint import pformat
-from typing import Literal
+from typing import Any
 
 import numpy as np
 import torch
+from memorial import ReplayBuffer
+from memorial.wrappers import (DictReplayBufferWrapper,
+                               listed_dict_to_dicted_list)
 from pettingzoo import ParallelEnv
-from memorial.wrappers.dict_wrapper import listed_dict_to_dicted_list
-from memorial.wrappers import DictReplayBufferWrapper
 from wingman.utils import cpuize, nested_gpuize
 
 from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
                                              DisplayFunctionProtocol,
                                              EnvInteractorConfig,
-                                             EvaluationFunctionProtocol)
+                                             EvaluationFunctionProtocol,
+                                             SupportedEnvTypes)
+from dogfighter.models.base.base_actor import Actor
 from dogfighter.models.transformer.transformer_actor import TransformerActor
 
 
 class TransformerMAEnvInteractorConfig(EnvInteractorConfig):
     def get_collection_fn(self) -> CollectionFunctionProtocol:
-        return transformer_ma_env_collect  # pyright: ignore[reportReturnType]
+        return transformer_ma_env_collect
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
-        return transformer_ma_env_evaluate  # pyright: ignore[reportReturnType]
+        return transformer_ma_env_evaluate
 
     def get_display_fn(self) -> DisplayFunctionProtocol:
-        return transformer_ma_env_display  # pyright: ignore[reportReturnType]
+        return transformer_ma_env_display
 
 
 @torch.no_grad()
 def transformer_ma_env_collect(
-    actor: TransformerActor,
-    env: ParallelEnv,
-    memory: DictReplayBufferWrapper,
+    actor: Actor,
+    env: SupportedEnvTypes,
+    memory: ReplayBuffer,
     num_transitions: int,
     use_random_actions: bool,
-) -> tuple[DictReplayBufferWrapper, dict[Literal["interactions_per_second"], float]]:
+) -> tuple[ReplayBuffer, dict[str, Any]]:
     """Runs the actor in the multiagent parallel environment and collects transitions.
 
     This collects `num_transitions` transitions using `num_transitions // env.num_agent` steps.
@@ -55,6 +58,10 @@ def transformer_ma_env_collect(
     Returns:
         tuple[DictReplayBufferWrapper, dict[Literal["interactions_per_second"], float]]:
     """
+    assert isinstance(actor, TransformerActor)
+    assert isinstance(env, ParallelEnv)
+    assert isinstance(memory, DictReplayBufferWrapper)
+
     # to record times
     start_time = time.time()
 
@@ -153,51 +160,30 @@ def transformer_ma_env_collect(
     print(f"Collect Stats: {total_time:.2f}s @ {interaction_per_second} t/s.")
 
     # return the replay buffer and some information
-    return_info: dict[Literal["interactions_per_second"], float] = dict()
+    return_info = dict()
     return_info["interactions_per_second"] = interaction_per_second
     return memory, return_info
 
 
 @torch.no_grad()
 def transformer_ma_env_evaluate(
-    actor: TransformerActor,
-    env: ParallelEnv,
+    actor: Actor,
+    env: SupportedEnvTypes,
     num_episodes: int,
-) -> tuple[
-    float,
-    dict[
-        Literal[
-            "mean_episode_interactions",
-            "cumulative_reward",
-            "num_out_of_bounds",
-            "num_collisions",
-            "mean_hits_per_agent",
-        ],
-        float,
-    ],
-]:
-    """ma_env_evaluate.
+) -> tuple[float, dict[str, Any]]:
+    """transformer_ma_env_evaluate.
 
     Args:
-        actor (TransformerActor): actor
-        env (ParallelEnv): env
+        actor (Actor): actor
+        env (SupportedEnvTypes): env
         num_episodes (int): num_episodes
 
     Returns:
-        tuple[
-        float,
-        dict[
-            Literal[
-                "mean_episode_interactions",
-                "cumulative_reward",
-                "num_out_of_bounds",
-                "num_collisions",
-                "mean_hits_per_agent",
-            ],
-            float,
-        ],
-    ]:
+        tuple[float, dict[str, Any]]:
     """
+    assert isinstance(actor, TransformerActor)
+    assert isinstance(env, ParallelEnv)
+
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()
@@ -246,16 +232,7 @@ def transformer_ma_env_evaluate(
 
     # arrange the results
     # TODO: fix this thing to be generic... somehow
-    return_info: dict[
-        Literal[
-            "mean_episode_interactions",
-            "cumulative_reward",
-            "num_out_of_bounds",
-            "num_collisions",
-            "mean_hits_per_agent",
-        ],
-        float,
-    ] = dict()
+    return_info = dict()
     return_info["mean_episode_interactions"] = float(num_interactions / num_episodes)
     return_info["cumulative_reward"] = cumulative_reward / num_episodes
     return_info["num_out_of_bounds"] = float(num_out_of_bounds / num_episodes)
@@ -271,9 +248,21 @@ def transformer_ma_env_evaluate(
 
 @torch.no_grad()
 def transformer_ma_env_display(
-    env: ParallelEnv,
-    actor: TransformerActor,
+    actor: Actor,
+    env: SupportedEnvTypes,
 ) -> None:
+    """transformer_ma_env_display.
+
+    Args:
+        actor (Actor): actor
+        env (SupportedEnvTypes): env
+
+    Returns:
+        None:
+    """
+    assert isinstance(actor, TransformerActor)
+    assert isinstance(env, ParallelEnv)
+
     # set to eval and zero grad
     actor.eval()
     actor.zero_grad()

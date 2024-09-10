@@ -1,10 +1,10 @@
 from typing import Literal
 
 import torch
-from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
 from memorial import ReplayBuffer
 from memorial.replay_buffers import FlatReplayBuffer
 from memorial.wrappers import DictReplayBufferWrapper
+from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
 
 
 class ReplayBufferConfig(BaseModel):

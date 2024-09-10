@@ -1,15 +1,13 @@
-from concurrent.futures.process import ProcessPoolExecutor
 import math
 import os
 import tempfile
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures.process import ProcessPoolExecutor
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel
 from wingman import Wingman
-from memorial import ReplayBuffer
 
 from dogfighter.algorithms.base import AlgorithmConfig
 from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
@@ -17,10 +15,11 @@ from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
                                              EvaluationFunctionProtocol)
 from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
+from dogfighter.runners.base import RunnerSettings
 
 
-class AsynchronousRunnerSettings(BaseModel):
-    """SynchronousRunnerSettings."""
+class AsynchronousRunnerSettings(RunnerSettings):
+    """AsynchronousRunnerSettings."""
 
     num_parallel_rollouts: int
     queue_scale_ratio: int
@@ -135,7 +134,7 @@ def run_asynchronous(
     algorithm_config: AlgorithmConfig,
     memory_config: ReplayBufferConfig,
     interactor_config: EnvInteractorConfig,
-    settings: AsynchronousRunnerSettings,
+    settings: RunnerSettings,
 ) -> None:
     """run_asynchronous.
 
@@ -146,11 +145,13 @@ def run_asynchronous(
         algorithm_config (AlgorithmConfig): algorithm_config
         memory_config (ReplayBufferConfig): memory_config
         interactor_config (EnvInteractorConfig): interactor_config
-        settings (AsynchronousRunnerSettings): settings
+        settings (RunnerSettings): settings
 
     Returns:
         None:
     """
+    assert isinstance(settings, AsynchronousRunnerSettings)
+
     # instantiate everything
     algorithm = algorithm_config.instantiate()
     memory = memory_config.instantiate()
