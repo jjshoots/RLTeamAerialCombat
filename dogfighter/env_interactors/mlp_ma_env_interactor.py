@@ -17,13 +17,13 @@ from dogfighter.models.mlp.mlp_actor import MlpActor
 
 class MLPMAEnvInteractorConfig(EnvInteractorConfig):
     def get_collection_fn(self) -> CollectionFunctionProtocol:
-        raise mlp_ma_env_collect  # pyright: ignore[reportGeneralTypeIssues]
+        return mlp_ma_env_collect  # pyright: ignore[reportReturnType]
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
-        raise mlp_ma_env_evaluate  # pyright: ignore[reportGeneralTypeIssues]
+        return mlp_ma_env_evaluate  # pyright: ignore[reportReturnType]
 
     def get_display_fn(self) -> DisplayFunctionProtocol:
-        raise mlp_ma_env_display  # pyright: ignore[reportGeneralTypeIssues]
+        return mlp_ma_env_display  # pyright: ignore[reportReturnType]
 
 
 @torch.no_grad()
