@@ -17,7 +17,7 @@ from dogfighter.models.transformer.transformer_actor import TransformerActor
 
 
 class TransformerMAEnvInteractorConfig(EnvInteractorConfig):
-    def get_collect_fn(self) -> CollectionFunctionProtocol:
+    def get_collection_fn(self) -> CollectionFunctionProtocol:
         raise transformer_ma_env_collect  # pyright: ignore[reportGeneralTypeIssues]
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:

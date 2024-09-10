@@ -16,7 +16,7 @@ from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 class MLPMAEnvInteractorConfig(EnvInteractorConfig):
-    def get_collect_fn(self) -> CollectionFunctionProtocol:
+    def get_collection_fn(self) -> CollectionFunctionProtocol:
         raise mlp_ma_env_collect  # pyright: ignore[reportGeneralTypeIssues]
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
