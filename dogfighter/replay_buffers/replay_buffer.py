@@ -2,14 +2,15 @@ from typing import Literal
 
 import torch
 from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
-from wingman.replay_buffer import FlatReplayBuffer, ReplayBuffer
-from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
+from memorial import ReplayBuffer
+from memorial.replay_buffers import FlatReplayBuffer
+from memorial.wrappers import DictReplayBufferWrapper
 
 
 class ReplayBufferConfig(BaseModel):
     """Replay Buffer Configuration.
 
-    This just returns a Wingman Replay Buffer.
+    This just returns a Replay Buffer.
     """
 
     mem_size: StrictInt

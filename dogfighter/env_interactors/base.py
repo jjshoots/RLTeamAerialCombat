@@ -4,7 +4,7 @@ from gymnasium import Env
 from gymnasium.vector import VectorEnv
 from pettingzoo import ParallelEnv
 from pydantic import BaseModel
-from wingman.replay_buffer import ReplayBuffer
+from memorial import ReplayBuffer
 
 from dogfighter.models.base.base_actor import Actor
 

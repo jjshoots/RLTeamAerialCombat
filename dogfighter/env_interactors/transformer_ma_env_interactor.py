@@ -5,8 +5,8 @@ from typing import Literal
 import numpy as np
 import torch
 from pettingzoo import ParallelEnv
-from wingman.replay_buffer.utils import listed_dict_to_dicted_list
-from wingman.replay_buffer.wrappers import DictReplayBufferWrapper
+from memorial.wrappers.dict_wrapper import listed_dict_to_dicted_list
+from memorial.wrappers import DictReplayBufferWrapper
 from wingman.utils import cpuize, nested_gpuize
 
 from dogfighter.env_interactors.base import (CollectionFunctionProtocol,

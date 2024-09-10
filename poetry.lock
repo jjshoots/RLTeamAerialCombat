@@ -597,13 +597,13 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jj-wingman"
-version = "0.19.2"
+version = "0.19.3"
 description = "Wingman library for AI projects."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "jj_wingman-0.19.2-py3-none-any.whl", hash = "sha256:daac912fd65e1c2c808e09aa1ae1118bb0a6a2a298cadf1e88e482a6c401f1b3"},
-    {file = "jj_wingman-0.19.2.tar.gz", hash = "sha256:a08493a83db9a1efd194b0eab1e1f3e5f292168fbbf1a659c5d7a25e424d383c"},
+    {file = "jj_wingman-0.19.3-py3-none-any.whl", hash = "sha256:2f06a266e010e9aa6782303b78c7a2f77c5bc67e1869fc8c835b7e726422f5ff"},
+    {file = "jj_wingman-0.19.3.tar.gz", hash = "sha256:614e940e2bd407773063b6b9ac8cb3e4a92b861331419d3e6ee173e79b7c354d"},
 ]
 
 [package.dependencies]
@@ -878,6 +878,24 @@ files = [
     {file = "MarkupSafe-2.1.5-cp39-cp39-win_amd64.whl", hash = "sha256:fa173ec60341d6bb97a89f5ea19c85c5643c1e7dedebc22f5181eb73573142c5"},
     {file = "MarkupSafe-2.1.5.tar.gz", hash = "sha256:d283d37a890ba4c1ae73ffadf8046435c76e7bc2247bbb63c00bd1a709c6544b"},
 ]
+
+[[package]]
+name = "memorial"
+version = "0.0.1"
+description = "Replay Buffer Implementations for RL"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "memorial-0.0.1-py3-none-any.whl", hash = "sha256:96eed716ccc2991f0c2d3eb07790e945e63edd1e8a8060db42ac7a850a8c0380"},
+    {file = "memorial-0.0.1.tar.gz", hash = "sha256:f5707cdf903613ce9731ebc946a0963017b7cedc2c33ecb941846b3ae162739a"},
+]
+
+[package.dependencies]
+numpy = "*"
+prefetch-generator = "*"
+
+[package.extras]
+dev = ["pre-commit", "pytest", "pytest-xdist", "torch"]
 
 [[package]]
 name = "mpmath"
@@ -2128,4 +2146,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "69cc594bf04d9c165f182e1f859144630be46fc9a96985a47ac9f1ad3c296088"
+content-hash = "3557ebf4acc1fcb21a533c046b5f640f0dad42009bd18a899d62ba9d628a10c4"

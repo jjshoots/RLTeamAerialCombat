@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from gymnasium import Env
 from gymnasium.vector import VectorEnv
-from wingman.replay_buffer import FlatReplayBuffer
+from memorial.replay_buffers import FlatReplayBuffer
 from wingman.utils import cpuize, gpuize
 
 from dogfighter.env_interactors.base import (CollectionFunctionProtocol,

@@ -8,7 +8,7 @@ from typing import Any
 
 from pydantic import BaseModel
 from wingman import Wingman
-from wingman.replay_buffer import ReplayBuffer
+from memorial import ReplayBuffer
 
 from dogfighter.algorithms.base import AlgorithmConfig
 from dogfighter.env_interactors.base import (CollectionFunctionProtocol,

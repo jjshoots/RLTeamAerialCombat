@@ -5,7 +5,7 @@ from typing import Any, Generic, TypeVar
 import torch
 import torch.nn as nn
 from pydantic import BaseModel, StrictBool
-from wingman.replay_buffer import ReplayBuffer
+from memorial import ReplayBuffer
 
 Observation = TypeVar("Observation")
 Action = TypeVar("Action")

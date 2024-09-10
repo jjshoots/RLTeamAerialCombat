@@ -5,7 +5,7 @@ from typing import Literal
 import numpy as np
 import torch
 from pettingzoo import ParallelEnv
-from wingman.replay_buffer import FlatReplayBuffer
+from memorial.replay_buffers import FlatReplayBuffer
 from wingman.utils import cpuize, gpuize
 
 from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
