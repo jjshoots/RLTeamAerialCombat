@@ -1,3 +1,4 @@
+from concurrent.futures.process import ProcessPoolExecutor
 import math
 import os
 import tempfile
@@ -47,7 +48,7 @@ def _collect_worker(
     memory_config: ReplayBufferConfig,
     collection_fn: CollectionFunctionProtocol,
     settings: AsynchronousRunnerSettings,
-) -> tuple[ReplayBuffer, dict[str, Any]]:
+) -> tuple[str, dict[str, Any]]:
     """_collect_worker.
 
     Args:
@@ -59,7 +60,7 @@ def _collect_worker(
         settings (AsynchronousRunnerSettings): settings
 
     Returns:
-        tuple[ReplayBuffer, dict[str, Any]]:
+        tuple[str, dict[str, Any]]:
     """
     # instantiate things
     env = env_config.instantiate()
@@ -80,7 +81,13 @@ def _collect_worker(
         num_transitions=settings.transitions_per_epoch,
     )
 
-    return memory, info
+    # dump the memory to disk
+    fd, memory_path = tempfile.mkstemp(suffix=".zip")
+    with open(memory_path, "w+b") as f:
+        memory.dump(f)
+    os.close(fd)
+
+    return memory_path, info
 
 
 def _eval_worker(
@@ -165,7 +172,7 @@ def run_asynchronous(
     next_eval_step = 0
 
     # run things using executor
-    with ThreadPoolExecutor(max_workers=settings.num_parallel_rollouts) as exe:
+    with ProcessPoolExecutor(max_workers=settings.num_parallel_rollouts) as exe:
         futures: dict[Future, _WorkerMode] = {}
 
         while memory.count <= settings.max_transitions:
@@ -229,8 +236,10 @@ def run_asynchronous(
 
                 # collect memory from workers
                 if futures[future] == _WorkerMode.COLLECT:
-                    collect_memory, info = future.result()
-                    memory.merge(collect_memory)
+                    memory_path, info = future.result()
+                    with open(memory_path, "r+b") as f:
+                        memory.merge(type(memory).load(f))
+                    os.remove(memory_path)
                     wm.log.update({f"collect/{k}": v for k, v in info.items()})
                 # collect eval score from workers
                 elif futures[future] == _WorkerMode.EVAL:
