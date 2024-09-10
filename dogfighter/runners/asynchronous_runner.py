@@ -127,7 +127,7 @@ def _eval_worker(
     return eval_score, info
 
 
-def run_asynchronous(
+def _train_worker(
     wm: Wingman,
     train_env_config: SAVecEnvConfig | MAEnvConfig,
     eval_env_config: SAVecEnvConfig | MAEnvConfig,

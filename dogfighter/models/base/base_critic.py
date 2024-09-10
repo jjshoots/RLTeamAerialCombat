@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from functools import cached_property
+from pathlib import Path
 from typing import Generic, TypeVar
 
 import torch
@@ -27,6 +28,20 @@ class QUNetworkConfig(BaseModel):
 
 class QUNetwork(nn.Module, Generic[Observation, Action]):
     """QUNetwork."""
+
+    def save(self, filepath: str | Path) -> None:
+        """save."""
+        torch.save(self.state_dict(), filepath)
+
+    def load(self, filepath: str | Path) -> None:
+        """load."""
+        self.load_state_dict(
+            torch.load(
+                filepath,
+                map_location=torch.device(self._device),
+                weights_only=True,
+            )
+        )
 
     @cached_property
     def device(self) -> torch.device:
