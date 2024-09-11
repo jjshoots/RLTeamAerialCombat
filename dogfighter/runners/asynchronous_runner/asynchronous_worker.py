@@ -26,6 +26,11 @@ def run_collection(wm: Wingman) -> None:
         - The location of the collected replay buffer
         - Collection info
     2. The path to the JSON above is saved in `task_config.results_path`, specified from the input.
+
+    Things to override for through CLI from trainer:
+    1. model.id
+    2. runner.mode
+    3. runner.worker.task
     """
     # load all the configs for this run
     (
