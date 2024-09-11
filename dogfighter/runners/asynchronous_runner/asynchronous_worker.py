@@ -1,11 +1,14 @@
+import fcntl
+import json
 import os
 import tempfile
+import time
 from typing import Any
 
 from wingman import Wingman
 
-import json
-from dogfighter.runners.asynchronous_runner.base import AsynchronousRunnerSettings, CollectionResult, TaskConfig
+from dogfighter.runners.asynchronous_runner.base import (
+    AsynchronousRunnerSettings, CollectionResult, TaskConfig)
 from setup_configs import get_all_configs
 
 
@@ -38,16 +41,16 @@ def run_collection(wm: Wingman) -> None:
     assert isinstance(runner_settings, AsynchronousRunnerSettings)
     runner_settings = runner_settings.worker
 
-    # load the task config
-    with open(runner_settings.task_config_path, "r") as f:
-        task_config = TaskConfig.model_validate_json(json_data=json.load(f))
-    os.remove(wm.cfg.runner.worker.task_config_path)
-
     # instantiate things
     env = train_env_config.instantiate()
     actor = algorithm_config.actor_config.instantiate()
     memory = memory_config.instantiate()
     collection_fn = interactor_config.get_collection_fn()
+
+    # load the task config
+    with open(runner_settings.task_config_path, "r") as f:
+        task_config = TaskConfig.model_validate_json(json_data=json.load(f))
+    os.remove(wm.cfg.runner.worker.task_config_path)
 
     # load the weights file and clean up
     if task_config.actor_weight_path:
@@ -77,7 +80,10 @@ def run_collection(wm: Wingman) -> None:
 
     # dump the pointer to disk
     with open(task_config.results_path, "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
         json.dump(result, f)
+        time.sleep(1)
+        fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def run_evaluation(

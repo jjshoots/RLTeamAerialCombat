@@ -3,10 +3,10 @@ import time
 import warnings
 from typing import Any, TypeVar
 
-from pydantic import StrictFloat, StrictInt, StrictStr, StrictBool
 import torch
 import torch.nn as nn
 from memorial import ReplayBuffer
+from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr
 from torch.optim.adamw import AdamW
 from tqdm import tqdm
 

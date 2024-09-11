@@ -1,7 +1,7 @@
 from dataclasses import field
 
-from pydantic import StrictInt
 import torch
+from pydantic import StrictInt
 from torch import nn
 
 from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig

@@ -1,7 +1,7 @@
 from typing import Literal
 
-from pydantic import StrictInt
 import torch
+from pydantic import StrictInt
 from torch import nn
 
 from dogfighter.models.base.base_actor import Actor, ActorConfig
