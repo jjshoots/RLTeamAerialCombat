@@ -9,7 +9,6 @@ from dogfighter.env_interactors.mlp_sa_vec_env_interactor import \
     mlp_sa_env_display
 from dogfighter.env_interactors.transformer_ma_env_interactor import \
     transformer_ma_env_display
-from dogfighter.runners.asynchronous_runner import _train_worker
 from dogfighter.runners.synchronous_runner import run_synchronous
 from setup_algorithms import get_algorithm_config
 from setup_configs import get_all_configs
@@ -29,16 +28,6 @@ def train(wm: Wingman) -> None:
     # perform a run
     if wm.cfg.runner.variant == "sync":
         run_synchronous(
-            wm=wm,
-            train_env_config=train_env_config,
-            eval_env_config=eval_env_config,
-            algorithm_config=algorithm_config,
-            memory_config=memory_config,
-            interactor_config=interactor_config,
-            settings=runner_settings,
-        )
-    elif wm.cfg.runner.variant == "async":
-        _train_worker(
             wm=wm,
             train_env_config=train_env_config,
             eval_env_config=eval_env_config,
@@ -89,7 +78,15 @@ if __name__ == "__main__":
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # fmt: on
 
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument("--file")
+    args = parser.parse_known_args()
+    print(args)
+
     wm = Wingman(config_yaml=config_yaml)
+    exit()
 
     if wm.cfg.mode.train:
         train(wm)

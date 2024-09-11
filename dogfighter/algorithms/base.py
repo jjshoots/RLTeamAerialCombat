@@ -7,7 +7,7 @@ import torch.nn as nn
 from memorial import ReplayBuffer
 from pydantic import BaseModel, StrictBool
 
-from dogfighter.models.base.base_actor import ActorConfig
+from dogfighter.models.base.base_actor import Actor, ActorConfig
 
 Observation = TypeVar("Observation")
 Action = TypeVar("Action")
@@ -33,6 +33,10 @@ class AlgorithmConfig(BaseModel):
 
 class Algorithm(nn.Module, Generic[Observation, Action]):
     """Algorithm."""
+
+    @property
+    def actor(self) -> Actor:
+        raise NotImplementedError
 
     def save(self, filepath: str | Path) -> None:
         """save."""

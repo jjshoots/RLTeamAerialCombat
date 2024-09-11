@@ -10,8 +10,8 @@ from dogfighter.env_interactors.transformer_ma_env_interactor import \
     TransformerMAEnvInteractorConfig
 from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
-from dogfighter.runners.asynchronous_runner import AsynchronousRunnerSettings
-from dogfighter.runners.base import RunnerSettings
+from dogfighter.runners.asynchronous_runner.base import \
+    AsynchronousRunnerSettings
 from dogfighter.runners.synchronous_runner import SynchronousRunnerSettings
 from setup_algorithms import get_algorithm_config
 from setup_envs import (get_mlp_ma_env_config, get_mlp_sa_env_config,
@@ -26,7 +26,7 @@ def get_all_configs(
     EnvInteractorConfig,
     AlgorithmConfig,
     ReplayBufferConfig,
-    RunnerSettings,
+    SynchronousRunnerSettings | AsynchronousRunnerSettings,
 ]:
     # get env and interactors
     if wm.cfg.env.variant == "mlp_sa_env":

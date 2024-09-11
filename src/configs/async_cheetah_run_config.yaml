@@ -39,17 +39,22 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
+  num_parallel_workers: 1
+  max_tasks_in_queue: 32
+
+  transitions_eval_frequency: 8000
+  transitions_num_exploration: 25000
+  transitions_min_for_train: 50000
+  transitions_max: 1000000
+
   trainer:
-    num_parallel_rollouts: 1
-    transitions_num_exploration: 25000
-    transitions_min_for_train: 50000
-    transitions_max: 1000000
-    eval_transitions_frequency: 8000
+    steps_per_epoch: 2000
   worker:
-    task: "collect" # collect, eval
+    mode: "null" # collect, eval
+    actor_weights_path: ""
+    result_output_path: "/dev/null"
     collect_num_transitions: 8000
     eval_num_episodes: 16
-    task_config_path: "/dev/null"
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:

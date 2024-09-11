@@ -1,14 +1,12 @@
-import fcntl
 import json
 import os
 import tempfile
 import time
-from typing import Any
 
 from wingman import Wingman
 
 from dogfighter.runners.asynchronous_runner.base import (
-    AsynchronousRunnerSettings, CollectionResult, TaskConfig)
+    AsynchronousRunnerSettings, CollectionResult, EvaluationResult, TaskConfig)
 from setup_configs import get_all_configs
 
 
@@ -39,36 +37,33 @@ def run_collection(wm: Wingman) -> None:
         interactor_config,
         algorithm_config,
         memory_config,
-        runner_settings,
+        settings,
     ) = get_all_configs(wm)
 
     # we only want to use worker settings
-    assert isinstance(runner_settings, AsynchronousRunnerSettings)
-    runner_settings = runner_settings.worker
+    assert isinstance(settings, AsynchronousRunnerSettings)
+    settings = settings.worker
 
     # instantiate things
     env = train_env_config.instantiate()
     actor = algorithm_config.actor_config.instantiate()
-    memory = memory_config.instantiate()
     collection_fn = interactor_config.get_collection_fn()
-
-    # load the task config
-    with open(runner_settings.task_config_path, "r") as f:
-        task_config = TaskConfig.model_validate_json(json_data=json.load(f))
-    os.remove(wm.cfg.runner.worker.task_config_path)
+    memory = memory_config.model_copy(
+        update={"mem_size": int(settings.collect_num_transitions * 1.2)}
+    ).instantiate()
 
     # load the weights file and clean up
-    if task_config.actor_weight_path:
-        actor.load(task_config.actor_weight_path)
-        os.remove(task_config.actor_weight_path)
+    if settings.actor_weights_path:
+        actor.load(settings.actor_weights_path)
+        os.remove(settings.actor_weights_path)
 
     # run a collect task
     memory, info = collection_fn(
         actor=actor.actor,
         env=env,
         memory=memory,
-        use_random_actions=task_config.actor_weight_path is not None,
-        num_transitions=runner_settings.collect_num_transitions,
+        use_random_actions=bool(settings.actor_weights_path),
+        num_transitions=settings.collect_num_transitions,
     )
 
     # dump the memory to disk
@@ -83,26 +78,32 @@ def run_collection(wm: Wingman) -> None:
         info=info,
     )
 
-    # dump the pointer to disk
-    with open(task_config.results_path, "w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
+    temp_path = f"{settings.result_output_path}.temp.json"
+    with open(temp_path, "w") as f:
         json.dump(result, f)
         time.sleep(1)
-        fcntl.flock(f, fcntl.LOCK_UN)
+    os.rename(temp_path, settings.result_output_path)
 
 
-def run_evaluation(
-    wm: Wingman,
-    actor_weight_path: str,
-) -> tuple[float, dict[str, Any]]:
-    """run_evaluation.
+def run_evaluation(wm: Wingman) -> None:
+    """Evaluation worker.
 
-    Args:
-        wm (Wingman): wm
-        actor_weight_path (str): actor_weight_path
+    To run this, need to provide:
+    1. In a JSON:
+        - actor_weight_path (a filepath of where the weights for the actor are) [Optional]
+        - results_path (a filepath of where the results json should be placed)
+    2. The path to the JSON above as `wm.cfg.runner.worker.task_config_path`, through the CLI
 
-    Returns:
-        tuple[float, dict[str, Any]]:
+    The outputs of this function are:
+    1. EvaluationResult
+        - Evaluation score
+        - Collection info
+    2. The path to the JSON above is saved in `task_config.results_path`, specified from the input.
+
+    Things to override for through CLI from trainer:
+    1. model.id
+    2. runner.mode
+    3. runner.worker.task
     """
     (
         train_env_config,
@@ -110,25 +111,40 @@ def run_evaluation(
         interactor_config,
         algorithm_config,
         memory_config,
-        runner_settings,
+        settings,
     ) = get_all_configs(wm)
 
-    assert isinstance(runner_settings, AsynchronousRunnerSettings)
+    # we only want to use worker settings
+    assert isinstance(settings, AsynchronousRunnerSettings)
+    settings = settings.worker
+
     # instantiate things
     env = eval_env_config.instantiate()
     actor = algorithm_config.actor_config.instantiate()
     evaluation_fn = interactor_config.get_evaluation_fn()
 
-    # get latest weight files if it exists, and clean up
-    if actor_weight_path:
-        actor.load(actor_weight_path)
-        os.remove(actor_weight_path)
+    # load the weights file and clean up
+    if settings.actor_weights_path:
+        actor.load(settings.actor_weights_path)
+        os.remove(settings.actor_weights_path)
 
     # run an eval task
     eval_score, info = evaluation_fn(
         actor=actor.actor,
         env=env,
-        num_episodes=runner_settings.eval_num_episodes,
+        num_episodes=settings.eval_num_episodes,
     )
 
-    return eval_score, info
+    # form the results
+    result = EvaluationResult(
+        score=eval_score,
+        info=info,
+    )
+
+    # dump the pointer to disk, we do a write, then rename
+    # this way, the file can't be read while it's being written
+    temp_path = f"{settings.result_output_path}.temp.json"
+    with open(temp_path, "w") as f:
+        json.dump(result, f)
+        time.sleep(1)
+    os.rename(temp_path, settings.result_output_path)

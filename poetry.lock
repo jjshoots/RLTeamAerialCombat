@@ -597,13 +597,13 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jj-wingman"
-version = "0.20.0"
+version = "0.21.0"
 description = "Wingman library for AI projects."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "jj_wingman-0.20.0-py3-none-any.whl", hash = "sha256:d8d7d390cb88862a6a07ca758afe1811be9d44f848ad76f318ff47e3cf645a48"},
-    {file = "jj_wingman-0.20.0.tar.gz", hash = "sha256:10598eec1f4ccd84180b5e75fd9fb2bc83686d73bd21f925c6587fe6a330f406"},
+    {file = "jj_wingman-0.21.0-py3-none-any.whl", hash = "sha256:42109b83c8abd439080deac79a39c380bb25dc3f8a7a71f24b0d760259eed70c"},
+    {file = "jj_wingman-0.21.0.tar.gz", hash = "sha256:7e55d77d3ea2b35c129ed88267edd3adf208c1219c7fad743fff818b5e138976"},
 ]
 
 [package.dependencies]
@@ -881,13 +881,13 @@ files = [
 
 [[package]]
 name = "memorial"
-version = "0.0.1"
+version = "0.0.2"
 description = "Replay Buffer Implementations for RL"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "memorial-0.0.1-py3-none-any.whl", hash = "sha256:96eed716ccc2991f0c2d3eb07790e945e63edd1e8a8060db42ac7a850a8c0380"},
-    {file = "memorial-0.0.1.tar.gz", hash = "sha256:f5707cdf903613ce9731ebc946a0963017b7cedc2c33ecb941846b3ae162739a"},
+    {file = "memorial-0.0.2-py3-none-any.whl", hash = "sha256:0e5990e5cabc7f053cbf94b9625293ac798f20bf1bb4a8eae355d360460ffce7"},
+    {file = "memorial-0.0.2.tar.gz", hash = "sha256:863be92a6fb1b5cf22ef55530db7816d1bd63ecca077133230c720eac9332fcf"},
 ]
 
 [package.dependencies]
@@ -1537,13 +1537,13 @@ diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pytest"
-version = "8.3.2"
+version = "8.3.3"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-8.3.2-py3-none-any.whl", hash = "sha256:4ba08f9ae7dcf84ded419494d229b48d0903ea6407b030eaec46df5e6a73bba5"},
-    {file = "pytest-8.3.2.tar.gz", hash = "sha256:c132345d12ce551242c87269de812483f5bcc87cdbb4722e48487ba194f9fdce"},
+    {file = "pytest-8.3.3-py3-none-any.whl", hash = "sha256:a6853c7375b2663155079443d2e45de913a911a11d669df02a50814944db57b2"},
+    {file = "pytest-8.3.3.tar.gz", hash = "sha256:70b98107bd648308a7952b06e6ca9a50bc660be218d53c257cc1fc94fda10181"},
 ]
 
 [package.dependencies]
@@ -2146,4 +2146,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c3ecbfd2f177d3981c5350f2cc5bcfd6ac9a6ec4753f62185e543f6ae68f4d61"
+content-hash = "3a1c6a81335754040a701402e7333dae5f84214abe0e6c09de98aed46aa4a64c"
