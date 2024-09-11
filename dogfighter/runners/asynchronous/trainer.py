@@ -1,6 +1,7 @@
 import json
 import math
 import os
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
@@ -19,38 +20,38 @@ from dogfighter.runners.base import ConfigStack
 
 
 def submit_task(
-    model_id: str,
     mode: WorkerTaskType,
     actor_weights_path: str,
     result_output_path: str,
+    configs: ConfigStack,
 ) -> str:
-    command = []
-    command.append(f"{sys.executable}")
-    command.append("src/main.py")
-
-    command.append("--mode.train")
-
-    command.append("--model.id")
-    command.append(f"{model_id}")
-
-    command.append("--runner.mode")
-    command.append("worker")  # extremely important line
-
+    task_config = configs.model_dump()
+    task_config["runner_settings"]["mode"] = "worker"
+    task_config["runner_settings"]["worker"]["actor_weights_path"] = actor_weights_path
+    task_config["runner_settings"]["worker"]["result_output_path"] = result_output_path
     if mode == WorkerTaskType.COLLECT:
-        command.append("--runner.worker.task")
-        command.append("collect")
+        task_config["runner_settings"]["worker"]["task"] = "collect"
     elif mode == WorkerTaskType.EVAL:
-        command.append("--runner.worker.task")
-        command.append("eval")
+        task_config["runner_settings"]["worker"]["task"] = "eval"
     else:
         raise NotImplementedError
-    command.append("--runner.worker.actor_weights_path")
-    command.append(f"{actor_weights_path}")
-    command.append("--runner.worker.result_output_path")
-    command.append(f"{result_output_path}")
 
-    # Run the command
-    subprocess.run(command)
+    # dump the file to disk and run the command
+    with tempfile.NamedTemporaryFile(suffix=".json") as f:
+        f.write(json.dumps(task_config).encode("utf-8"))
+        f.flush()
+
+        command = []
+        command.append(f"{sys.executable}")
+        command.append(str(Path(__file__).parent / "runner.py"))
+        command.append("--task_file")
+        command.append(f.name)
+
+        print(command)
+
+        # Run the command
+        subprocess.run(command)
+
     return result_output_path
 
 
@@ -97,10 +98,10 @@ def run_train(
                 futures[
                     exe.submit(
                         submit_task,
-                        model_id=str(wm.cfg.model.id),
                         mode=WorkerTaskType.EVAL,
                         actor_weights_path=actor_weights_path,
                         result_output_path=result_output_path,
+                        configs=configs,
                     )
                 ] = WorkerTaskType.EVAL
                 next_eval_step = (
@@ -122,10 +123,10 @@ def run_train(
                 futures[
                     exe.submit(
                         submit_task,
-                        model_id=str(wm.cfg.model.id),
                         mode=WorkerTaskType.COLLECT,
                         actor_weights_path=actor_weights_path,
                         result_output_path=result_output_path,
+                        configs=configs,
                     )
                 ] = WorkerTaskType.COLLECT
 
