@@ -91,11 +91,8 @@ def run_train(
                 # form the actor_weights_path and result_output_path
                 _task_uuid = uuid.uuid4()
                 result_output_path = f"{tmp_dir}/{_task_uuid}_collect_results.pth"
-                if memory.count >= settings.transitions_num_exploration:
-                    actor_weights_path = f"{tmp_dir}/{_task_uuid}_actor_weights.pth"
-                    algorithm.actor.save(actor_weights_path)
-                else:
-                    actor_weights_path = ""
+                actor_weights_path = f"{tmp_dir}/{_task_uuid}_actor_weights.pth"
+                algorithm.actor.save(actor_weights_path)
 
                 # assign the task
                 futures[

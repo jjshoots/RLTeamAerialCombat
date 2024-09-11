@@ -1,5 +1,4 @@
 import time
-from pprint import pformat
 from typing import Any
 
 import numpy as np
@@ -127,10 +126,9 @@ def mlp_ma_env_collect(
         bulk=True,
     )
 
-    # print some recordings
+    # record some things
     total_time = time.time() - start_time
     interaction_per_second = num_transitions / total_time
-    print(f"Collect Stats: {total_time:.2f}s @ {interaction_per_second} t/s.")
 
     # return the replay buffer and some information
     return_info = dict()
@@ -213,7 +211,6 @@ def mlp_ma_env_evaluate(
         return_info["mean_episode_interactions"] * 0.05
         + return_info["mean_hits_per_agent"] * 10.0
     ) / (return_info["num_collisions"] + return_info["num_out_of_bounds"] + 1)
-    print("Evaluation Stats:\n" f"{pformat(return_info, indent=2)}\n")
     return eval_score, return_info
 
 

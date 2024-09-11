@@ -110,10 +110,9 @@ def mlp_sa_vec_env_collect(
         bulk=True,
     )
 
-    # print some recordings
+    # record some things
     total_time = time.time() - start_time
     interaction_per_second = num_transitions / total_time
-    print(f"Collect Stats: {total_time:.2f}s @ {interaction_per_second} t/s.")
 
     # return the replay buffer and some information
     return_info = dict()
@@ -177,10 +176,6 @@ def mlp_sa_vec_env_evaluate(
     return_info = dict()
     return_info["mean_episode_length"] = float(num_valid_steps / num_episodes)
     mean_cumulative_reward = float(cumulative_rewards / num_episodes)
-    print(
-        "Evaluation Stats: "
-        f"{mean_cumulative_reward} mean eval score @ {return_info['mean_episode_length']} mean episode length."
-    )
     return mean_cumulative_reward, return_info
 
 

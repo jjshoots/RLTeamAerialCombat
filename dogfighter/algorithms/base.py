@@ -5,7 +5,7 @@ from typing import Any, Generic, TypeVar
 import torch
 import torch.nn as nn
 from memorial import ReplayBuffer
-from pydantic import BaseModel, StrictBool
+from pydantic import BaseModel, StrictBool, StrictStr
 
 from dogfighter.models.base.base_actor import Actor, ActorConfig
 
@@ -18,6 +18,7 @@ class AlgorithmConfig(BaseModel):
 
     compile: StrictBool
     actor_config: ActorConfig
+    device: StrictStr
 
     @abstractmethod
     def instantiate(self) -> "Algorithm":
