@@ -91,12 +91,6 @@ if __name__ == "__main__":
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # fmt: on
 
-    # grab the config_path from the CLI (optional)
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config_path", required=True)
-    args, _ = parser.parse_known_args()
-    config_yaml = args.config_path
-
     wm = Wingman(config_yaml=config_yaml)
 
     if wm.cfg.mode.train:

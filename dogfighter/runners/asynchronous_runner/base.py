@@ -28,7 +28,7 @@ class TrainerSettings(BaseModel):
 
 
 class WorkerSettings(BaseModel):
-    mode: Literal["collect", "eval"]
+    task: Literal["collect", "eval", "null"]
     actor_weights_path: StrictStr
     result_output_path: StrictStr
     collect_num_transitions: StrictInt
@@ -37,8 +37,6 @@ class WorkerSettings(BaseModel):
 
 class AsynchronousRunnerSettings(BaseModel):
     mode: Literal["trainer", "worker"]
-    trainer: TrainerSettings
-    worker: WorkerSettings
     num_parallel_workers: StrictInt
     max_tasks_in_queue: StrictInt
 
@@ -47,13 +45,16 @@ class AsynchronousRunnerSettings(BaseModel):
     transitions_min_for_train: StrictInt
     transitions_max: StrictInt
 
+    trainer: TrainerSettings
+    worker: WorkerSettings
+
 
 #############################################################
 # TASK DEFINITION
 #############################################################
 
 
-class WorkerMode(Enum):
+class WorkerTaskType(Enum):
     """WorkerMode."""
 
     COLLECT = 1

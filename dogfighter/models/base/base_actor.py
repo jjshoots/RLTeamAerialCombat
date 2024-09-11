@@ -40,7 +40,7 @@ class Actor(nn.Module, Generic[Observation, Action]):
         self.load_state_dict(
             torch.load(
                 filepath,
-                map_location=torch.device(self._device),
+                map_location=torch.device(self.device),
                 weights_only=True,
             )
         )

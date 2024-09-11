@@ -7,24 +7,51 @@ import uuid
 from concurrent.futures import Future
 from concurrent.futures.process import ProcessPoolExecutor
 from pathlib import Path
+import sys
 
+import subprocess
 from wingman import Wingman
 
 from dogfighter.algorithms.base import AlgorithmConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
 from dogfighter.runners.asynchronous_runner.base import (
-    AsynchronousRunnerSettings, CollectionResult, EvaluationResult, WorkerMode)
+    AsynchronousRunnerSettings, CollectionResult, EvaluationResult, WorkerTaskType)
 from dogfighter.runners.synchronous_runner import SynchronousRunnerSettings
 
 
 def submit_task(
-    mode: WorkerMode, actor_weights_path: str, result_output_path: str
+    model_id: str,
+    mode: WorkerTaskType,
+    actor_weights_path: str,
+    result_output_path: str,
 ) -> str:
-    # TODO: submit the task here
+    command = []
+    command.append(f"{sys.executable}")
+    command.append("src/main.py")
 
-    while not Path(result_output_path).exists():
-        time.sleep(1)
+    command.append("--mode.train")
 
+    command.append("--model.id")
+    command.append(f"{model_id}")
+
+    command.append("--runner.mode")
+    command.append("worker")  # extremely important line
+
+    if mode == WorkerTaskType.COLLECT:
+        command.append("--runner.worker.task")
+        command.append("collect")
+    elif mode == WorkerTaskType.EVAL:
+        command.append("--runner.worker.task")
+        command.append("eval")
+    else:
+        raise NotImplementedError
+    command.append("--runner.worker.actor_weights_path")
+    command.append(f"{actor_weights_path}")
+    command.append("--runner.worker.result_output_path")
+    command.append(f"{result_output_path}")
+
+    # Run the command
+    subprocess.run(command)
     return result_output_path
 
 
@@ -53,7 +80,7 @@ def run_train(
     next_eval_step = 0
 
     # run things using executor
-    futures: dict[Future, WorkerMode] = {}
+    futures: dict[Future, WorkerTaskType] = {}
     with ProcessPoolExecutor(
         max_workers=settings.num_parallel_workers
     ) as exe, tempfile.TemporaryDirectory() as tmp_dir:
@@ -66,7 +93,7 @@ def run_train(
                 result_output_path = f"{tmp_dir}/{_task_uuid}_collect_results.pth"
                 if memory.count >= settings.transitions_num_exploration:
                     actor_weights_path = f"{tmp_dir}/{_task_uuid}_actor_weights.pth"
-                    algorithm.save(actor_weights_path)
+                    algorithm.actor.save(actor_weights_path)
                 else:
                     actor_weights_path = ""
 
@@ -74,11 +101,12 @@ def run_train(
                 futures[
                     exe.submit(
                         submit_task,
-                        mode=WorkerMode.EVAL,
+                        model_id=str(wm.cfg.model.id),
+                        mode=WorkerTaskType.EVAL,
                         actor_weights_path=actor_weights_path,
                         result_output_path=result_output_path,
                     )
-                ] = WorkerMode.EVAL
+                ] = WorkerTaskType.EVAL
                 next_eval_step = (
                     int(memory.count / settings.transitions_eval_frequency) + 1
                 ) * settings.transitions_eval_frequency
@@ -98,11 +126,12 @@ def run_train(
                 futures[
                     exe.submit(
                         submit_task,
-                        mode=WorkerMode.COLLECT,
+                        model_id=str(wm.cfg.model.id),
+                        mode=WorkerTaskType.COLLECT,
                         actor_weights_path=actor_weights_path,
                         result_output_path=result_output_path,
                     )
-                ] = WorkerMode.COLLECT
+                ] = WorkerTaskType.COLLECT
 
             """RESULTS COLLECTION"""
             # check all futures for done tasks
@@ -112,7 +141,7 @@ def run_train(
                     continue
 
                 # collect memory from workers
-                if futures[future] == WorkerMode.COLLECT:
+                if futures[future] == WorkerTaskType.COLLECT:
                     # load the results
                     with open(future.result(), "r") as f:
                         collection_result = CollectionResult(**json.load(f))
@@ -122,13 +151,15 @@ def run_train(
                         memory.merge(type(memory).load(f))
                     os.remove(collection_result.memory_path)
 
+                    print("Collect Task Collected!")
+
                     # update the log
                     wm.log.update(
                         {f"collect/{k}": v for k, v in collection_result.info.items()}
                     )
 
                 # collect eval score from workers
-                elif futures[future] == WorkerMode.EVAL:
+                elif futures[future] == WorkerTaskType.EVAL:
                     # load the results
                     with open(future.result(), "r") as f:
                         evaluation_result = EvaluationResult(**json.load(f))
@@ -139,8 +170,11 @@ def run_train(
                     wm.log["eval/score"] = eval_score
                     wm.log["eval/max_score"] = max_eval_score
                     wm.log.update({f"eval/{k}": v for k, v in info.items()})
+                    print("Eval Task Collected!")
+
                 else:
                     raise NotImplementedError
+
 
                 # clear the future from the list
                 del futures[future]

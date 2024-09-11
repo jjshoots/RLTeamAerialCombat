@@ -21,21 +21,21 @@ def run_collection(
     """Collection worker.
 
     To run this, need to provide:
-    1. In a JSON:
-        - actor_weight_path (a filepath of where the weights for the actor are) [Optional]
-        - results_path (a filepath of where the results json should be placed)
-    2. The path to the JSON above as `wm.cfg.runner.worker.task_config_path`, through the CLI
+    1. actor_weight_path (a filepath of where the weights for the actor are) [Optional]
+    2. result_output_path (a filepath of where the results json should be placed)
 
     The outputs of this function are:
     1. CollectionResult
         - The location of the collected replay buffer
         - Collection info
-    2. The path to the JSON above is saved in `task_config.results_path`, specified from the input.
+    2. The path to the JSON above is saved in `settings.runner.worker.result_output_path`, specified from the input.
 
     Things to override for through CLI from trainer:
     1. model.id
     2. runner.mode
     3. runner.worker.task
+    4. runner.worker.actor_weights_path
+    5. runner.worker.result_output_path
     """
     # instantiate things
     env = train_env_config.instantiate()
@@ -52,7 +52,7 @@ def run_collection(
 
     # run a collect task
     memory, info = collection_fn(
-        actor=actor.actor,
+        actor=actor,
         env=env,
         memory=memory,
         use_random_actions=bool(settings.worker.actor_weights_path),
@@ -73,7 +73,7 @@ def run_collection(
 
     temp_path = f"{settings.worker.result_output_path}.temp.json"
     with open(temp_path, "w") as f:
-        json.dump(result, f)
+        json.dump(result.model_dump(), f)
         time.sleep(1)
     os.rename(temp_path, settings.worker.result_output_path)
 
@@ -87,21 +87,21 @@ def run_evaluation(
     """Evaluation worker.
 
     To run this, need to provide:
-    1. In a JSON:
-        - actor_weight_path (a filepath of where the weights for the actor are) [Optional]
-        - results_path (a filepath of where the results json should be placed)
-    2. The path to the JSON above as `wm.cfg.runner.worker.task_config_path`, through the CLI
+    1. actor_weight_path (a filepath of where the weights for the actor are) [Optional]
+    2. result_output_path (a filepath of where the results json should be placed)
 
     The outputs of this function are:
     1. EvaluationResult
         - Evaluation score
         - Collection info
-    2. The path to the JSON above is saved in `task_config.results_path`, specified from the input.
+    2. The path to the JSON above is saved in `settings.runner.worker.result_output_path`, specified from the input.
 
     Things to override for through CLI from trainer:
     1. model.id
     2. runner.mode
     3. runner.worker.task
+    4. runner.worker.actor_weights_path
+    5. runner.worker.result_output_path
     """
     # instantiate things
     env = eval_env_config.instantiate()
@@ -115,7 +115,7 @@ def run_evaluation(
 
     # run an eval task
     eval_score, info = evaluation_fn(
-        actor=actor.actor,
+        actor=actor,
         env=env,
         num_episodes=settings.worker.eval_num_episodes,
     )
@@ -130,6 +130,6 @@ def run_evaluation(
     # this way, the file can't be read while it's being written
     temp_path = f"{settings.worker.result_output_path}.temp.json"
     with open(temp_path, "w") as f:
-        json.dump(result, f)
+        json.dump(result.model_dump(), f)
         time.sleep(1)
     os.rename(temp_path, settings.worker.result_output_path)

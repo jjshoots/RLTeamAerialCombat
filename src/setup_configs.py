@@ -63,9 +63,9 @@ def get_all_configs(
 
     # runner
     if wm.cfg.runner.variant == "async":
-        runner_settings = AsynchronousRunnerSettings(**wm.cfg.to_dict())
+        runner_settings = AsynchronousRunnerSettings(**wm.cfg.runner.to_dict())
     elif wm.cfg.runner.variant == "sync":
-        runner_settings = SynchronousRunnerSettings(**wm.cfg.to_dict())
+        runner_settings = SynchronousRunnerSettings(**wm.cfg.runner.to_dict())
     else:
         raise NotImplementedError
 
