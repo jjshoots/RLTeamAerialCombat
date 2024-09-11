@@ -4,14 +4,13 @@ from typing import Any
 
 from wingman import Wingman
 
-from dogfighter.runners.asynchronous_runner import AsynchronousRunnerSettings
+import json
+from dogfighter.runners.asynchronous_runner.base import AsynchronousRunnerSettings, CollectionResult, TaskConfig
 from setup_configs import get_all_configs
 
 
-def run_collection(
-    wm: Wingman,
-    actor_weight_path: str,
-) -> tuple[str, dict[str, Any]]:
+def run_collection(wm: Wingman) -> None:
+    # load all the configs for this run
     (
         train_env_config,
         eval_env_config,
@@ -21,7 +20,14 @@ def run_collection(
         runner_settings,
     ) = get_all_configs(wm)
 
+    # we only want to use worker settings
     assert isinstance(runner_settings, AsynchronousRunnerSettings)
+    runner_settings = runner_settings.worker
+
+    # load the task config
+    with open(runner_settings.task_config_path, "r") as f:
+        task_config = TaskConfig.model_validate_json(json_data=json.load(f))
+    os.remove(wm.cfg.runner.worker.task_config_path)
 
     # instantiate things
     env = train_env_config.instantiate()
@@ -29,18 +35,18 @@ def run_collection(
     memory = memory_config.instantiate()
     collection_fn = interactor_config.get_collection_fn()
 
-    # get latest weight files if it exists, and clean up
-    if actor_weight_path:
-        actor.load(actor_weight_path)
-        os.remove(actor_weight_path)
+    # load the weights file and clean up
+    if task_config.actor_weight_path:
+        actor.load(task_config.actor_weight_path)
+        os.remove(task_config.actor_weight_path)
 
     # run a collect task
     memory, info = collection_fn(
         actor=actor.actor,
         env=env,
         memory=memory,
-        use_random_actions=actor_weight_path is not None,
-        num_transitions=runner_settings.transitions_per_epoch,
+        use_random_actions=task_config.actor_weight_path is not None,
+        num_transitions=runner_settings.collect_num_transitions,
     )
 
     # dump the memory to disk
@@ -49,7 +55,15 @@ def run_collection(
         memory.dump(f)
     os.close(fd)
 
-    return memory_path, info
+    # form the results
+    result = CollectionResult(
+        memory_path=memory_path,
+        info=info,
+    )
+
+    # dump the pointer to disk
+    with open(task_config.results_path, "w") as f:
+        json.dump(result, f)
 
 
 def run_evaluation(

@@ -38,14 +38,18 @@ algorithm:
 # training config
 runner:
   variant: "async"
-  num_parallel_rollouts: 1
-  queue_scale_ratio: 8
-  transitions_per_epoch: 8000
-  transitions_num_exploration: 25000
-  transitions_min_for_train: 50000
-  max_transitions: 1000000
-  eval_num_episodes: 16
-  eval_transitions_frequency: 8000
+  mode: "trainer"  # trainer, worker
+  trainer:
+    num_parallel_rollouts: 1
+    transitions_num_exploration: 25000
+    transitions_min_for_train: 50000
+    transitions_max: 1000000
+    eval_transitions_frequency: 8000
+  worker:
+    task: "collect" # collect, eval
+    collect_num_transitions: 8000
+    eval_num_episodes: 16
+    task_config_path: "/dev/null"
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:

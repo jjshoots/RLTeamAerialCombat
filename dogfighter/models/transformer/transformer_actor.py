@@ -1,5 +1,6 @@
 from typing import Literal
 
+from pydantic import StrictInt
 import torch
 from torch import nn
 
@@ -9,14 +10,14 @@ from dogfighter.models.base.base_actor import Actor, ActorConfig
 class TransformerActorConfig(ActorConfig):
     """TransformerActorConfig."""
 
-    src_size: int
-    tgt_size: int
-    act_size: int
-    embed_dim: int
-    ff_dim: int
-    num_att_heads: int
-    num_encode_layers: int
-    num_decode_layers: int
+    src_size: StrictInt
+    tgt_size: StrictInt
+    act_size: StrictInt
+    embed_dim: StrictInt
+    ff_dim: StrictInt
+    num_att_heads: StrictInt
+    num_encode_layers: StrictInt
+    num_decode_layers: StrictInt
 
     def instantiate(self) -> "TransformerActor":
         return TransformerActor(self)

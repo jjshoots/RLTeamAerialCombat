@@ -1,5 +1,6 @@
 from dataclasses import field
 
+from pydantic import StrictInt
 import torch
 from torch import nn
 
@@ -9,9 +10,9 @@ from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
 class MlpQUNetworkConfig(QUNetworkConfig):
     """MlpQUNetworkConfig."""
 
-    obs_size: int
-    act_size: int
-    embed_dim: int = field(default=256)
+    obs_size: StrictInt
+    act_size: StrictInt
+    embed_dim: StrictInt = field(default=256)
 
     def instantiate(self) -> "MlpQUNetwork":
         return MlpQUNetwork(self)

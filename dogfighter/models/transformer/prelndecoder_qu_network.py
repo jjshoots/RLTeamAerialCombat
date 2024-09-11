@@ -1,5 +1,6 @@
 from typing import Literal
 
+from pydantic import StrictInt
 import torch
 from torch import nn
 
@@ -10,13 +11,13 @@ from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
     """PreLNDecoderQUNetworkConfig."""
 
-    src_size: int
-    tgt_size: int
-    act_size: int
-    embed_dim: int
-    ff_dim: int
-    num_att_heads: int
-    num_layers: int
+    src_size: StrictInt
+    tgt_size: StrictInt
+    act_size: StrictInt
+    embed_dim: StrictInt
+    ff_dim: StrictInt
+    num_att_heads: StrictInt
+    num_layers: StrictInt
 
     def instantiate(self) -> "PreLNDecoderQUNetwork":
         return PreLNDecoderQUNetwork(self)

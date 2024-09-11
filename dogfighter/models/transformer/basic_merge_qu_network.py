@@ -1,5 +1,6 @@
 from typing import Literal
 
+from pydantic import StrictInt
 import torch
 from torch import nn
 
@@ -9,10 +10,10 @@ from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
 class BasicMergeQUNetworkConfig(QUNetworkConfig):
     """BasicMergeQUNetworkConfig."""
 
-    src_size: int
-    tgt_size: int
-    act_size: int
-    embed_dim: int
+    src_size: StrictInt
+    tgt_size: StrictInt
+    act_size: StrictInt
+    embed_dim: StrictInt
 
     def instantiate(self) -> "BasicMergeQUNetwork":
         return BasicMergeQUNetwork(self)

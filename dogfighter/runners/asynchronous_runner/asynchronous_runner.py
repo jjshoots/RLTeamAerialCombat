@@ -18,21 +18,6 @@ from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
 from dogfighter.runners.base import RunnerSettings
 
 
-class AsynchronousRunnerSettings(RunnerSettings):
-    """AsynchronousRunnerSettings."""
-
-    num_parallel_rollouts: int
-    queue_scale_ratio: int
-
-    transitions_per_epoch: int
-    transitions_num_exploration: int
-    transitions_min_for_train: int
-    max_transitions: int
-
-    eval_num_episodes: int
-    eval_transitions_frequency: int
-
-
 class _WorkerMode(Enum):
     """_WorkerMode."""
 

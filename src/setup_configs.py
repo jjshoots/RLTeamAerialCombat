@@ -73,7 +73,7 @@ def get_all_configs(
             eval_num_episodes=wm.cfg.runner.eval_num_episodes,
             eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
         )
-    else:
+    elif wm.cfg.runner.variant == "sync":
         runner_settings = SynchronousRunnerSettings(
             max_transitions=wm.cfg.runner.max_transitions,
             transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
@@ -82,6 +82,8 @@ def get_all_configs(
             eval_num_episodes=wm.cfg.runner.eval_num_episodes,
             eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
         )
+    else:
+        raise NotImplementedError
 
     return (
         train_env_config,

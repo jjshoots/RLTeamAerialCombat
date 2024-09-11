@@ -3,6 +3,7 @@ import time
 import warnings
 from typing import Any, TypeVar
 
+from pydantic import StrictFloat, StrictInt, StrictStr, StrictBool
 import torch
 import torch.nn as nn
 from memorial import ReplayBuffer
@@ -21,23 +22,23 @@ Action = TypeVar("Action")
 class CCGEConfig(AlgorithmConfig):
     """Critic Confidence Guided Exploration."""
 
-    compile: bool
-    device: str
+    compile: StrictBool
+    device: StrictStr
     actor_config: ActorConfig
     qu_config: QUNetworkConfig
-    qu_num_ensemble: int
-    batch_size: int
-    grad_steps_per_update: int
-    actor_learning_rate: float
-    critic_learning_rate: float
-    alpha_learning_rate: float
-    target_smoothing_coefficient: float
-    tune_entropy: bool
-    target_entropy: float
-    learn_uncertainty: bool
-    discount_factor: float
-    actor_update_ratio: int
-    critic_update_ratio: int
+    qu_num_ensemble: StrictInt
+    batch_size: StrictInt
+    grad_steps_per_update: StrictInt
+    actor_learning_rate: StrictFloat
+    critic_learning_rate: StrictFloat
+    alpha_learning_rate: StrictFloat
+    target_smoothing_coefficient: StrictFloat
+    tune_entropy: StrictBool
+    target_entropy: StrictFloat
+    learn_uncertainty: StrictBool
+    discount_factor: StrictFloat
+    actor_update_ratio: StrictInt
+    critic_update_ratio: StrictInt
 
     def instantiate(self) -> "CCGE":
         """instantiate.

@@ -1,3 +1,4 @@
+from pydantic import StrictInt
 import torch
 from torch import nn
 
@@ -8,10 +9,10 @@ from dogfighter.models.mlp.blocks.simba_block import SimbaBlock
 class SimbaQUNetworkConfig(QUNetworkConfig):
     """SimbaQUNetworkConfig."""
 
-    obs_size: int
-    act_size: int
-    embed_dim: int
-    num_blocks: int
+    obs_size: StrictInt
+    act_size: StrictInt
+    embed_dim: StrictInt
+    num_blocks: StrictInt
 
     def instantiate(self) -> "SimbaQUNetwork":
         return SimbaQUNetwork(self)

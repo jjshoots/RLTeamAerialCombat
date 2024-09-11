@@ -5,15 +5,15 @@ from typing import Any
 from gymnasium import Env
 from gymnasium.vector import AsyncVectorEnv, VectorEnv
 from pettingzoo import ParallelEnv
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictBool, StrictInt, StrictStr
 
 
 class SAEnvConfig(BaseModel):
     """Initializer for a single agent Gymnasium environment."""
 
-    env_id: str
-    render_mode: str | bool | None = None
-    env_kwargs: dict[str, Any] = dataclasses.field(default_factory=dict)
+    env_id: StrictStr
+    render_mode: StrictStr | StrictBool | None = None
+    env_kwargs: dict[StrictStr, Any] = dataclasses.field(default_factory=dict)
 
     @abstractmethod
     def instantiate(self) -> Env:
@@ -24,7 +24,7 @@ class SAVecEnvConfig(BaseModel):
     """Initializer for single agent vector environments."""
 
     sa_env_config: SAEnvConfig
-    num_envs: int
+    num_envs: StrictInt
 
     def instantiate(self) -> VectorEnv:
         return AsyncVectorEnv(
@@ -35,9 +35,9 @@ class SAVecEnvConfig(BaseModel):
 class MAEnvConfig(BaseModel):
     """Initializer for a PettingZoo environment."""
 
-    env_id: str
-    render_mode: str | bool | None = None
-    env_kwargs: dict[str, Any] = dataclasses.field(default_factory=dict)
+    env_id: StrictStr
+    render_mode: StrictStr | StrictBool | None = None
+    env_kwargs: dict[StrictStr, Any] = dataclasses.field(default_factory=dict)
 
     @abstractmethod
     def instantiate(self) -> ParallelEnv:
