@@ -1,4 +1,4 @@
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, ClassVar, Protocol, runtime_checkable
 
 from gymnasium import Env
 from gymnasium.vector import VectorEnv
@@ -49,6 +49,7 @@ class DisplayFunctionProtocol(Protocol):
 
 
 class EnvInteractorConfig(BaseModel):
+    _registry: ClassVar[set[str]] = set()
     variant: StrictStr
 
     def get_collection_fn(self) -> CollectionFunctionProtocol:
@@ -59,3 +60,12 @@ class EnvInteractorConfig(BaseModel):
 
     def get_display_fn(self) -> DisplayFunctionProtocol:
         raise NotImplementedError
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        variant = cls.__annotations__.get("variant")
+        assert variant is not None
+        if variant in cls._registry:
+            raise ValueError(f"`variant` {variant} is already in use by another class.")
+        cls._registry.add(variant)

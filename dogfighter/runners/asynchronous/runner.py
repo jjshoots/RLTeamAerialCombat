@@ -3,11 +3,10 @@ import json
 
 from wingman import Wingman
 
-from dogfighter.runners.asynchronous.base import \
-    AsynchronousRunnerSettings
+from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
 from dogfighter.runners.asynchronous.trainer import run_train
 from dogfighter.runners.asynchronous.workers import (run_collection,
-                                                            run_evaluation)
+                                                     run_evaluation)
 from dogfighter.runners.base import ConfigStack
 
 

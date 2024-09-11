@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from functools import cached_property
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import ClassVar, Generic, TypeVar
 
 import torch
 import torch.nn as nn
@@ -14,6 +14,7 @@ Action = TypeVar("Action")
 class QUNetworkConfig(BaseModel):
     """QUNetworkConfig for creating QU Networks."""
 
+    _registry: ClassVar[set[str]] = set()
     variant: StrictStr
 
     @abstractmethod
@@ -26,6 +27,15 @@ class QUNetworkConfig(BaseModel):
             QUNetwork:
         """
         raise NotImplementedError
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        variant = cls.__annotations__.get("variant")
+        assert variant is not None
+        if variant in cls._registry:
+            raise ValueError(f"`variant` {variant} is already in use by another class.")
+        cls._registry.add(variant)
 
 
 class QUNetwork(nn.Module, Generic[Observation, Action]):

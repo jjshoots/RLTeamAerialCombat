@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, Generic, TypeVar
+from typing import Any, ClassVar, Generic, TypeVar
 
 import torch
 import torch.nn as nn
@@ -17,6 +17,7 @@ Action = TypeVar("Action")
 class AlgorithmConfig(BaseModel):
     """AlgorithmConfig for instantiating an algorithm"""
 
+    _registry: ClassVar[set[str]] = set()
     variant: StrictStr
     compile: StrictBool
     actor_config: KnownActorConfigs
@@ -32,6 +33,15 @@ class AlgorithmConfig(BaseModel):
             Algorithm:
         """
         raise NotImplementedError
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        variant = cls.__annotations__.get("variant")
+        assert variant is not None
+        if variant in cls._registry:
+            raise ValueError(f"`variant` {variant} is already in use by another class.")
+        cls._registry.add(variant)
 
 
 class Algorithm(nn.Module, Generic[Observation, Action]):

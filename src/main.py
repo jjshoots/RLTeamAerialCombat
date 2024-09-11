@@ -9,8 +9,7 @@ from dogfighter.env_interactors.mlp_sa_vec_env_interactor import \
     mlp_sa_env_display
 from dogfighter.env_interactors.transformer_ma_env_interactor import \
     transformer_ma_env_display
-from dogfighter.runners.asynchronous.runner import \
-    run_asynchronous
+from dogfighter.runners.asynchronous.runner import run_asynchronous
 from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.synchronous.runner import run_synchronous
 from setup_algorithms import get_algorithm_config

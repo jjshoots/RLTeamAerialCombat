@@ -12,7 +12,8 @@ from dogfighter.models.transformer.prelndecoder_actor import \
     PreLNDecoderActorConfig
 from dogfighter.models.transformer.prelndecoder_qu_network import \
     PreLNDecoderQUNetworkConfig
-from dogfighter.models.transformer.transformer_actor import TransformerActorConfig
+from dogfighter.models.transformer.transformer_actor import \
+    TransformerActorConfig
 from dogfighter.models.transformer.transformer_qu_network import \
     TransformerQUNetworkConfig
 

@@ -4,8 +4,7 @@ from dogfighter.algorithms import KnownAlgorithmConfigs
 from dogfighter.env_interactors import KnownInteractorConfigs
 from dogfighter.envs import KnownEnvConfigs
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
-from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
-from dogfighter.runners.synchronous.base import SynchronousRunnerSettings
+from dogfighter.runners import KnownRunnerSettings
 
 
 class ConfigStack(BaseModel):
@@ -14,4 +13,4 @@ class ConfigStack(BaseModel):
     algorithm_config: KnownAlgorithmConfigs
     memory_config: ReplayBufferConfig
     interactor_config: KnownInteractorConfigs
-    runner_settings: AsynchronousRunnerSettings | SynchronousRunnerSettings
+    runner_settings: KnownRunnerSettings

@@ -3,8 +3,9 @@ import os
 import tempfile
 import time
 
-from dogfighter.runners.asynchronous.base import (
-    AsynchronousRunnerSettings, CollectionResult, EvaluationResult)
+from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
+                                                  CollectionResult,
+                                                  EvaluationResult)
 from dogfighter.runners.base import ConfigStack
 
 

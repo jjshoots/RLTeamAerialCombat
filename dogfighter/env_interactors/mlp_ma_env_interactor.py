@@ -14,7 +14,6 @@ from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
                                              EvaluationFunctionProtocol,
                                              SupportedEnvTypes)
 from dogfighter.models.base.base_actor import Actor
-from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 class MLPMAEnvInteractorConfig(EnvInteractorConfig):

@@ -11,9 +11,10 @@ from concurrent.futures.process import ProcessPoolExecutor
 
 from wingman import Wingman
 
-from dogfighter.runners.asynchronous.base import (
-    AsynchronousRunnerSettings, CollectionResult, EvaluationResult,
-    WorkerTaskType)
+from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
+                                                  CollectionResult,
+                                                  EvaluationResult,
+                                                  WorkerTaskType)
 from dogfighter.runners.base import ConfigStack
 
 

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from functools import cached_property
 from pathlib import Path
-from typing import Generic, TypeVar
+from typing import ClassVar, Generic, TypeVar
 
 import torch
 import torch.distributions as dist
@@ -16,7 +16,17 @@ Action = TypeVar("Action")
 class ActorConfig(BaseModel):
     """ActorConfig for creating actors."""
 
-    variant: StrictStr
+    _registry: ClassVar[set[str]] = set()
+    variant: StrictStr = "hi"
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        variant = cls.__annotations__.get("variant")
+        assert variant is not None
+        if variant in cls._registry:
+            raise ValueError(f"`variant` {variant} is already in use by another class.")
+        cls._registry.add(variant)
 
     @abstractmethod
     def instantiate(self) -> "Actor":
