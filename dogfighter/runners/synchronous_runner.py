@@ -8,6 +8,8 @@ from dogfighter.algorithms.base import AlgorithmConfig
 from dogfighter.env_interactors.base import EnvInteractorConfig
 from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
+from dogfighter.runners.asynchronous_runner.base import \
+    AsynchronousRunnerSettings
 
 
 class SynchronousRunnerSettings(BaseModel):
@@ -29,7 +31,7 @@ def run_synchronous(
     algorithm_config: AlgorithmConfig,
     memory_config: ReplayBufferConfig,
     interactor_config: EnvInteractorConfig,
-    settings: SynchronousRunnerSettings,
+    settings: SynchronousRunnerSettings | AsynchronousRunnerSettings,
 ) -> None:
     """A synchronous runner to perform train and evaluations in step.
 
@@ -45,6 +47,8 @@ def run_synchronous(
     Returns:
         None:
     """
+    assert isinstance(settings, SynchronousRunnerSettings)
+
     # instantiate everything
     train_env = train_env_config.instantiate()
     eval_env = eval_env_config.instantiate()

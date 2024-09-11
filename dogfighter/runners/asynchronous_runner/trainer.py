@@ -10,9 +10,11 @@ from pathlib import Path
 
 from wingman import Wingman
 
+from dogfighter.algorithms.base import AlgorithmConfig
+from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
 from dogfighter.runners.asynchronous_runner.base import (
     AsynchronousRunnerSettings, CollectionResult, EvaluationResult, WorkerMode)
-from setup_configs import get_all_configs
+from dogfighter.runners.synchronous_runner import SynchronousRunnerSettings
 
 
 def submit_task(
@@ -26,18 +28,12 @@ def submit_task(
     return result_output_path
 
 
-def run_asynchronous(wm: Wingman) -> None:
-    # load all the configs for this run
-    (
-        _,
-        _,
-        _,
-        algorithm_config,
-        memory_config,
-        settings,
-    ) = get_all_configs(wm)
-    del _
-
+def run_train(
+    wm: Wingman,
+    algorithm_config: AlgorithmConfig,
+    memory_config: ReplayBufferConfig,
+    settings: SynchronousRunnerSettings | AsynchronousRunnerSettings,
+) -> None:
     # we only want trainer settings
     assert isinstance(settings, AsynchronousRunnerSettings)
 

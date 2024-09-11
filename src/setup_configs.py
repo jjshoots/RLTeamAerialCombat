@@ -63,25 +63,9 @@ def get_all_configs(
 
     # runner
     if wm.cfg.runner.variant == "async":
-        runner_settings = AsynchronousRunnerSettings(
-            num_parallel_rollouts=wm.cfg.runner.num_parallel_rollouts,
-            queue_scale_ratio=wm.cfg.runner.queue_scale_ratio,
-            max_transitions=wm.cfg.runner.max_transitions,
-            transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
-            transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,
-            transitions_min_for_train=wm.cfg.runner.transitions_min_for_train,
-            eval_num_episodes=wm.cfg.runner.eval_num_episodes,
-            eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
-        )
+        runner_settings = AsynchronousRunnerSettings(**wm.cfg.to_dict())
     elif wm.cfg.runner.variant == "sync":
-        runner_settings = SynchronousRunnerSettings(
-            max_transitions=wm.cfg.runner.max_transitions,
-            transitions_per_epoch=wm.cfg.runner.transitions_per_epoch,
-            transitions_num_exploration=wm.cfg.runner.transitions_num_exploration,
-            transitions_min_for_train=wm.cfg.runner.transitions_min_for_train,
-            eval_num_episodes=wm.cfg.runner.eval_num_episodes,
-            eval_transitions_frequency=wm.cfg.runner.eval_transitions_frequency,
-        )
+        runner_settings = SynchronousRunnerSettings(**wm.cfg.to_dict())
     else:
         raise NotImplementedError
 
