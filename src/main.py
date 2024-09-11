@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 from signal import SIGINT, signal
 
@@ -10,9 +9,10 @@ from dogfighter.env_interactors.mlp_sa_vec_env_interactor import \
     mlp_sa_env_display
 from dogfighter.env_interactors.transformer_ma_env_interactor import \
     transformer_ma_env_display
-from dogfighter.runners.asynchronous_runner.asynchronous_runner import run_asynchronous
-from dogfighter.runners.asynchronous_runner.trainer import run_train
-from dogfighter.runners.synchronous_runner import run_synchronous
+from dogfighter.runners.asynchronous.runner import \
+    run_asynchronous
+from dogfighter.runners.base import ConfigStack
+from dogfighter.runners.synchronous.runner import run_synchronous
 from setup_algorithms import get_algorithm_config
 from setup_configs import get_all_configs
 from setup_envs import get_mlp_sa_env_config, get_transformer_ma_env_config
@@ -28,26 +28,25 @@ def train(wm: Wingman) -> None:
         runner_settings,
     ) = get_all_configs(wm)
 
+    configs = ConfigStack(
+        train_env_config=train_env_config,
+        eval_env_config=eval_env_config,
+        algorithm_config=algorithm_config,
+        memory_config=memory_config,
+        interactor_config=interactor_config,
+        runner_settings=runner_settings,
+    )
+
     # perform a run
     if wm.cfg.runner.variant == "sync":
         run_synchronous(
             wm=wm,
-            train_env_config=train_env_config,
-            eval_env_config=eval_env_config,
-            algorithm_config=algorithm_config,
-            memory_config=memory_config,
-            interactor_config=interactor_config,
-            settings=runner_settings,
+            configs=configs,
         )
     elif wm.cfg.runner.variant == "async":
         run_asynchronous(
             wm=wm,
-            train_env_config=train_env_config,
-            eval_env_config=eval_env_config,
-            algorithm_config=algorithm_config,
-            memory_config=memory_config,
-            interactor_config=interactor_config,
-            settings=runner_settings,
+            configs=configs,
         )
 
 
@@ -84,9 +83,9 @@ if __name__ == "__main__":
     # fmt: off
     # config_yaml = Path(__file__).parent / "configs/quadx_waypoints_config.yaml"
     # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
-    config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_transformer_config.yaml")
+    # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
-    # config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # fmt: on

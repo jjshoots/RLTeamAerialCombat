@@ -7,7 +7,7 @@ import torch
 import torch.distributions as dist
 import torch.nn as nn
 import torch.nn.functional as func
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictStr
 
 Observation = TypeVar("Observation")
 Action = TypeVar("Action")
@@ -15,6 +15,8 @@ Action = TypeVar("Action")
 
 class ActorConfig(BaseModel):
     """ActorConfig for creating actors."""
+
+    variant: StrictStr
 
     @abstractmethod
     def instantiate(self) -> "Actor":

@@ -3,20 +3,13 @@ import os
 import tempfile
 import time
 
-from dogfighter.algorithms.base import AlgorithmConfig
-from dogfighter.env_interactors.base import EnvInteractorConfig
-from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
-from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
-from dogfighter.runners.asynchronous_runner.base import (
+from dogfighter.runners.asynchronous.base import (
     AsynchronousRunnerSettings, CollectionResult, EvaluationResult)
+from dogfighter.runners.base import ConfigStack
 
 
 def run_collection(
-    train_env_config: SAVecEnvConfig | MAEnvConfig,
-    algorithm_config: AlgorithmConfig,
-    memory_config: ReplayBufferConfig,
-    interactor_config: EnvInteractorConfig,
-    settings: AsynchronousRunnerSettings,
+    configs: ConfigStack,
 ) -> None:
     """Collection worker.
 
@@ -37,6 +30,14 @@ def run_collection(
     4. runner.worker.actor_weights_path
     5. runner.worker.result_output_path
     """
+    # splice out configs
+    train_env_config = configs.train_env_config
+    algorithm_config = configs.algorithm_config
+    memory_config = configs.memory_config
+    interactor_config = configs.interactor_config
+    settings = configs.runner_settings
+    assert isinstance(settings, AsynchronousRunnerSettings)
+
     # instantiate things
     env = train_env_config.instantiate()
     actor = algorithm_config.actor_config.instantiate()
@@ -80,10 +81,7 @@ def run_collection(
 
 
 def run_evaluation(
-    eval_env_config: SAVecEnvConfig | MAEnvConfig,
-    algorithm_config: AlgorithmConfig,
-    interactor_config: EnvInteractorConfig,
-    settings: AsynchronousRunnerSettings,
+    configs: ConfigStack,
 ) -> None:
     """Evaluation worker.
 
@@ -104,6 +102,13 @@ def run_evaluation(
     4. runner.worker.actor_weights_path
     5. runner.worker.result_output_path
     """
+    # splice out configs
+    eval_env_config = configs.eval_env_config
+    algorithm_config = configs.algorithm_config
+    interactor_config = configs.interactor_config
+    settings = configs.runner_settings
+    assert isinstance(settings, AsynchronousRunnerSettings)
+
     # instantiate things
     env = eval_env_config.instantiate()
     actor = algorithm_config.actor_config.instantiate()

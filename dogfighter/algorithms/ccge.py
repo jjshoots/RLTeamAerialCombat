@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import time
 import warnings
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar
 
 import torch
 import torch.nn as nn
@@ -11,8 +11,8 @@ from torch.optim.adamw import AdamW
 from tqdm import tqdm
 
 from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
-from dogfighter.models.base.base_actor import Actor, ActorConfig
-from dogfighter.models.base.base_critic import QUNetworkConfig
+from dogfighter.models import KnownActorConfigs, KnownQUNetworkConfigs
+from dogfighter.models.base.base_actor import Actor
 from dogfighter.models.base.qu_ensemble import QUEnsemble
 
 Observation = TypeVar("Observation")
@@ -22,10 +22,11 @@ Action = TypeVar("Action")
 class CCGEConfig(AlgorithmConfig):
     """Critic Confidence Guided Exploration."""
 
+    variant: Literal["ccge"] = "ccge"  # pyright: ignore
     compile: StrictBool
     device: StrictStr
-    actor_config: ActorConfig
-    qu_config: QUNetworkConfig
+    actor_config: KnownActorConfigs
+    qu_config: KnownQUNetworkConfigs
     qu_num_ensemble: StrictInt
     batch_size: StrictInt
     grad_steps_per_update: StrictInt

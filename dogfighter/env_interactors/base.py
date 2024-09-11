@@ -4,7 +4,7 @@ from gymnasium import Env
 from gymnasium.vector import VectorEnv
 from memorial import ReplayBuffer
 from pettingzoo import ParallelEnv
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictStr
 
 from dogfighter.models.base.base_actor import Actor
 
@@ -49,6 +49,8 @@ class DisplayFunctionProtocol(Protocol):
 
 
 class EnvInteractorConfig(BaseModel):
+    variant: StrictStr
+
     def get_collection_fn(self) -> CollectionFunctionProtocol:
         raise NotImplementedError
 

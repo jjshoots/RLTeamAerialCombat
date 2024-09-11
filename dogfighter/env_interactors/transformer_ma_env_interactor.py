@@ -1,5 +1,5 @@
 import time
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import torch
@@ -15,10 +15,11 @@ from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
                                              EvaluationFunctionProtocol,
                                              SupportedEnvTypes)
 from dogfighter.models.base.base_actor import Actor
-from dogfighter.models.transformer.transformer_actor import TransformerActor
 
 
 class TransformerMAEnvInteractorConfig(EnvInteractorConfig):
+    variant: Literal["transformer_ma"] = "transformer_ma"  # pyright: ignore
+
     def get_collection_fn(self) -> CollectionFunctionProtocol:
         return transformer_ma_env_collect
 

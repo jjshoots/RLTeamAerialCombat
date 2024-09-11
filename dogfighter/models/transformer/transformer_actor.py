@@ -10,6 +10,7 @@ from dogfighter.models.base.base_actor import Actor, ActorConfig
 class TransformerActorConfig(ActorConfig):
     """TransformerActorConfig."""
 
+    variant: Literal["transformer"] = "transformer"  # pyright: ignore
     src_size: StrictInt
     tgt_size: StrictInt
     act_size: StrictInt

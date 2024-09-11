@@ -10,6 +10,7 @@ from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
 class BasicMergeQUNetworkConfig(QUNetworkConfig):
     """BasicMergeQUNetworkConfig."""
 
+    variant: Literal["basic_merge"] = "basic_merge"  # pyright: ignore
     src_size: StrictInt
     tgt_size: StrictInt
     act_size: StrictInt

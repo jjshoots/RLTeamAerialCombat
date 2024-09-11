@@ -1,18 +1,19 @@
 from wingman import Wingman
 
-from dogfighter.algorithms.base import AlgorithmConfig
-from dogfighter.env_interactors.base import EnvInteractorConfig
+from dogfighter.algorithms import KnownAlgorithmConfigs
+from dogfighter.env_interactors import KnownInteractorConfigs
 from dogfighter.env_interactors.mlp_ma_env_interactor import \
     MLPMAEnvInteractorConfig
 from dogfighter.env_interactors.mlp_sa_vec_env_interactor import \
     MLPSAEnvInteractorConfig
 from dogfighter.env_interactors.transformer_ma_env_interactor import \
     TransformerMAEnvInteractorConfig
-from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
+from dogfighter.envs import KnownEnvConfigs
+from dogfighter.envs.base import SAVecEnvConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
-from dogfighter.runners.asynchronous_runner.base import \
+from dogfighter.runners.asynchronous.base import \
     AsynchronousRunnerSettings
-from dogfighter.runners.synchronous_runner import SynchronousRunnerSettings
+from dogfighter.runners.synchronous.base import SynchronousRunnerSettings
 from setup_algorithms import get_algorithm_config
 from setup_envs import (get_mlp_ma_env_config, get_mlp_sa_env_config,
                         get_transformer_ma_env_config)
@@ -21,10 +22,10 @@ from setup_envs import (get_mlp_ma_env_config, get_mlp_sa_env_config,
 def get_all_configs(
     wm: Wingman,
 ) -> tuple[
-    SAVecEnvConfig | MAEnvConfig,
-    SAVecEnvConfig | MAEnvConfig,
-    EnvInteractorConfig,
-    AlgorithmConfig,
+    KnownEnvConfigs,
+    KnownEnvConfigs,
+    KnownInteractorConfigs,
+    KnownAlgorithmConfigs,
     ReplayBufferConfig,
     SynchronousRunnerSettings | AsynchronousRunnerSettings,
 ]:

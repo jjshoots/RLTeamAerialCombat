@@ -10,6 +10,7 @@ from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
 class TransformerQUNetworkConfig(QUNetworkConfig):
     """TransformerQUNetworkConfig."""
 
+    variant: Literal["transformer"]  # pyright: ignore
     src_size: StrictInt
     tgt_size: StrictInt
     act_size: StrictInt

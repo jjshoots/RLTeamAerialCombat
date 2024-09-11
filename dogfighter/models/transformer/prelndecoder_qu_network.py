@@ -11,6 +11,7 @@ from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
     """PreLNDecoderQUNetworkConfig."""
 
+    variant: Literal["pre_ln_decoder"]  # pyright: ignore
     src_size: StrictInt
     tgt_size: StrictInt
     act_size: StrictInt

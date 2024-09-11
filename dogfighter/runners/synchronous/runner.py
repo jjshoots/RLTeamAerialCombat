@@ -1,52 +1,31 @@
 import math
 import time
 
-from pydantic import BaseModel
 from wingman import Wingman
 
-from dogfighter.algorithms.base import AlgorithmConfig
-from dogfighter.env_interactors.base import EnvInteractorConfig
-from dogfighter.envs.base import MAEnvConfig, SAVecEnvConfig
-from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
-from dogfighter.runners.asynchronous_runner.base import \
-    AsynchronousRunnerSettings
-
-
-class SynchronousRunnerSettings(BaseModel):
-    """SynchronousRunnerSettings."""
-
-    max_transitions: int
-    transitions_per_epoch: int
-    transitions_num_exploration: int
-    transitions_min_for_train: int
-
-    eval_num_episodes: int
-    eval_transitions_frequency: int
+from dogfighter.runners.base import ConfigStack
+from dogfighter.runners.synchronous.base import SynchronousRunnerSettings
 
 
 def run_synchronous(
     wm: Wingman,
-    train_env_config: SAVecEnvConfig | MAEnvConfig,
-    eval_env_config: SAVecEnvConfig | MAEnvConfig,
-    algorithm_config: AlgorithmConfig,
-    memory_config: ReplayBufferConfig,
-    interactor_config: EnvInteractorConfig,
-    settings: SynchronousRunnerSettings | AsynchronousRunnerSettings,
+    configs: ConfigStack,
 ) -> None:
     """A synchronous runner to perform train and evaluations in step.
 
     Args:
         wm (Wingman): wm
-        train_env_config (SAVecEnvConfig | MAEnvConfig): train_env_config
-        eval_env_config (SAVecEnvConfig | MAEnvConfig): eval_env_config
-        algorithm_config (AlgorithmConfig): algorithm_config
-        memory_config (ReplayBufferConfig): memory_config
-        interactor_config (EnvInteractorConfig): interactor_config
-        settings (SynchronousRunnerSettings): settings
+        configs (TaskConfig): configs
 
     Returns:
         None:
     """
+    train_env_config = configs.train_env_config
+    eval_env_config = configs.eval_env_config
+    algorithm_config = configs.algorithm_config
+    memory_config = configs.memory_config
+    interactor_config = configs.interactor_config
+    settings = configs.runner_settings
     assert isinstance(settings, SynchronousRunnerSettings)
 
     # instantiate everything

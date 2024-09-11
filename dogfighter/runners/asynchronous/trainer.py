@@ -1,22 +1,20 @@
 import json
 import math
 import os
+import subprocess
+import sys
 import tempfile
 import time
 import uuid
 from concurrent.futures import Future
 from concurrent.futures.process import ProcessPoolExecutor
-from pathlib import Path
-import sys
 
-import subprocess
 from wingman import Wingman
 
-from dogfighter.algorithms.base import AlgorithmConfig
-from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
-from dogfighter.runners.asynchronous_runner.base import (
-    AsynchronousRunnerSettings, CollectionResult, EvaluationResult, WorkerTaskType)
-from dogfighter.runners.synchronous_runner import SynchronousRunnerSettings
+from dogfighter.runners.asynchronous.base import (
+    AsynchronousRunnerSettings, CollectionResult, EvaluationResult,
+    WorkerTaskType)
+from dogfighter.runners.base import ConfigStack
 
 
 def submit_task(
@@ -57,11 +55,11 @@ def submit_task(
 
 def run_train(
     wm: Wingman,
-    algorithm_config: AlgorithmConfig,
-    memory_config: ReplayBufferConfig,
-    settings: SynchronousRunnerSettings | AsynchronousRunnerSettings,
+    configs: ConfigStack,
 ) -> None:
-    # we only want trainer settings
+    algorithm_config = configs.algorithm_config
+    memory_config = configs.memory_config
+    settings = configs.runner_settings
     assert isinstance(settings, AsynchronousRunnerSettings)
 
     # instantiate everything
@@ -171,7 +169,6 @@ def run_train(
 
                 else:
                     raise NotImplementedError
-
 
                 # clear the future from the list
                 del futures[future]

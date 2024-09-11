@@ -1,6 +1,6 @@
 from wingman import Wingman
 
-from dogfighter.algorithms.base import AlgorithmConfig
+from dogfighter.algorithms import KnownAlgorithmConfigs
 from dogfighter.algorithms.ccge import CCGEConfig
 from dogfighter.models.mlp.mlp_actor import MlpActorConfig
 from dogfighter.models.mlp.mlp_qu_network import MlpQUNetworkConfig
@@ -16,7 +16,7 @@ from dogfighter.models.transformer.prelndecoder_qu_network import \
     PreLNDecoderQUNetworkConfig
 
 
-def get_algorithm_config(wm: Wingman) -> AlgorithmConfig:
+def get_algorithm_config(wm: Wingman) -> KnownAlgorithmConfigs:
     if wm.cfg.algorithm.variant == "mlp":
         actor_config = MlpActorConfig(
             obs_size=wm.cfg.algorithm.obs_size,

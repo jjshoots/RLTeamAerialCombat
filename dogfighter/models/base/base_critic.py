@@ -5,7 +5,7 @@ from typing import Generic, TypeVar
 
 import torch
 import torch.nn as nn
-from pydantic import BaseModel
+from pydantic import BaseModel, StrictStr
 
 Observation = TypeVar("Observation")
 Action = TypeVar("Action")
@@ -13,6 +13,8 @@ Action = TypeVar("Action")
 
 class QUNetworkConfig(BaseModel):
     """QUNetworkConfig for creating QU Networks."""
+
+    variant: StrictStr
 
     @abstractmethod
     def instantiate(self) -> "QUNetwork":

@@ -1,5 +1,5 @@
 import time
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 import torch
@@ -18,6 +18,8 @@ from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 class MLPMAEnvInteractorConfig(EnvInteractorConfig):
+    variant: Literal["mlp_ma"] = "mlp_ma"  # pyright: ignore
+
     def get_collection_fn(self) -> CollectionFunctionProtocol:
         return mlp_ma_env_collect
 
@@ -56,7 +58,6 @@ def mlp_ma_env_collect(
     Returns:
         tuple[FlatReplayBuffer, dict[str, Any]]:
     """
-    assert isinstance(actor, MlpActor)
     assert isinstance(env, ParallelEnv)
     assert isinstance(memory, FlatReplayBuffer)
 
@@ -152,7 +153,6 @@ def mlp_ma_env_evaluate(
     Returns:
         tuple[float, dict[str, Any]]:
     """
-    assert isinstance(actor, MlpActor)
     assert isinstance(env, ParallelEnv)
 
     # set to eval and zero grad
@@ -228,7 +228,6 @@ def mlp_ma_env_display(
     Returns:
         None:
     """
-    assert isinstance(actor, MlpActor)
     assert isinstance(env, ParallelEnv)
 
     # set to eval and zero grad

@@ -1,3 +1,5 @@
+from typing import Literal
+
 import torch
 from pydantic import StrictInt
 from torch import nn
@@ -9,6 +11,7 @@ from dogfighter.models.mlp.blocks.simba_block import SimbaBlock
 class SimbaQUNetworkConfig(QUNetworkConfig):
     """SimbaQUNetworkConfig."""
 
+    variant: Literal["simba"] = "simba"  # pyright: ignore
     obs_size: StrictInt
     act_size: StrictInt
     embed_dim: StrictInt

@@ -10,6 +10,7 @@ from dogfighter.models.base.base_actor import Actor, ActorConfig
 class BasicMergeActorConfig(ActorConfig):
     """BasicMergeActorConfig."""
 
+    variant: Literal["basic_merge"] = "basic_merge"  # pyright: ignore
     src_size: StrictInt
     tgt_size: StrictInt
     act_size: StrictInt

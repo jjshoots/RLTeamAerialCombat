@@ -7,7 +7,8 @@ import torch.nn as nn
 from memorial import ReplayBuffer
 from pydantic import BaseModel, StrictBool, StrictStr
 
-from dogfighter.models.base.base_actor import Actor, ActorConfig
+from dogfighter.models import KnownActorConfigs
+from dogfighter.models.base.base_actor import Actor
 
 Observation = TypeVar("Observation")
 Action = TypeVar("Action")
@@ -16,8 +17,9 @@ Action = TypeVar("Action")
 class AlgorithmConfig(BaseModel):
     """AlgorithmConfig for instantiating an algorithm"""
 
+    variant: StrictStr
     compile: StrictBool
-    actor_config: ActorConfig
+    actor_config: KnownActorConfigs
     device: StrictStr
 
     @abstractmethod

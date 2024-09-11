@@ -1,4 +1,5 @@
 from dataclasses import field
+from typing import Literal
 
 import torch
 from pydantic import StrictInt
@@ -10,6 +11,7 @@ from dogfighter.models.base.base_actor import Actor, ActorConfig
 class MlpActorConfig(ActorConfig):
     """MlpActorConfig."""
 
+    variant: Literal["mlp"] = "mlp"  # pyright: ignore
     obs_size: StrictInt
     act_size: StrictInt
     embed_dim: StrictInt = field(default=256)
