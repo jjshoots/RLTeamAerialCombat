@@ -10,6 +10,20 @@ from setup_configs import get_all_configs
 
 
 def run_collection(wm: Wingman) -> None:
+    """Collection worker.
+
+    To run this, need to provide:
+    1. In a JSON:
+        - actor_weight_path (a filepath of where the weights for the actor are) [Optional]
+        - results_path (a filepath of where the results json should be placed)
+    2. The path to the JSON above as `wm.cfg.runner.worker.task_config_path`, through the CLI
+
+    The outputs of this function are:
+    1. CollectionResult
+        - The location of the collected replay buffer
+        - Collection info
+    2. The path to the JSON above is saved in `task_config.results_path`, specified from the input.
+    """
     # load all the configs for this run
     (
         train_env_config,
@@ -70,6 +84,15 @@ def run_evaluation(
     wm: Wingman,
     actor_weight_path: str,
 ) -> tuple[float, dict[str, Any]]:
+    """run_evaluation.
+
+    Args:
+        wm (Wingman): wm
+        actor_weight_path (str): actor_weight_path
+
+    Returns:
+        tuple[float, dict[str, Any]]:
+    """
     (
         train_env_config,
         eval_env_config,
