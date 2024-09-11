@@ -6,7 +6,7 @@ import time
 from wingman import Wingman
 
 from dogfighter.runners.asynchronous_runner.base import (
-    AsynchronousRunnerSettings, CollectionResult, EvaluationResult, TaskConfig)
+    AsynchronousRunnerSettings, CollectionResult, EvaluationResult)
 from setup_configs import get_all_configs
 
 
