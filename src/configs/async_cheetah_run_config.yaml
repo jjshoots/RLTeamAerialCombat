@@ -43,7 +43,7 @@ runner:
   mode: "trainer"  # trainer, worker
   max_workers: 2
 
-  transitions_eval_frequency: 8000
+  transitions_eval_frequency: 10000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000
   transitions_max: 10000000

@@ -1,19 +1,23 @@
-from dataclasses import dataclass, field
 import json
-from multiprocessing import Manager, Process
-from multiprocessing.managers import ListProxy
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import time
+from dataclasses import dataclass, field
+from multiprocessing import Manager, Process
+from multiprocessing.managers import ListProxy
+from pathlib import Path
 from typing import Generator
+from uuid import uuid4
 
 from pydantic import BaseModel, StrictBool, StrictFloat, StrictStr
-from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings, CollectionResult, EvaluationResult, WorkerTaskType
+
+from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
+                                                  CollectionResult,
+                                                  EvaluationResult,
+                                                  WorkerTaskType)
 from dogfighter.runners.base import ConfigStack
-from uuid import uuid4
 
 
 class _RunningTask(BaseModel):
@@ -26,12 +30,12 @@ class _RunningTask(BaseModel):
 
 @dataclass
 class TaskDispatcherConfig:
-
     config_stack: ConfigStack
     kill_on_error: StrictBool = True
     loop_interval_seconds: StrictFloat = 1.0
-    _work_dir_reference: tempfile.TemporaryDirectory[str] = field(default_factory=tempfile.TemporaryDirectory)
-
+    _work_dir_reference: tempfile.TemporaryDirectory[str] = field(
+        default_factory=tempfile.TemporaryDirectory
+    )
 
     def __del__(self) -> None:
         """Cleanup the working directory."""
@@ -53,6 +57,7 @@ class TaskDispatcherConfig:
 
 class TaskDispatcher:
     """A dispatcher that handles submitting collect and eval jobs asynchronously."""
+
     def __init__(self, config: TaskDispatcherConfig) -> None:
         """A dispatcher that handles submitting collect and eval jobs asynchronously."""
         runner_settings = config.config_stack.runner_settings
@@ -68,20 +73,25 @@ class TaskDispatcher:
         self._work_dir = config.work_dir
 
         # runtime variables
-        self._num_requested_evals: int = 0
         self._running_processes: dict[subprocess.Popen, _RunningTask] = dict()
 
-        # special case for completed tasks since we need to query it
+        # special case for variables that must be shared within the process
         self._manager = Manager()
-        self._completed_tasks: ListProxy[CollectionResult | EvaluationResult] = self._manager.list()
+        self._num_requested_evals = self._manager.Value("i", 0)
+        self._completed_tasks: ListProxy[CollectionResult | EvaluationResult] = (
+            self._manager.list()
+        )
 
         Process(target=self._start).start()
 
     @property
-    def completed_tasks(self) -> Generator[CollectionResult | EvaluationResult, None, None]:
+    def completed_tasks(
+        self,
+    ) -> Generator[CollectionResult | EvaluationResult, None, None]:
         """List of completed tasks. Once the task is queried, it is deleted."""
-        while self._completed_tasks:
-            yield self._completed_tasks.pop(0)
+        with self._manager.Lock():
+            while self._completed_tasks:
+                yield self._completed_tasks.pop(0)
 
     @property
     def _active_actor_weights_path(self) -> str:
@@ -93,7 +103,8 @@ class TaskDispatcher:
 
     def queue_eval(self) -> None:
         """Queues an eval task."""
-        self._num_requested_evals += 1
+        with self._manager.Lock():
+            self._num_requested_evals.value += 1
 
     def _start(self) -> None:
         """Starts the task dispatcher in an infinite loop.
@@ -109,9 +120,10 @@ class TaskDispatcher:
             self._query_processes()
 
             while len(self._running_processes) < self._max_workers:
-                if self._num_requested_evals > 0:
+                if self._num_requested_evals.value > 0:
                     self._submit_process(mode=WorkerTaskType.EVAL)
-                    self._num_requested_evals -= 1
+                    with self._manager.Lock():
+                        self._num_requested_evals.value -= 1
 
                 self._submit_process(mode=WorkerTaskType.COLLECT)
 
@@ -183,15 +195,11 @@ class TaskDispatcher:
 
             # if no error, record the output and break
             if result == 0:
-                with open(task.result_output_path, "r") as f:
+                with open(task.result_output_path, "r") as f, self._manager.Lock():
                     if task.task_type == WorkerTaskType.COLLECT:
-                        self._completed_tasks.append(
-                            CollectionResult(**json.load(f))
-                        )
+                        self._completed_tasks.append(CollectionResult(**json.load(f)))
                     elif task.task_type == WorkerTaskType.EVAL:
-                        self._completed_tasks.append(
-                            EvaluationResult(**json.load(f))
-                        )
+                        self._completed_tasks.append(EvaluationResult(**json.load(f)))
                     else:
                         raise NotImplementedError
 
@@ -209,11 +217,7 @@ class TaskDispatcher:
                     stdout = stdout.read().decode()
                 if stderr is not None:
                     stderr = stderr.read().decode()
-                printout = (
-                    "Subprocess has failed!\n\n"
-                    f"{stdout}\n\n"
-                    f"{stderr}"
-                )
+                printout = "Subprocess has failed!\n\n" f"{stdout}\n\n" f"{stderr}"
 
                 if self._kill_on_error:
                     raise subprocess.SubprocessError(printout)

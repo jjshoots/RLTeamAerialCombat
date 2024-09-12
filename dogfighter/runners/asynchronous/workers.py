@@ -1,7 +1,6 @@
 import json
 import os
 import tempfile
-import time
 
 from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
                                                   CollectionResult,

@@ -1,23 +1,16 @@
-import json
 import math
 import os
-import tempfile
 import time
-import uuid
-from concurrent.futures import Future
-from concurrent.futures.process import ProcessPoolExecutor
 
 from wingman import Wingman
 
-from dogfighter.runners.asynchronous import task_dispatcher
 from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
                                                   CollectionResult,
-                                                  EvaluationResult,
-                                                  IOSettings, WorkerTaskType)
-from dogfighter.runners.asynchronous.task_dispatcher import TaskDispatcher, TaskDispatcherConfig
+                                                  EvaluationResult)
+from dogfighter.runners.asynchronous.task_dispatcher import \
+    TaskDispatcherConfig
 from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.utils import AtomicFileWriter
-from multiprocessing import Process
 
 
 def run_train(
@@ -65,19 +58,15 @@ def run_train(
                 with open(result.memory_path, "r+b") as f:
                     memory.merge(type(memory).load(f))
                 os.remove(result.memory_path)
-
-                # update the log
-                wm.log.update(
-                    {f"collect/{k}": v for k, v in result.info.items()}
-                )
+                wm.log.update({f"collect/{k}": v for k, v in result.info.items()})
 
             # collect eval
             elif isinstance(result, EvaluationResult):
-                eval_score, info = result.score, result.info
+                eval_score = result.score
                 max_eval_score = max(max_eval_score, eval_score)
                 wm.log["eval/score"] = eval_score
                 wm.log["eval/max_score"] = max_eval_score
-                wm.log.update({f"eval/{k}": v for k, v in info.items()})
+                wm.log.update({f"eval/{k}": v for k, v in result.info.items()})
 
             else:
                 raise NotImplementedError
