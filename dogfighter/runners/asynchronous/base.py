@@ -42,8 +42,7 @@ class WorkerSettings(BaseModel):
 
 class AsynchronousRunnerSettings(BaseModel):
     mode: Literal["trainer", "worker"]
-    num_parallel_workers: StrictInt
-    max_tasks_in_queue: StrictInt
+    max_workers: StrictInt
 
     transitions_eval_frequency: StrictInt
     transitions_num_exploration: StrictInt
