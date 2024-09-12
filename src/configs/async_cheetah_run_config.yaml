@@ -16,11 +16,11 @@ replay_buffer:
 algorithm:
   variant: "mlp"
   actor:
-    variant: "mlp"
+    variant: "simba"
     embed_dim: 64
     num_blocks: 1
   critic:
-    variant: "mlp"
+    variant: "simba"
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
@@ -41,8 +41,8 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
-  num_parallel_workers: 8
-  max_tasks_in_queue: 32
+  num_parallel_workers: 2
+  max_tasks_in_queue: 64
 
   transitions_eval_frequency: 8000
   transitions_num_exploration: 25000

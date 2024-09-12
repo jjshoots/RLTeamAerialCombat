@@ -45,9 +45,6 @@ def train(wm: Wingman) -> None:
     else:
         raise NotImplementedError
 
-    print(eval_env_config)
-    exit()
-
     # algorithm and memory
     algorithm_config = get_algorithm_config(wm)
     memory_config = ReplayBufferConfig(
