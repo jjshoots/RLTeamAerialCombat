@@ -156,8 +156,6 @@ def run_train(
                         memory.merge(type(memory).load(f))
                     os.remove(collection_result.memory_path)
 
-                    print("Collect Task Collected!")
-
                     # update the log
                     wm.log.update(
                         {f"collect/{k}": v for k, v in collection_result.info.items()}
@@ -175,7 +173,6 @@ def run_train(
                     wm.log["eval/score"] = eval_score
                     wm.log["eval/max_score"] = max_eval_score
                     wm.log.update({f"eval/{k}": v for k, v in info.items()})
-                    print("Eval Task Collected!")
 
                 else:
                     raise NotImplementedError

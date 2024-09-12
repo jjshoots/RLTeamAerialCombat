@@ -24,7 +24,7 @@ algorithm:
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
-  batch_size: 2048
+  batch_size: 4096
   grad_steps_per_update: 1000
   actor_learning_rate: 0.003
   critic_learning_rate: 0.003
@@ -50,7 +50,7 @@ runner:
   transitions_max: 10000000
 
   trainer:
-    steps_per_epoch: 2000
+    steps_per_epoch: 1000
   worker:
     task: "null" # collect, eval
     actor_weights_path: ""
