@@ -1,7 +1,7 @@
 # env params
 env:
-  id: "dm_control/cheetah-run-v0"
   variant: "mlp_sa_env"
+  id: "dm_control/cheetah-run-v0"
   num_envs: 8
 
 # replay buffer params
@@ -14,11 +14,13 @@ replay_buffer:
 
 # algorithm params
 algorithm:
-  variant: "simba"
+  variant: "mlp"
   actor:
+    variant: "simba"
     embed_dim: 64
     num_blocks: 1
   critic:
+    variant: "simba"
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2

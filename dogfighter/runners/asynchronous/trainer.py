@@ -15,20 +15,24 @@ from wingman import Wingman
 from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
                                                   CollectionResult,
                                                   EvaluationResult,
-                                                  WorkerTaskType)
+                                                  TaskIOConfig, WorkerTaskType)
 from dogfighter.runners.base import ConfigStack
+from dogfighter.runners.utils import AtomicFileWriter
 
 
-def submit_task(
+def _submit_task(
     mode: WorkerTaskType,
-    actor_weights_path: str,
-    result_output_path: str,
+    task_io_config: TaskIOConfig,
     configs: ConfigStack,
-) -> str:
+) -> TaskIOConfig:
     task_config = configs.model_dump()
     task_config["runner_settings"]["mode"] = "worker"
-    task_config["runner_settings"]["worker"]["actor_weights_path"] = actor_weights_path
-    task_config["runner_settings"]["worker"]["result_output_path"] = result_output_path
+    task_config["runner_settings"]["worker"]["task_io"]["actor_weights_path"] = (
+        task_io_config.actor_weights_path
+    )
+    task_config["runner_settings"]["worker"]["task_io"]["result_output_path"] = (
+        task_io_config.result_output_path
+    )
     if mode == WorkerTaskType.COLLECT:
         task_config["runner_settings"]["worker"]["task"] = "collect"
     elif mode == WorkerTaskType.EVAL:
@@ -60,7 +64,7 @@ def submit_task(
         print(f"Error: {result.stderr}")
         print(f"Error: {result.stdout}")
 
-    return result_output_path
+    return task_io_config
 
 
 def run_train(
@@ -92,23 +96,20 @@ def run_train(
     with ProcessPoolExecutor(
         max_workers=settings.num_parallel_workers
     ) as exe, tempfile.TemporaryDirectory() as tmp_dir:
+        actor_weights_path = ""
+
         while memory.count <= settings.transitions_max:
             """TASK ASSIGNMENT"""
             # conditionally add an eval task, this goes on before the collect tasks
             if memory.count >= next_eval_step:
-                # form the actor_weights_path and result_output_path
-                _task_uuid = uuid.uuid4()
-                result_output_path = f"{tmp_dir}/{_task_uuid}_collect_results.pth"
-                actor_weights_path = f"{tmp_dir}/{_task_uuid}_actor_weights.pth"
-                algorithm.actor.save(actor_weights_path)
-
-                # assign the task
                 futures[
                     exe.submit(
-                        submit_task,
+                        _submit_task,
                         mode=WorkerTaskType.EVAL,
-                        actor_weights_path=actor_weights_path,
-                        result_output_path=result_output_path,
+                        task_io_config=TaskIOConfig(
+                            actor_weights_path=actor_weights_path,
+                            result_output_path=f"{tmp_dir}/{uuid.uuid4()}_result.json",
+                        ),
                         configs=configs,
                     )
                 ] = WorkerTaskType.EVAL
@@ -118,22 +119,14 @@ def run_train(
 
             # add as many collect tasks as needed
             while len(futures) < settings.max_tasks_in_queue:
-                # form the actor_weights_path and result_output_path
-                _task_uuid = uuid.uuid4()
-                result_output_path = f"{tmp_dir}/{_task_uuid}_collect_results.pth"
-                if memory.count >= settings.transitions_num_exploration:
-                    actor_weights_path = f"{tmp_dir}/{_task_uuid}_actor_weights.pth"
-                    algorithm.actor.save(actor_weights_path)
-                else:
-                    actor_weights_path = ""
-
-                # assign the task
                 futures[
                     exe.submit(
-                        submit_task,
+                        _submit_task,
                         mode=WorkerTaskType.COLLECT,
-                        actor_weights_path=actor_weights_path,
-                        result_output_path=result_output_path,
+                        task_io_config=TaskIOConfig(
+                            actor_weights_path=actor_weights_path,
+                            result_output_path=f"{tmp_dir}/{uuid.uuid4()}_result.json",
+                        ),
                         configs=configs,
                     )
                 ] = WorkerTaskType.COLLECT
@@ -147,14 +140,14 @@ def run_train(
 
                 # collect memory from workers
                 if futures[future] == WorkerTaskType.COLLECT:
-                    # load the results
-                    with open(future.result(), "r") as f:
+                    # load the results, merge the memory, cleanup
+                    result_path = future.result().result_output_path
+                    with open(result_path, "r") as f:
                         collection_result = CollectionResult(**json.load(f))
-
-                    # merge the memory and cleanup
                     with open(collection_result.memory_path, "r+b") as f:
                         memory.merge(type(memory).load(f))
                     os.remove(collection_result.memory_path)
+                    os.remove(result_path)
 
                     # update the log
                     wm.log.update(
@@ -163,9 +156,11 @@ def run_train(
 
                 # collect eval score from workers
                 elif futures[future] == WorkerTaskType.EVAL:
-                    # load the results
-                    with open(future.result(), "r") as f:
+                    # load the results, cleanup
+                    result_path = future.result().result_output_path
+                    with open(result_path, "r") as f:
                         evaluation_result = EvaluationResult(**json.load(f))
+                    os.remove(result_path)
 
                     # splice out the info and add to log
                     eval_score, info = evaluation_result.score, evaluation_result.info
@@ -197,6 +192,10 @@ def run_train(
             )
             info = algorithm.update(memory=memory)
             wm.log.update({f"train/{k}": v for k, v in info.items()})
+
+            # update the actor weights for workers, use a rename to prevent race
+            with AtomicFileWriter(f"{tmp_dir}/actor_weights.pth") as f:
+                algorithm.actor.save(f)
 
             # save weights
             to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)

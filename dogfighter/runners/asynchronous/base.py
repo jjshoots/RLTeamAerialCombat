@@ -1,3 +1,4 @@
+from dataclasses import field
 from enum import Enum
 from typing import Literal
 
@@ -27,12 +28,16 @@ class TrainerSettings(BaseModel):
     steps_per_epoch: StrictInt
 
 
+class TaskIOConfig(BaseModel):
+    actor_weights_path: StrictStr = ""
+    result_output_path: StrictStr = "/dev/null"
+
+
 class WorkerSettings(BaseModel):
     task: Literal["collect", "eval", "null"]
-    actor_weights_path: StrictStr
-    result_output_path: StrictStr
     collect_num_transitions: StrictInt
     eval_num_episodes: StrictInt
+    task_io: TaskIOConfig = field(default_factory=TaskIOConfig)
 
 
 class AsynchronousRunnerSettings(BaseModel):

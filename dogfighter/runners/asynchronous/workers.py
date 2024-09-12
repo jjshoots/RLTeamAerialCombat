@@ -7,6 +7,7 @@ from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
                                                   CollectionResult,
                                                   EvaluationResult)
 from dogfighter.runners.base import ConfigStack
+from dogfighter.runners.utils import AtomicFileWriter
 
 
 def run_collection(
@@ -49,16 +50,15 @@ def run_collection(
     ).instantiate()
 
     # load the weights file and clean up
-    if settings.worker.actor_weights_path:
-        actor.load(settings.worker.actor_weights_path)
-        os.remove(settings.worker.actor_weights_path)
+    if settings.worker.task_io.actor_weights_path:
+        actor.load(settings.worker.task_io.actor_weights_path)
 
     # run a collect task
     memory, info = collection_fn(
         actor=actor,
         env=env,
         memory=memory,
-        use_random_actions=bool(settings.worker.actor_weights_path),
+        use_random_actions=bool(settings.worker.task_io.actor_weights_path),
         num_transitions=settings.worker.collect_num_transitions,
     )
 
@@ -74,11 +74,10 @@ def run_collection(
         info=info,
     )
 
-    temp_path = f"{settings.worker.result_output_path}.temp.json"
-    with open(temp_path, "w") as f:
-        json.dump(result.model_dump(), f)
-        time.sleep(1)
-    os.rename(temp_path, settings.worker.result_output_path)
+    # dump the pointer to disk
+    with AtomicFileWriter(settings.worker.task_io.result_output_path) as f:
+        with open(f, "w") as fw:
+            json.dump(result.model_dump(), fw)
 
 
 def run_evaluation(
@@ -117,9 +116,8 @@ def run_evaluation(
     actor.to(algorithm_config.device)
 
     # load the weights file and clean up
-    if settings.worker.actor_weights_path:
-        actor.load(settings.worker.actor_weights_path)
-        os.remove(settings.worker.actor_weights_path)
+    if settings.worker.task_io.actor_weights_path:
+        actor.load(settings.worker.task_io.actor_weights_path)
 
     # run an eval task
     eval_score, info = evaluation_fn(
@@ -134,10 +132,7 @@ def run_evaluation(
         info=info,
     )
 
-    # dump the pointer to disk, we do a write, then rename
-    # this way, the file can't be read while it's being written
-    temp_path = f"{settings.worker.result_output_path}.temp.json"
-    with open(temp_path, "w") as f:
-        json.dump(result.model_dump(), f)
-        time.sleep(1)
-    os.rename(temp_path, settings.worker.result_output_path)
+    # dump the pointer to disk
+    with AtomicFileWriter(settings.worker.task_io.result_output_path) as f:
+        with open(f, "w") as fw:
+            json.dump(result.model_dump(), fw)

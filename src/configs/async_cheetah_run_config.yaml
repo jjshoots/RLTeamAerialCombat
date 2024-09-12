@@ -2,11 +2,11 @@
 env:
   variant: "mlp_sa_env"
   id: "dm_control/cheetah-run-v0"
-  num_envs: 16
+  num_envs: 8
 
 # replay buffer params
 replay_buffer:
-  mem_size: 2000000
+  mem_size: 500000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -24,7 +24,7 @@ algorithm:
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
-  batch_size: 4096
+  batch_size: 2048
   grad_steps_per_update: 1000
   actor_learning_rate: 0.003
   critic_learning_rate: 0.003
@@ -42,19 +42,17 @@ runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
   num_parallel_workers: 2
-  max_tasks_in_queue: 16
+  max_tasks_in_queue: 2
 
   transitions_eval_frequency: 8000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000
-  transitions_max: 50000000
+  transitions_max: 10000000
 
   trainer:
-    steps_per_epoch: 1000
+    steps_per_epoch: 2000
   worker:
     task: "null" # collect, eval
-    actor_weights_path: ""
-    result_output_path: "/dev/null"
     collect_num_transitions: 20000
     eval_num_episodes: 16
 
