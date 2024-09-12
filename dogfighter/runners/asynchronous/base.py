@@ -28,7 +28,7 @@ class TrainerSettings(BaseModel):
     steps_per_epoch: StrictInt
 
 
-class TaskIOConfig(BaseModel):
+class IOSettings(BaseModel):
     actor_weights_path: StrictStr = ""
     result_output_path: StrictStr = "/dev/null"
 
@@ -37,7 +37,7 @@ class WorkerSettings(BaseModel):
     task: Literal["collect", "eval", "null"]
     collect_num_transitions: StrictInt
     eval_num_episodes: StrictInt
-    task_io: TaskIOConfig = field(default_factory=TaskIOConfig)
+    io: IOSettings = field(default_factory=IOSettings)
 
 
 class AsynchronousRunnerSettings(BaseModel):

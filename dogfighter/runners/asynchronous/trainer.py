@@ -15,23 +15,23 @@ from wingman import Wingman
 from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
                                                   CollectionResult,
                                                   EvaluationResult,
-                                                  TaskIOConfig, WorkerTaskType)
+                                                  IOSettings, WorkerTaskType)
 from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.utils import AtomicFileWriter
 
 
 def _submit_task(
     mode: WorkerTaskType,
-    task_io_config: TaskIOConfig,
+    io_settings: IOSettings,
     configs: ConfigStack,
-) -> TaskIOConfig:
+) -> IOSettings:
     task_config = configs.model_dump()
     task_config["runner_settings"]["mode"] = "worker"
-    task_config["runner_settings"]["worker"]["task_io"]["actor_weights_path"] = (
-        task_io_config.actor_weights_path
+    task_config["runner_settings"]["worker"]["io"]["actor_weights_path"] = (
+        io_settings.actor_weights_path
     )
-    task_config["runner_settings"]["worker"]["task_io"]["result_output_path"] = (
-        task_io_config.result_output_path
+    task_config["runner_settings"]["worker"]["io"]["result_output_path"] = (
+        io_settings.result_output_path
     )
     if mode == WorkerTaskType.COLLECT:
         task_config["runner_settings"]["worker"]["task"] = "collect"
@@ -64,7 +64,7 @@ def _submit_task(
         print(f"Error: {result.stderr}")
         print(f"Error: {result.stdout}")
 
-    return task_io_config
+    return io_settings
 
 
 def run_train(
@@ -106,7 +106,7 @@ def run_train(
                     exe.submit(
                         _submit_task,
                         mode=WorkerTaskType.EVAL,
-                        task_io_config=TaskIOConfig(
+                        io_settings=IOSettings(
                             actor_weights_path=actor_weights_path,
                             result_output_path=f"{tmp_dir}/{uuid.uuid4()}_result.json",
                         ),
@@ -123,7 +123,7 @@ def run_train(
                     exe.submit(
                         _submit_task,
                         mode=WorkerTaskType.COLLECT,
-                        task_io_config=TaskIOConfig(
+                        io_settings=IOSettings(
                             actor_weights_path=actor_weights_path,
                             result_output_path=f"{tmp_dir}/{uuid.uuid4()}_result.json",
                         ),
@@ -194,7 +194,8 @@ def run_train(
             wm.log.update({f"train/{k}": v for k, v in info.items()})
 
             # update the actor weights for workers, use a rename to prevent race
-            with AtomicFileWriter(f"{tmp_dir}/actor_weights.pth") as f:
+            actor_weights_path = f"{tmp_dir}/actor_weights.pth"
+            with AtomicFileWriter(actor_weights_path) as f:
                 algorithm.actor.save(f)
 
             # save weights
