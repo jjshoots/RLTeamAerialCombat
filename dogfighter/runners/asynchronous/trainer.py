@@ -47,10 +47,18 @@ def submit_task(
         command.append("--task_file")
         command.append(f.name)
 
-        print(command)
-
         # Run the command
-        subprocess.run(command)
+        result = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+    # print error if subprocess errors out
+    if result.returncode != 0:
+        print(f"Error: {result.stderr}")
+        print(f"Error: {result.stdout}")
 
     return result_output_path
 
