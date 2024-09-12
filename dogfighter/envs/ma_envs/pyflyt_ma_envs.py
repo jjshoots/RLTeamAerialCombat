@@ -3,8 +3,6 @@ from typing import Literal
 from pettingzoo import ParallelEnv
 
 from dogfighter.envs.ma_envs.base import MAEnvConfig
-from dogfighter.envs.ma_envs.wrappers.dogfight_transformer import \
-    MAFixedwingDogfightTransformerEnvV2
 
 
 class PyFlytMAEnvConfig(MAEnvConfig):
@@ -20,6 +18,9 @@ class PyFlytMAEnvConfig(MAEnvConfig):
                     **self.env_kwargs,
                 )
             else:
+                from dogfighter.envs.ma_envs.wrappers.dogfight_transformer import \
+                    MAFixedwingDogfightTransformerEnvV2
+
                 env = MAFixedwingDogfightTransformerEnvV2(
                     render_mode=self.render_mode,
                     **self.env_kwargs,

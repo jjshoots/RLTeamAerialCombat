@@ -4,28 +4,68 @@ from signal import SIGINT, signal
 from wingman import Wingman
 from wingman.utils import shutdown_handler
 
-from dogfighter.env_interactors.mlp_ma_env_interactor import mlp_ma_env_display
-from dogfighter.env_interactors.mlp_sa_vec_env_interactor import \
-    mlp_sa_env_display
-from dogfighter.env_interactors.transformer_ma_env_interactor import \
-    transformer_ma_env_display
+from dogfighter.env_interactors.mlp_ma_env_interactor import (
+    MLPMAEnvInteractorConfig, mlp_ma_env_display)
+from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
+    MLPSAEnvInteractorConfig, mlp_sa_env_display)
+from dogfighter.env_interactors.transformer_ma_env_interactor import (
+    TransformerMAEnvInteractorConfig, transformer_ma_env_display)
+from dogfighter.envs.sa_vec_env import SAVecEnvConfig
+from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
+from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
 from dogfighter.runners.asynchronous.runner import run_asynchronous
 from dogfighter.runners.base import ConfigStack
+from dogfighter.runners.synchronous.base import SynchronousRunnerSettings
 from dogfighter.runners.synchronous.runner import run_synchronous
 from setup_algorithms import get_algorithm_config
-from setup_configs import get_all_configs
-from setup_envs import get_mlp_sa_env_config, get_transformer_ma_env_config
+from setup_envs import (get_mlp_ma_env_config, get_mlp_sa_env_config,
+                        get_transformer_ma_env_config)
 
 
 def train(wm: Wingman) -> None:
-    (
-        train_env_config,
-        eval_env_config,
-        interactor_config,
-        algorithm_config,
-        memory_config,
-        runner_settings,
-    ) = get_all_configs(wm)
+    # get env and interactors
+    if wm.cfg.env.variant == "mlp_sa_env":
+        train_env_config = SAVecEnvConfig(
+            sa_env_config=get_mlp_sa_env_config(wm),
+            num_envs=wm.cfg.env.num_envs,
+        )
+        eval_env_config = SAVecEnvConfig(
+            sa_env_config=get_mlp_sa_env_config(wm),
+            num_envs=wm.cfg.env.num_envs,
+        )
+        interactor_config = MLPSAEnvInteractorConfig()
+    elif wm.cfg.env.variant == "mlp_ma_env":
+        train_env_config = get_mlp_ma_env_config(wm)
+        eval_env_config = get_mlp_ma_env_config(wm)
+        interactor_config = MLPMAEnvInteractorConfig()
+    elif wm.cfg.env.variant == "transformer_ma_env":
+        train_env_config = get_transformer_ma_env_config(wm)
+        eval_env_config = get_transformer_ma_env_config(wm)
+        interactor_config = TransformerMAEnvInteractorConfig()
+    else:
+        raise NotImplementedError
+
+    print(eval_env_config)
+    exit()
+
+    # algorithm and memory
+    algorithm_config = get_algorithm_config(wm)
+    memory_config = ReplayBufferConfig(
+        mem_size=wm.cfg.replay_buffer.mem_size,
+        mode=wm.cfg.replay_buffer.mode,
+        device=str(wm.device),
+        use_dict_wrapper=wm.cfg.replay_buffer.use_dict_wrapper,
+        store_on_device=wm.cfg.replay_buffer.store_on_device,
+        random_rollover=wm.cfg.replay_buffer.random_rollover,
+    )
+
+    # runner
+    if wm.cfg.runner.variant == "async":
+        runner_settings = AsynchronousRunnerSettings(**wm.cfg.runner.to_dict())
+    elif wm.cfg.runner.variant == "sync":
+        runner_settings = SynchronousRunnerSettings(**wm.cfg.runner.to_dict())
+    else:
+        raise NotImplementedError
 
     configs = ConfigStack(
         train_env_config=train_env_config,

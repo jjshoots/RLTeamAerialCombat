@@ -13,11 +13,17 @@ class SAVecEnvConfig(BaseModel):
     def instantiate(self) -> VectorEnv:
         if self.num_envs == 1:
             return SyncVectorEnv(
-                [lambda _=i: self.sa_env_config.instantiate() for i in range(self.num_envs)]
+                [
+                    lambda _=i: self.sa_env_config.instantiate()
+                    for i in range(self.num_envs)
+                ]
             )
         elif self.num_envs > 1:
             return AsyncVectorEnv(
-                [lambda _=i: self.sa_env_config.instantiate() for i in range(self.num_envs)]
+                [
+                    lambda _=i: self.sa_env_config.instantiate()
+                    for i in range(self.num_envs)
+                ]
             )
         else:
             raise ValueError(f"`num_envs` ({self.num_envs}) must be more than 1")
