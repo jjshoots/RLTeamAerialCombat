@@ -32,6 +32,11 @@ class TaskDispatcherConfig:
     loop_interval_seconds: StrictFloat = 1.0
     _work_dir_reference: tempfile.TemporaryDirectory[str] = field(default_factory=tempfile.TemporaryDirectory)
 
+
+    def __del__(self) -> None:
+        """Cleanup the working directory."""
+        self._work_dir_reference.cleanup()
+
     @property
     def work_dir(self) -> str:
         return self._work_dir_reference.name
@@ -71,10 +76,6 @@ class TaskDispatcher:
         self._completed_tasks: ListProxy[CollectionResult | EvaluationResult] = self._manager.list()
 
         Process(target=self._start).start()
-
-    def __del__(self) -> None:
-        """Cleanup the working directory."""
-        self._work_dir.cleanup()
 
     @property
     def completed_tasks(self) -> Generator[CollectionResult | EvaluationResult, None, None]:
