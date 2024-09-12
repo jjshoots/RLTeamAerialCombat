@@ -2,11 +2,11 @@
 env:
   variant: "mlp_sa_env"
   id: "dm_control/cheetah-run-v0"
-  num_envs: 8
+  num_envs: 16
 
 # replay buffer params
 replay_buffer:
-  mem_size: 500000
+  mem_size: 2000000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -42,12 +42,12 @@ runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
   num_parallel_workers: 2
-  max_tasks_in_queue: 64
+  max_tasks_in_queue: 16
 
   transitions_eval_frequency: 8000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000
-  transitions_max: 10000000
+  transitions_max: 50000000
 
   trainer:
     steps_per_epoch: 1000

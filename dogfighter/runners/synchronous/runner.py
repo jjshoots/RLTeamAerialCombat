@@ -1,10 +1,14 @@
 import math
 import time
+from signal import SIGINT, signal
 
 from wingman import Wingman
+from wingman.utils import shutdown_handler
 
 from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.synchronous.base import SynchronousRunnerSettings
+
+signal(SIGINT, shutdown_handler)
 
 
 def run_synchronous(
