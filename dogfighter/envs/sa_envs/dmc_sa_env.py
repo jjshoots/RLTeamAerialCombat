@@ -1,9 +1,13 @@
+from typing import Literal
+
 import gymnasium as gym
 
-from dogfighter.envs.base import SAEnvConfig
+from dogfighter.envs.sa_envs.base import SAEnvConfig
 
 
 class DMCSAEnvConfig(SAEnvConfig):
+    variant: Literal["dmc_sa_env"] = "dmc_sa_env"  # pyright: ignore
+
     def instantiate(self) -> gym.Env:
         import shimmy
         from gymnasium.wrappers import FlattenObservation

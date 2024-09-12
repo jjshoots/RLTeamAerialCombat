@@ -1,11 +1,13 @@
 from wingman import Wingman
 
-from dogfighter.envs.base import MAEnvConfig, SAEnvConfig
-from sa_envs.dmc_envs import DMCSAEnvConfig
-from sa_envs.pyflyt_envs import PyFlytMAEnvConfig, PyFlytSAEnvConfig
+from dogfighter.envs.ma_envs import KnownMAEnvConfigs
+from dogfighter.envs.ma_envs.pyflyt_ma_envs import PyFlytMAEnvConfig
+from dogfighter.envs.sa_envs import KnownSAEnvConfigs
+from dogfighter.envs.sa_envs.dmc_sa_env import DMCSAEnvConfig
+from dogfighter.envs.sa_envs.pyflyt_sa_envs import PyFlytSAEnvConfig
 
 
-def get_mlp_sa_env_config(wm: Wingman) -> SAEnvConfig:
+def get_mlp_sa_env_config(wm: Wingman) -> KnownSAEnvConfigs:
     if wm.cfg.env.id.startswith("PyFlyt"):
         env_config = PyFlytSAEnvConfig(
             env_id=wm.cfg.env.id,
@@ -35,7 +37,7 @@ def get_mlp_sa_env_config(wm: Wingman) -> SAEnvConfig:
     return env_config
 
 
-def get_mlp_ma_env_config(wm: Wingman) -> MAEnvConfig:
+def get_mlp_ma_env_config(wm: Wingman) -> KnownMAEnvConfigs:
     env_config = PyFlytMAEnvConfig(
         env_id=wm.cfg.env.id,
         render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
@@ -56,7 +58,7 @@ def get_mlp_ma_env_config(wm: Wingman) -> MAEnvConfig:
     return env_config
 
 
-def get_transformer_ma_env_config(wm: Wingman) -> MAEnvConfig:
+def get_transformer_ma_env_config(wm: Wingman) -> KnownMAEnvConfigs:
     env_config = PyFlytMAEnvConfig(
         env_id=wm.cfg.env.id,
         render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,

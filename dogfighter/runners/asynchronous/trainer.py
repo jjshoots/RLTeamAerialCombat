@@ -1,7 +1,6 @@
 import json
 import math
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
@@ -9,6 +8,7 @@ import time
 import uuid
 from concurrent.futures import Future
 from concurrent.futures.process import ProcessPoolExecutor
+from pathlib import Path
 
 from wingman import Wingman
 

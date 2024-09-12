@@ -9,7 +9,7 @@ from dogfighter.env_interactors.mlp_sa_vec_env_interactor import \
 from dogfighter.env_interactors.transformer_ma_env_interactor import \
     TransformerMAEnvInteractorConfig
 from dogfighter.envs import KnownEnvConfigs
-from dogfighter.envs.base import SAVecEnvConfig
+from dogfighter.envs.sa_vec_env import SAVecEnvConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
 from dogfighter.runners import KnownRunnerSettings
 from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
