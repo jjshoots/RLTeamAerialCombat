@@ -18,8 +18,8 @@ def run_train(
 ) -> None:
     algorithm_config = configs.algorithm_config
     memory_config = configs.memory_config
-    settings = configs.runner_settings
-    assert isinstance(settings, AsynchronousRunnerSettings)
+    assert isinstance(configs.runner_settings, AsynchronousRunnerSettings)
+    settings = configs.runner_settings.trainer_settings
 
     # instantiate everything
     algorithm = algorithm_config.instantiate()

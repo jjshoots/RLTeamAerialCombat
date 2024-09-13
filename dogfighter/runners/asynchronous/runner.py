@@ -46,9 +46,9 @@ if __name__ == "__main__":
     assert isinstance(configs.runner_settings, AsynchronousRunnerSettings)
 
     if configs.runner_settings.mode == "worker":
-        if configs.runner_settings.worker.task == "collect":
+        if configs.runner_settings.worker_settings.task == "collect":
             run_collection(configs=configs)
-        elif configs.runner_settings.worker.task == "eval":
+        elif configs.runner_settings.worker_settings.task == "eval":
             run_evaluation(configs=configs)
         else:
             raise NotImplementedError

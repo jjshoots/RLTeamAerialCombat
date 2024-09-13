@@ -24,10 +24,6 @@ class EvaluationResult(BaseModel):
 #############################################################
 
 
-class TrainerSettings(BaseModel):
-    steps_per_epoch: StrictInt
-
-
 class IOSettings(BaseModel):
     actor_weights_path: StrictStr = ""
     result_output_path: StrictStr = "/dev/null"
@@ -40,17 +36,19 @@ class WorkerSettings(BaseModel):
     io: IOSettings = field(default_factory=IOSettings)
 
 
-class AsynchronousRunnerSettings(BaseModel):
-    mode: Literal["trainer", "worker"]
-    max_workers: StrictInt
-
+class TrainerSettings(BaseModel):
     transitions_eval_frequency: StrictInt
     transitions_num_exploration: StrictInt
     transitions_min_for_train: StrictInt
     transitions_max: StrictInt
 
-    trainer: TrainerSettings
-    worker: WorkerSettings
+
+class AsynchronousRunnerSettings(BaseModel):
+    mode: Literal["trainer", "worker"]
+    max_workers: StrictInt
+
+    trainer_settings: TrainerSettings
+    worker_settings: WorkerSettings
 
 
 #############################################################
