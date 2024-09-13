@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Literal
+from typing import Literal, cast
 
 import torch
 from pydantic import StrictInt
@@ -9,6 +9,7 @@ from dogfighter.models.critics import (
     UncertaintyAwareCritic,
     UncertaintyAwareCriticConfig,
 )
+from dogfighter.models.mdp_types import MlpObservation, Observation
 
 
 class MlpQUNetworkConfig(UncertaintyAwareCriticConfig):
@@ -48,7 +49,7 @@ class MlpQUNetwork(UncertaintyAwareCritic):
 
     def forward(
         self,
-        obs: torch.Tensor,
+        obs: Observation,
         act: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
@@ -60,6 +61,7 @@ class MlpQUNetwork(UncertaintyAwareCritic):
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
+        obs = cast(MlpObservation, obs)
 
         # if we have multiple actions per observation, stack the observation
         if len(act.shape) != len(obs.shape):

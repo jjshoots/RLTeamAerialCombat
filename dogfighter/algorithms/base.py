@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, ClassVar, Generic
+from typing import ClassVar
 
 import torch
 import torch.nn as nn
@@ -9,7 +9,6 @@ from pydantic import BaseModel, StrictBool, StrictStr
 
 from dogfighter.models import KnownActorConfigs
 from dogfighter.models.actors import GaussianActor
-from dogfighter.models.mdp_types import Action, Observation
 
 
 class AlgorithmConfig(BaseModel):
@@ -42,7 +41,7 @@ class AlgorithmConfig(BaseModel):
         cls._registry.add(variant)
 
 
-class Algorithm(nn.Module, Generic[Observation, Action]):
+class Algorithm(nn.Module):
     """Algorithm."""
 
     @property
@@ -67,7 +66,7 @@ class Algorithm(nn.Module, Generic[Observation, Action]):
     def update(
         self,
         memory: ReplayBuffer,
-    ) -> dict[str, Any]:
+    ) -> dict[str, int | float | bool | str]:
         """update.
 
         Args:

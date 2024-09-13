@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, cast
 
 import torch
 from pydantic import StrictInt
@@ -8,6 +8,7 @@ from dogfighter.models.critics import (
     UncertaintyAwareCritic,
     UncertaintyAwareCriticConfig,
 )
+from dogfighter.models.mdp_types import Action, Observation, TransformerObservation
 
 
 class BasicMergeQUNetworkConfig(UncertaintyAwareCriticConfig):
@@ -55,8 +56,8 @@ class BasicMergeQUNetwork(UncertaintyAwareCritic):
 
     def forward(
         self,
-        obs: dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor],
-        act: torch.Tensor,
+        obs: Observation,
+        act: Action,
     ) -> torch.Tensor:
         """forward.
 
@@ -71,6 +72,8 @@ class BasicMergeQUNetwork(UncertaintyAwareCritic):
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
+        obs = cast(TransformerObservation, obs)
+
         # shape of src/tgt_embed is [batch_size, obs_size]
         # shape of act_embed is [batch_size, act_size] or [num_actions, batch_size, act_size]
         src_embed = torch.mean(

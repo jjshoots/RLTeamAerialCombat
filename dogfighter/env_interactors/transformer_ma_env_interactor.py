@@ -19,15 +19,41 @@ from dogfighter.models.base import Actor
 
 
 class TransformerMAEnvInteractorConfig(EnvInteractorConfig):
+    """TransformerMAEnvInteractorConfig.
+
+    An interactor for multiagent environments with Box space observations.
+    """
+
     variant: Literal["transformer_ma"] = "transformer_ma"  # pyright: ignore
 
     def get_collection_fn(self) -> CollectionFunctionProtocol:
+        """get_collection_fn.
+
+        Args:
+
+        Returns:
+            CollectionFunctionProtocol:
+        """
         return transformer_ma_env_collect
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
+        """get_evaluation_fn.
+
+        Args:
+
+        Returns:
+            EvaluationFunctionProtocol:
+        """
         return transformer_ma_env_evaluate
 
     def get_display_fn(self) -> DisplayFunctionProtocol:
+        """get_display_fn.
+
+        Args:
+
+        Returns:
+            DisplayFunctionProtocol:
+        """
         return transformer_ma_env_display
 
 

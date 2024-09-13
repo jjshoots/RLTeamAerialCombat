@@ -1,10 +1,11 @@
-from typing import Literal
+from typing import Literal, cast
 
 import torch
 from pydantic import StrictInt
 from torch import nn
 
 from dogfighter.models.actors import GaussianActor, GaussianActorConfig
+from dogfighter.models.mdp_types import Observation, TransformerObservation
 
 
 class TransformerActorConfig(GaussianActorConfig):
@@ -57,7 +58,7 @@ class TransformerActor(GaussianActor):
 
     def forward(
         self,
-        obs: dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor],
+        obs: Observation,
     ) -> torch.Tensor:
         """forward.
 
@@ -71,6 +72,8 @@ class TransformerActor(GaussianActor):
         Returns:
             torch.Tensor:
         """
+        obs = cast(TransformerObservation, obs)
+
         # pass the tensors into the transformer
         # the resultl here is [B, N, embed_dim], where we extract [B, -1, embed_dim]
         obs_embed = self.transformer(

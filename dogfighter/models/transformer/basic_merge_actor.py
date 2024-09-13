@@ -1,10 +1,11 @@
-from typing import Literal
+from typing import Literal, cast
 
 import torch
 from pydantic import StrictInt
 from torch import nn
 
 from dogfighter.models.actors import GaussianActor, GaussianActorConfig
+from dogfighter.models.mdp_types import Observation, TransformerObservation
 
 
 class BasicMergeActorConfig(GaussianActorConfig):
@@ -49,7 +50,7 @@ class BasicMergeActor(GaussianActor):
 
     def forward(
         self,
-        obs: dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor],
+        obs: Observation,
     ) -> torch.Tensor:
         """forward.
 
@@ -63,6 +64,8 @@ class BasicMergeActor(GaussianActor):
         Returns:
             torch.Tensor:
         """
+        obs = cast(TransformerObservation, obs)
+
         # shape of src/tgt_embed is [batch_size, obs_size]
         src_embed = torch.mean(
             self.src_network(obs["src"]) * ~(obs["src_mask"][..., None].bool()), dim=-2

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from functools import cached_property
 from pathlib import Path
-from typing import ClassVar, Generic
+from typing import ClassVar
 
 import torch
 import torch.nn as nn
@@ -37,7 +37,7 @@ class ActorConfig(BaseModel):
         raise NotImplementedError
 
 
-class Actor(nn.Module, Generic[Observation, Action]):
+class Actor(nn.Module):
     """A generic actor."""
 
     def save(self, filepath: str | Path) -> None:
@@ -70,7 +70,7 @@ class Actor(nn.Module, Generic[Observation, Action]):
         """
         return next(self.parameters()).device
 
-    def __call__(self, obs: Observation) -> torch.Tensor:
+    def __call__(self, obs: Observation) -> torch.Tensor | tuple[torch.Tensor, ...]:
         """__call__.
 
         Args:
@@ -82,7 +82,7 @@ class Actor(nn.Module, Generic[Observation, Action]):
         return self.forward(obs=obs)
 
     @abstractmethod
-    def forward(self, obs: Observation) -> torch.Tensor:
+    def forward(self, obs: Observation) -> torch.Tensor | tuple[torch.Tensor, ...]:
         """forward.
 
         Args:
@@ -94,11 +94,11 @@ class Actor(nn.Module, Generic[Observation, Action]):
         raise NotImplementedError
 
     @staticmethod
-    def sample(*args, **kwargs) -> torch.Tensor | tuple[torch.Tensor, ...]:
+    def sample(*args, **kwargs) -> Action | tuple[torch.Tensor, ...]:
         raise NotImplementedError
 
     @staticmethod
-    def infer(*args, **kwargs) -> torch.Tensor:
+    def infer(*args, **kwargs) -> Action:
         raise NotImplementedError
 
 
@@ -129,7 +129,7 @@ class CriticConfig(BaseModel):
         cls._registry.add(variant)
 
 
-class Critic(nn.Module, Generic[Observation, Action]):
+class Critic(nn.Module):
     """A generic critic."""
 
     def save(self, filepath: str | Path) -> None:

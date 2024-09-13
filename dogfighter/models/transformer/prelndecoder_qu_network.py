@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, cast
 
 import torch
 from pydantic import StrictInt
@@ -8,6 +8,7 @@ from dogfighter.models.critics import (
     UncertaintyAwareCritic,
     UncertaintyAwareCriticConfig,
 )
+from dogfighter.models.mdp_types import Observation, TransformerObservation
 from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 
 
@@ -73,7 +74,7 @@ class PreLNDecoderQUNetwork(UncertaintyAwareCritic):
 
     def forward(
         self,
-        obs: dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor],
+        obs: Observation,
         act: torch.Tensor,
     ) -> torch.Tensor:
         """forward.
@@ -89,6 +90,8 @@ class PreLNDecoderQUNetwork(UncertaintyAwareCritic):
         Returns:
             torch.Tensor: Q value and Uncertainty tensor of shape [q_u, B] or [q_u, num_actions, B]
         """
+        obs = cast(TransformerObservation, obs)
+
         # generate qkv tensors [B, N, embed_dim] for qkv
         q = self.tgt_network(obs["tgt"])
         kv = self.src_network(obs["src"])

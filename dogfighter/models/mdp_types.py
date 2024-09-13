@@ -1,4 +1,16 @@
-from typing import TypeVar
+from typing import Literal, Union
 
-Observation = TypeVar("Observation")
-Action = TypeVar("Action")
+import torch
+
+# observation types
+TransformerObservation = dict[
+    Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor
+]
+MlpObservation = torch.Tensor
+
+# combined types
+Observation = Union[
+    TransformerObservation,
+    MlpObservation,
+]
+Action = torch.Tensor

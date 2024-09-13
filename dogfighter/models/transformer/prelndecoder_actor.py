@@ -1,10 +1,11 @@
-from typing import Literal
+from typing import Literal, cast
 
 import torch
 from pydantic import StrictInt
 from torch import nn
 
 from dogfighter.models.actors import GaussianActor, GaussianActorConfig
+from dogfighter.models.mdp_types import Observation, TransformerObservation
 from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 
 
@@ -74,7 +75,7 @@ class PreLNDecoderActor(GaussianActor):
 
     def forward(
         self,
-        obs: dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor],
+        obs: Observation,
     ) -> torch.Tensor:
         """forward.
 
@@ -88,6 +89,8 @@ class PreLNDecoderActor(GaussianActor):
         Returns:
             torch.Tensor:
         """
+        obs = cast(TransformerObservation, obs)
+
         # generate qkv tensors [B, N, embed_dim] for qkv
         q = self.tgt_network(obs["tgt"])
         kv = self.src_network(obs["src"])

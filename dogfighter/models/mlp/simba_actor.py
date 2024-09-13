@@ -1,10 +1,11 @@
-from typing import Literal
+from typing import Literal, cast
 
 import torch
 from pydantic import StrictInt
 from torch import nn
 
 from dogfighter.models.actors import GaussianActor, GaussianActorConfig
+from dogfighter.models.mdp_types import MlpObservation, Observation
 from dogfighter.models.mlp.blocks.simba_block import SimbaBlock
 
 
@@ -41,7 +42,7 @@ class SimbaActor(GaussianActor):
 
     def forward(
         self,
-        obs: torch.Tensor,
+        obs: Observation,
     ) -> torch.Tensor:
         """forward.
 
@@ -51,6 +52,8 @@ class SimbaActor(GaussianActor):
         Returns:
             torch.Tensor:
         """
+        obs = cast(MlpObservation, obs)
+
         # output here is shape [B, act_size * 2]
         output = self.output_network(self.simba_network(self.input_network(obs)))
 

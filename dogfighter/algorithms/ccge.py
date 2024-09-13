@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import time
 import warnings
-from typing import Any, Generic, Literal
+from typing import Any, Literal
 
 import torch
 import torch.nn as nn
@@ -56,7 +56,7 @@ class CCGEConfig(AlgorithmConfig):
         return algorithm
 
 
-class CCGE(Algorithm, Generic[Observation, Action]):
+class CCGE(Algorithm):
     """Critic Confidence Guided Exploration."""
 
     def __init__(self, config: CCGEConfig):
@@ -137,7 +137,7 @@ class CCGE(Algorithm, Generic[Observation, Action]):
     def update(
         self,
         memory: ReplayBuffer,
-    ) -> dict[str, Any]:
+    ) -> dict[str, int | float | bool | str]:
         """Updates the model using the replay buffer.
 
         Note that this expects that `memory` has:
@@ -151,7 +151,7 @@ class CCGE(Algorithm, Generic[Observation, Action]):
             memory (ReplayBuffer): memory
 
         Returns:
-            dict[str, Any]:
+            dict[str, int | float | bool | str]:
         """
         start_time = time.time()
 
@@ -185,7 +185,7 @@ class CCGE(Algorithm, Generic[Observation, Action]):
     def forward(
         self,
         obs: Observation,
-        act: torch.Tensor,
+        act: Action,
         rew: torch.Tensor,
         term: torch.Tensor,
         next_obs: Observation,
@@ -194,7 +194,7 @@ class CCGE(Algorithm, Generic[Observation, Action]):
 
         Args:
             obs (Observation): obs
-            act (torch.Tensor): act
+            act (Action): act
             rew (torch.Tensor): rew
             term (torch.Tensor): term
             next_obs (Observation): next_obs
@@ -239,9 +239,6 @@ class CCGE(Algorithm, Generic[Observation, Action]):
 
         return all_logs
 
-    def _mean_numpy_float(self, x: torch.Tensor) -> float:
-        return x.mean().detach().cpu().numpy().item()
-
     def _update_q_target(self):
         """update_q_target.
 
@@ -260,7 +257,7 @@ class CCGE(Algorithm, Generic[Observation, Action]):
     def _calc_critic_loss(
         self,
         obs: Observation,
-        act: torch.Tensor,
+        act: Action,
         rew: torch.Tensor,
         term: torch.Tensor,
         next_obs: Observation,
@@ -269,7 +266,7 @@ class CCGE(Algorithm, Generic[Observation, Action]):
 
         Args:
             obs (Observation): obs
-            act (torch.Tensor): act
+            act (Action): act
             rew (torch.Tensor): reward of shape [B, 1]
             term (torch.Tensor): term of shape [B, 1]
             next_obs (Observation): next_obs
@@ -416,10 +413,13 @@ class CCGE(Algorithm, Generic[Observation, Action]):
 
         return entropy_loss, log
 
+    def _mean_numpy_float(self, x: torch.Tensor) -> float:
+        return x.mean().detach().cpu().numpy().item()
+
     def pick_best_action(
         self,
         obs: Observation,
-        act_sets: torch.Tensor,
+        act_sets: Action,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """pick_best_action.
 

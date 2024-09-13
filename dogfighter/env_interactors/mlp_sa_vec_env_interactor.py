@@ -20,15 +20,23 @@ from dogfighter.models.base import Actor
 
 
 class MLPSAEnvInteractorConfig(EnvInteractorConfig):
+    """MLPSAEnvInteractorConfig.
+
+    An interactor for single agent environments with Box space observations.
+    """
+
     variant: Literal["mlp_sa"] = "mlp_sa"  # pyright: ignore
 
     def get_collection_fn(self) -> CollectionFunctionProtocol:
+        """get_collection_fn."""
         return mlp_sa_vec_env_collect
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
+        """get_evaluation_fn."""
         return mlp_sa_vec_env_evaluate
 
     def get_display_fn(self) -> DisplayFunctionProtocol:
+        """get_display_fn."""
         return mlp_sa_env_display
 
 
