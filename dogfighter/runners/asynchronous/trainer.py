@@ -72,8 +72,9 @@ def run_train(
                 raise NotImplementedError
 
             # aggregate results
-            wm.log["eval/score"] = eval_score = sum(eval_scores) / len(eval_scores)
-            wm.log["eval/max_score"] = max_eval_score = max(max_eval_score, eval_score)
+            if eval_scores:
+                wm.log["eval/score"] = eval_score = sum(eval_scores) / len(eval_scores)
+                wm.log["eval/max_score"] = max_eval_score = max(max_eval_score, eval_score)
             wm.log.update(
                 {f"collect/{k}": (sum(v) / len(v)) for k, v in collect_infos.items()}
             )
@@ -103,8 +104,6 @@ def run_train(
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
         if to_update:
             algorithm.save(ckpt_dir / "weights.pth")
-
-        print(wm.log)
 
         # update the actor weights for workers, use a rename to prevent race
         with AtomicFileWriter(task_dispatcher.actor_weights_path) as f:
