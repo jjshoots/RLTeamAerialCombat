@@ -4,14 +4,13 @@ import subprocess
 import sys
 import tempfile
 import time
-from dataclasses import dataclass, field
 from multiprocessing import Manager, Process
 from multiprocessing.managers import ListProxy
 from pathlib import Path
 from typing import Generator
 from uuid import uuid4
 
-from pydantic import BaseModel, StrictBool, StrictFloat, StrictStr
+from pydantic import BaseModel, StrictStr
 
 from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
                                                   CollectionResult,
@@ -28,49 +27,28 @@ class _RunningTask(BaseModel):
     result_output_path: StrictStr
 
 
-@dataclass
-class TaskDispatcherConfig:
-    config_stack: ConfigStack
-    kill_on_error: StrictBool = True
-    loop_interval_seconds: StrictFloat = 1.0
-    _work_dir_reference: tempfile.TemporaryDirectory[str] = field(
-        default_factory=tempfile.TemporaryDirectory
-    )
-
-    def __del__(self) -> None:
-        """Cleanup the working directory."""
-        self._work_dir_reference.cleanup()
-
-    @property
-    def work_dir(self) -> str:
-        return self._work_dir_reference.name
-
-    @property
-    def actor_weights_path(self) -> str:
-        """This is where the actor weights should be saved. It may not actually exist here."""
-        return f"{self.work_dir}/actor_weights.pth"
-
-    def instantiate(self) -> "TaskDispatcher":
-        """Starts the TaskDispatcher in a separate process from the main one."""
-        return TaskDispatcher(self)
-
-
 class TaskDispatcher:
     """A dispatcher that handles submitting collect and eval jobs asynchronously."""
 
-    def __init__(self, config: TaskDispatcherConfig) -> None:
+    def __init__(
+        self,
+        config_stack: ConfigStack,
+        kill_on_error: bool = True,
+        loop_interval_seconds: float = 1.0,
+    ) -> None:
         """A dispatcher that handles submitting collect and eval jobs asynchronously."""
-        runner_settings = config.config_stack.runner_settings
-        assert isinstance(runner_settings, AsynchronousRunnerSettings)
+        assert isinstance(config_stack.runner_settings, AsynchronousRunnerSettings)
+
+        # handle directories
+        self._work_dir_reference = tempfile.TemporaryDirectory()
+        self._work_dir = self._work_dir_reference.name
+        self.actor_weights_path = f"{self._work_dir}/actor_weights_path"
 
         # some constants
-        self.config = config
-        self.actor_weights_path = config.actor_weights_path
-        self._config_stack = config.config_stack
-        self._kill_on_error = config.kill_on_error
-        self._max_workers = runner_settings.max_workers
-        self._loop_interval_seconds = config.loop_interval_seconds
-        self._work_dir = config.work_dir
+        self._config_stack = config_stack
+        self._kill_on_error = kill_on_error
+        self._max_workers = config_stack.runner_settings.max_workers
+        self._loop_interval_seconds = loop_interval_seconds
 
         # runtime variables
         self._running_processes: dict[subprocess.Popen, _RunningTask] = dict()
@@ -84,6 +62,10 @@ class TaskDispatcher:
 
         Process(target=self._start).start()
 
+    def __del__(self) -> None:
+        """Cleanup the working directory."""
+        self._work_dir_reference.cleanup()
+
     @property
     def completed_tasks(
         self,
@@ -96,8 +78,8 @@ class TaskDispatcher:
     @property
     def _active_actor_weights_path(self) -> str:
         """This may be '' or an actual path, depending on whether the weights exist."""
-        if os.path.exists(self.config.actor_weights_path):
-            return self.config.actor_weights_path
+        if os.path.exists(self.actor_weights_path):
+            return self.actor_weights_path
         else:
             return ""
 

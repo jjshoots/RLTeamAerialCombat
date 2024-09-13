@@ -7,8 +7,7 @@ from wingman import Wingman
 from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
                                                   CollectionResult,
                                                   EvaluationResult)
-from dogfighter.runners.asynchronous.task_dispatcher import \
-    TaskDispatcherConfig
+from dogfighter.runners.asynchronous.task_dispatcher import TaskDispatcher
 from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.utils import AtomicFileWriter
 
@@ -38,7 +37,7 @@ def run_train(
     next_eval_step = 0
 
     # task dispatcher
-    task_dispatcher = TaskDispatcherConfig(config_stack=configs).instantiate()
+    task_dispatcher = TaskDispatcher(config_stack=configs)
     actor_weights_path = task_dispatcher.actor_weights_path
 
     # start main loop
