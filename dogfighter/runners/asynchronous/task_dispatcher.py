@@ -42,7 +42,7 @@ class TaskDispatcher:
         # handle directories
         self._work_dir_reference = tempfile.TemporaryDirectory()
         self._work_dir = self._work_dir_reference.name
-        self.actor_weights_path = f"{self._work_dir}/actor_weights_path"
+        self.actor_weights_path = f"{self._work_dir}/actor_weights_path.pth"
 
         # some constants
         self._config_stack = config_stack
