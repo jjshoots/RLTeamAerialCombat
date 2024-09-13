@@ -6,7 +6,7 @@ env:
 
 # replay buffer params
 replay_buffer:
-  mem_size: 500000
+  mem_size: 1000000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -14,13 +14,13 @@ replay_buffer:
 
 # algorithm params
 algorithm:
-  variant: "mlp"
+  variant: ccge
   actor:
-    variant: "simba"
+    variant: "mlp"
     embed_dim: 256
     num_blocks: 1
   critic:
-    variant: "simba"
+    variant: "mlp"
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
@@ -40,12 +40,12 @@ algorithm:
 # training config
 runner:
   variant: "sync"
-  max_transitions: 1000000
+  transitions_max: 1000000
   transitions_per_epoch: 8000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000
+  transitions_eval_frequency: 8000
   eval_num_episodes: 16
-  eval_transitions_frequency: 8000
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:

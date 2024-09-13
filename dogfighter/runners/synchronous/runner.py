@@ -53,10 +53,10 @@ def run_synchronous(
     loop_start_time = time.time()
 
     # start the main training loop
-    while memory.count <= settings.max_transitions:
+    while memory.count <= settings.transitions_max:
         print("\n\n")
         print(
-            f"New epoch @ {memory.count} / {settings.max_transitions} total transitions."
+            f"New epoch @ {memory.count} / {settings.transitions_max} total transitions."
         )
         num_epochs += 1
 
@@ -97,8 +97,8 @@ def run_synchronous(
             wm.log.update({f"eval/{k}": v for k, v in info.items()})
             max_eval_score = max(max_eval_score, eval_score)
             next_eval_step = (
-                int(memory.count / settings.eval_transitions_frequency) + 1
-            ) * settings.eval_transitions_frequency
+                int(memory.count / settings.transitions_eval_frequency) + 1
+            ) * settings.transitions_eval_frequency
         wm.log["eval/score"] = eval_score
         wm.log["eval/max_score"] = max_eval_score
 
@@ -106,7 +106,7 @@ def run_synchronous(
         # record looptimes
         looptime = time.time() - loop_start_time
         loop_start_time = time.time()
-        eta_completion = (settings.max_transitions - memory.count) * (
+        eta_completion = (settings.transitions_max - memory.count) * (
             looptime / settings.transitions_per_epoch
         )
         print(f"ETA to completion: {eta_completion:.0f} seconds...")
