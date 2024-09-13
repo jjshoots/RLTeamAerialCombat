@@ -8,11 +8,13 @@ from memorial.replay_buffers import FlatReplayBuffer
 from pettingzoo import ParallelEnv
 from wingman.utils import cpuize, gpuize
 
-from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
-                                             DisplayFunctionProtocol,
-                                             EnvInteractorConfig,
-                                             EvaluationFunctionProtocol,
-                                             SupportedEnvTypes)
+from dogfighter.env_interactors.base import (
+    CollectionFunctionProtocol,
+    DisplayFunctionProtocol,
+    EnvInteractorConfig,
+    EvaluationFunctionProtocol,
+    SupportedEnvTypes,
+)
 from dogfighter.models.base import Actor
 
 

@@ -12,10 +12,12 @@ from uuid import uuid4
 
 from pydantic import BaseModel, StrictStr
 
-from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
-                                                  CollectionResult,
-                                                  EvaluationResult,
-                                                  WorkerTaskType)
+from dogfighter.runners.asynchronous.base import (
+    AsynchronousRunnerSettings,
+    CollectionResult,
+    EvaluationResult,
+    WorkerTaskType,
+)
 from dogfighter.runners.base import ConfigStack
 
 

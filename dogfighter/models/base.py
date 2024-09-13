@@ -38,6 +38,8 @@ class ActorConfig(BaseModel):
 
 
 class Actor(nn.Module, Generic[Observation, Action]):
+    """A generic actor."""
+
     def save(self, filepath: str | Path) -> None:
         """save."""
         torch.save(self.state_dict(), filepath)
@@ -51,6 +53,11 @@ class Actor(nn.Module, Generic[Observation, Action]):
                 weights_only=True,
             )
         )
+
+    def to(self, *args, **kwargs) -> "Actor":
+        """Clears the internal device pointer and performs a conventional `to`."""
+        self.__dict__.pop("device", None)
+        return super().to(*args, **kwargs)
 
     @cached_property
     def device(self) -> torch.device:
@@ -123,7 +130,7 @@ class CriticConfig(BaseModel):
 
 
 class Critic(nn.Module, Generic[Observation, Action]):
-    """Critic."""
+    """A generic critic."""
 
     def save(self, filepath: str | Path) -> None:
         """save."""
@@ -138,6 +145,11 @@ class Critic(nn.Module, Generic[Observation, Action]):
                 weights_only=True,
             )
         )
+
+    def to(self, *args, **kwargs) -> "Critic":
+        """Clears the internal device pointer and performs a conventional `to`."""
+        self.__dict__.pop("device", None)
+        return super().to(*args, **kwargs)
 
     @cached_property
     def device(self) -> torch.device:

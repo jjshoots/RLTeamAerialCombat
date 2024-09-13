@@ -18,8 +18,9 @@ class PyFlytMAEnvConfig(MAEnvConfig):
                     **self.env_kwargs,
                 )
             else:
-                from dogfighter.envs.ma_envs.wrappers.dogfight_transformer import \
-                    MAFixedwingDogfightTransformerEnvV2
+                from dogfighter.envs.ma_envs.wrappers.dogfight_transformer import (
+                    MAFixedwingDogfightTransformerEnvV2,
+                )
 
                 env = MAFixedwingDogfightTransformerEnvV2(
                     render_mode=self.render_mode,

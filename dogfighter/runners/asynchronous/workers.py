@@ -2,9 +2,13 @@ import json
 import os
 import tempfile
 
-from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
-                                                  CollectionResult,
-                                                  EvaluationResult)
+import torch
+
+from dogfighter.runners.asynchronous.base import (
+    AsynchronousRunnerSettings,
+    CollectionResult,
+    EvaluationResult,
+)
 from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.utils import AtomicFileWriter
 
@@ -51,6 +55,10 @@ def run_collection(
     # load the weights file
     if settings.worker.io.actor_weights_path:
         actor.load(settings.worker.io.actor_weights_path)
+
+    # send to gpu and compile
+    actor.to(algorithm_config.device)
+    torch.compile(actor)
 
     # run a collect task
     memory, info = collection_fn(
@@ -112,13 +120,14 @@ def run_evaluation(
     env = eval_env_config.instantiate()
     actor = algorithm_config.actor_config.instantiate()
     evaluation_fn = interactor_config.get_evaluation_fn()
-    actor.to(algorithm_config.device)
 
-    print(actor.state_dict().__hash__)
-
-    # load the weights file and clean up
+    # load the weights file
     if settings.worker.io.actor_weights_path:
         actor.load(settings.worker.io.actor_weights_path)
+
+    # send to gpu and compile
+    actor.to(algorithm_config.device)
+    torch.compile(actor)
 
     # run an eval task
     eval_score, info = evaluation_fn(

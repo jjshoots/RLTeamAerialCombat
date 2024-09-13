@@ -4,9 +4,11 @@ import time
 
 from wingman import Wingman
 
-from dogfighter.runners.asynchronous.base import (AsynchronousRunnerSettings,
-                                                  CollectionResult,
-                                                  EvaluationResult)
+from dogfighter.runners.asynchronous.base import (
+    AsynchronousRunnerSettings,
+    CollectionResult,
+    EvaluationResult,
+)
 from dogfighter.runners.asynchronous.task_dispatcher import TaskDispatcher
 from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.utils import AtomicFileWriter
@@ -92,7 +94,8 @@ def run_train(
         if to_update:
             algorithm.save(ckpt_dir / "weights.pth")
 
+        print(wm.log)
+
         # update the actor weights for workers, use a rename to prevent race
         with AtomicFileWriter(task_dispatcher.actor_weights_path) as f:
-            print(algorithm.actor.state_dict().__hash__)
             algorithm.actor.save(f)

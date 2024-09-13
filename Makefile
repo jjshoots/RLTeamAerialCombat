@@ -88,7 +88,7 @@ format: poetry_check
 	-$(POETRY) run ruff format .
 	@echo ""
 	@echo "Sorting dependencies..."
-	-$(POETRY) run isort .
+	-$(POETRY) run isort . --profile black
 
 # tests
 .PHONY: test

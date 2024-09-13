@@ -162,13 +162,19 @@ class CCGE(Algorithm, Generic[Observation, Action]):
         self.train()
         for _ in tqdm(range(self.config.grad_steps_per_update)):
             obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
-            update_info = self.forward(
+            info = self.forward(
                 obs=obs,
                 act=act,
                 rew=rew,
                 term=term,
                 next_obs=next_obs,
             )
+
+            for key, value in info.items():
+                update_info[key] = (
+                    update_info.get(key, 0.0)
+                    + value / self.config.grad_steps_per_update
+                )
 
         update_info["steps_per_second"] = self.config.grad_steps_per_update / (
             time.time() - start_time
@@ -232,6 +238,9 @@ class CCGE(Algorithm, Generic[Observation, Action]):
             all_logs.update(log)
 
         return all_logs
+
+    def _mean_numpy_float(self, x: torch.Tensor) -> float:
+        return x.mean().detach().cpu().numpy().item()
 
     def _update_q_target(self):
         """update_q_target.
@@ -321,11 +330,11 @@ class CCGE(Algorithm, Generic[Observation, Action]):
 
         # some logging parameters
         log = dict()
-        log["target_q"] = target_q.mean().detach()
-        log["q_loss"] = q_loss.mean().detach()
-        log["target_u"] = target_u.mean().detach()
-        log["u_loss"] = u_loss.mean().detach()
-        log["critic_loss"] = critic_loss.mean().detach()
+        log["target_q"] = self._mean_numpy_float(target_q)
+        log["q_loss"] = self._mean_numpy_float(q_loss)
+        log["target_u"] = self._mean_numpy_float(target_u)
+        log["u_loss"] = self._mean_numpy_float(u_loss)
+        log["critic_loss"] = self._mean_numpy_float(critic_loss)
 
         return critic_loss, log
 
@@ -372,7 +381,7 @@ class CCGE(Algorithm, Generic[Observation, Action]):
         actor_loss = rnf_loss + ent_loss
 
         log = dict()
-        log["actor_loss"] = actor_loss.mean().detach()
+        log["actor_loss"] = self._mean_numpy_float(actor_loss)
 
         return actor_loss, log
 
@@ -402,8 +411,8 @@ class CCGE(Algorithm, Generic[Observation, Action]):
 
         log = dict()
         log["log_alpha"] = self._log_alpha.item()
-        log["mean_entropy"] = -log_probs.mean().detach()
-        log["entropy_loss"] = entropy_loss.mean().detach()
+        log["mean_entropy"] = self._mean_numpy_float(-log_probs)
+        log["entropy_loss"] = self._mean_numpy_float(entropy_loss)
 
         return entropy_loss, log
 

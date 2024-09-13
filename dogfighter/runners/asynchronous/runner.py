@@ -7,8 +7,7 @@ from wingman.utils import shutdown_handler
 
 from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
 from dogfighter.runners.asynchronous.trainer import run_train
-from dogfighter.runners.asynchronous.workers import (run_collection,
-                                                     run_evaluation)
+from dogfighter.runners.asynchronous.workers import run_collection, run_evaluation
 from dogfighter.runners.base import ConfigStack
 
 signal(SIGINT, shutdown_handler)

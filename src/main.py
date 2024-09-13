@@ -5,11 +5,17 @@ from wingman import Wingman
 from wingman.utils import shutdown_handler
 
 from dogfighter.env_interactors.mlp_ma_env_interactor import (
-    MLPMAEnvInteractorConfig, mlp_ma_env_display)
+    MLPMAEnvInteractorConfig,
+    mlp_ma_env_display,
+)
 from dogfighter.env_interactors.mlp_sa_vec_env_interactor import (
-    MLPSAEnvInteractorConfig, mlp_sa_env_display)
+    MLPSAEnvInteractorConfig,
+    mlp_sa_env_display,
+)
 from dogfighter.env_interactors.transformer_ma_env_interactor import (
-    TransformerMAEnvInteractorConfig, transformer_ma_env_display)
+    TransformerMAEnvInteractorConfig,
+    transformer_ma_env_display,
+)
 from dogfighter.envs.sa_vec_env import SAVecEnvConfig
 from dogfighter.replay_buffers.replay_buffer import ReplayBufferConfig
 from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
@@ -18,8 +24,11 @@ from dogfighter.runners.base import ConfigStack
 from dogfighter.runners.synchronous.base import SynchronousRunnerSettings
 from dogfighter.runners.synchronous.runner import run_synchronous
 from setup_algorithms import get_algorithm_config
-from setup_envs import (get_mlp_ma_env_config, get_mlp_sa_env_config,
-                        get_transformer_ma_env_config)
+from setup_envs import (
+    get_mlp_ma_env_config,
+    get_mlp_sa_env_config,
+    get_transformer_ma_env_config,
+)
 
 
 def train(wm: Wingman) -> None:

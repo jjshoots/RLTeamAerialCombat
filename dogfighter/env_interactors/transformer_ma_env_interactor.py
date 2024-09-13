@@ -4,16 +4,17 @@ from typing import Any, Literal
 import numpy as np
 import torch
 from memorial import ReplayBuffer
-from memorial.wrappers import (DictReplayBufferWrapper,
-                               listed_dict_to_dicted_list)
+from memorial.wrappers import DictReplayBufferWrapper, listed_dict_to_dicted_list
 from pettingzoo import ParallelEnv
 from wingman.utils import cpuize, nested_gpuize
 
-from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
-                                             DisplayFunctionProtocol,
-                                             EnvInteractorConfig,
-                                             EvaluationFunctionProtocol,
-                                             SupportedEnvTypes)
+from dogfighter.env_interactors.base import (
+    CollectionFunctionProtocol,
+    DisplayFunctionProtocol,
+    EnvInteractorConfig,
+    EvaluationFunctionProtocol,
+    SupportedEnvTypes,
+)
 from dogfighter.models.base import Actor
 
 
