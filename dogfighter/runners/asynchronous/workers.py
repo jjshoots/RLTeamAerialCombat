@@ -45,20 +45,20 @@ def run_collection(
     collection_fn = interactor_config.get_collection_fn()
     actor.to(algorithm_config.device)
     memory = memory_config.model_copy(
-        update={"mem_size": int(settings.worker_settings.collect_num_transitions * 1.2)}
+        update={"mem_size": int(settings.worker.collect_num_transitions * 1.2)}
     ).instantiate()
 
     # load the weights file and clean up
-    if settings.worker_settings.io.actor_weights_path:
-        actor.load(settings.worker_settings.io.actor_weights_path)
+    if settings.worker.io.actor_weights_path:
+        actor.load(settings.worker.io.actor_weights_path)
 
     # run a collect task
     memory, info = collection_fn(
         actor=actor,
         env=env,
         memory=memory,
-        use_random_actions=bool(settings.worker_settings.io.actor_weights_path),
-        num_transitions=settings.worker_settings.collect_num_transitions,
+        use_random_actions=bool(settings.worker.io.actor_weights_path),
+        num_transitions=settings.worker.collect_num_transitions,
     )
 
     # dump the memory to disk
@@ -74,7 +74,7 @@ def run_collection(
     )
 
     # dump the pointer to disk
-    with AtomicFileWriter(settings.worker_settings.io.result_output_path) as f:
+    with AtomicFileWriter(settings.worker.io.result_output_path) as f:
         with open(f, "w") as fw:
             json.dump(result.model_dump(), fw)
 
@@ -115,14 +115,14 @@ def run_evaluation(
     actor.to(algorithm_config.device)
 
     # load the weights file and clean up
-    if settings.worker_settings.io.actor_weights_path:
-        actor.load(settings.worker_settings.io.actor_weights_path)
+    if settings.worker.io.actor_weights_path:
+        actor.load(settings.worker.io.actor_weights_path)
 
     # run an eval task
     eval_score, info = evaluation_fn(
         actor=actor,
         env=env,
-        num_episodes=settings.worker_settings.eval_num_episodes,
+        num_episodes=settings.worker.eval_num_episodes,
     )
 
     # form the results
@@ -132,6 +132,6 @@ def run_evaluation(
     )
 
     # dump the pointer to disk
-    with AtomicFileWriter(settings.worker_settings.io.result_output_path) as f:
+    with AtomicFileWriter(settings.worker.io.result_output_path) as f:
         with open(f, "w") as fw:
             json.dump(result.model_dump(), fw)

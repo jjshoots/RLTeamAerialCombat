@@ -47,8 +47,8 @@ class AsynchronousRunnerSettings(BaseModel):
     mode: Literal["trainer", "worker"]
     max_workers: StrictInt
 
-    trainer_settings: TrainerSettings
-    worker_settings: WorkerSettings
+    trainer: TrainerSettings
+    worker: WorkerSettings
 
 
 #############################################################

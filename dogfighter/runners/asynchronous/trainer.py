@@ -19,7 +19,7 @@ def run_train(
     algorithm_config = configs.algorithm_config
     memory_config = configs.memory_config
     assert isinstance(configs.runner_settings, AsynchronousRunnerSettings)
-    settings = configs.runner_settings.trainer_settings
+    settings = configs.runner_settings.trainer
 
     # instantiate everything
     algorithm = algorithm_config.instantiate()
