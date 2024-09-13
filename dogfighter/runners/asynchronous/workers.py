@@ -48,7 +48,7 @@ def run_collection(
         update={"mem_size": int(settings.worker.collect_num_transitions * 1.2)}
     ).instantiate()
 
-    # load the weights file and clean up
+    # load the weights file
     if settings.worker.io.actor_weights_path:
         actor.load(settings.worker.io.actor_weights_path)
 

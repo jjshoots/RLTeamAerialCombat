@@ -1,4 +1,4 @@
-import os
+import shutil
 
 
 class AtomicFileWriter:
@@ -18,4 +18,4 @@ class AtomicFileWriter:
         return self.temp_name
 
     def __exit__(self, *_):
-        os.rename(self.temp_name, self.name)
+        shutil.move(self.temp_name, self.name)
