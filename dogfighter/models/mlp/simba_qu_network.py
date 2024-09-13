@@ -4,11 +4,12 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
+from dogfighter.models.base.critics import (UncertaintyAwareCritic,
+                                            UncertaintyAwareCriticConfig)
 from dogfighter.models.mlp.blocks.simba_block import SimbaBlock
 
 
-class SimbaQUNetworkConfig(QUNetworkConfig):
+class SimbaQUNetworkConfig(UncertaintyAwareCriticConfig):
     """SimbaQUNetworkConfig."""
 
     variant: Literal["simba"] = "simba"  # pyright: ignore
@@ -21,7 +22,7 @@ class SimbaQUNetworkConfig(QUNetworkConfig):
         return SimbaQUNetwork(self)
 
 
-class SimbaQUNetwork(QUNetwork):
+class SimbaQUNetwork(UncertaintyAwareCritic):
     """A classic Q network using Simba as the core module."""
 
     def __init__(self, config: SimbaQUNetworkConfig) -> None:

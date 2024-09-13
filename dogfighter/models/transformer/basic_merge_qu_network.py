@@ -4,10 +4,11 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
+from dogfighter.models.base.critics import (UncertaintyAwareCritic,
+                                            UncertaintyAwareCriticConfig)
 
 
-class BasicMergeQUNetworkConfig(QUNetworkConfig):
+class BasicMergeQUNetworkConfig(UncertaintyAwareCriticConfig):
     """BasicMergeQUNetworkConfig."""
 
     variant: Literal["basic_merge"] = "basic_merge"  # pyright: ignore
@@ -20,7 +21,7 @@ class BasicMergeQUNetworkConfig(QUNetworkConfig):
         return BasicMergeQUNetwork(self)
 
 
-class BasicMergeQUNetwork(QUNetwork):
+class BasicMergeQUNetwork(UncertaintyAwareCritic):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(self, config: BasicMergeQUNetworkConfig) -> None:

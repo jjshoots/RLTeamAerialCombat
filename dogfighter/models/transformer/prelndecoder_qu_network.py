@@ -4,14 +4,15 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
+from dogfighter.models.base.critics import (UncertaintyAwareCritic,
+                                            UncertaintyAwareCriticConfig)
 from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 
 
-class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
+class PreLNDecoderQUNetworkConfig(UncertaintyAwareCriticConfig):
     """PreLNDecoderQUNetworkConfig."""
 
-    variant: Literal["pre_ln_decoder"]  # pyright: ignore
+    variant: Literal["pre_ln_decoder"] = "pre_ln_decoder"  # pyright: ignore
     src_size: StrictInt
     tgt_size: StrictInt
     act_size: StrictInt
@@ -24,7 +25,7 @@ class PreLNDecoderQUNetworkConfig(QUNetworkConfig):
         return PreLNDecoderQUNetwork(self)
 
 
-class PreLNDecoderQUNetwork(QUNetwork):
+class PreLNDecoderQUNetwork(UncertaintyAwareCritic):
     """A pre-layernorm decoder qu network."""
 
     def __init__(self, config: PreLNDecoderQUNetworkConfig) -> None:

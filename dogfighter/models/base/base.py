@@ -1,16 +1,13 @@
 from abc import abstractmethod
 from functools import cached_property
 from pathlib import Path
-from typing import ClassVar, Generic, TypeVar
+from typing import ClassVar, Generic
 
 import torch
-import torch.distributions as dist
 import torch.nn as nn
-import torch.nn.functional as func
 from pydantic import BaseModel, StrictStr
 
-Observation = TypeVar("Observation")
-Action = TypeVar("Action")
+from dogfighter.models.base import Action, Observation
 
 
 class ActorConfig(BaseModel):
@@ -41,8 +38,6 @@ class ActorConfig(BaseModel):
 
 
 class Actor(nn.Module, Generic[Observation, Action]):
-    """Actor."""
-
     def save(self, filepath: str | Path) -> None:
         """save."""
         torch.save(self.state_dict(), filepath)
@@ -92,40 +87,90 @@ class Actor(nn.Module, Generic[Observation, Action]):
         raise NotImplementedError
 
     @staticmethod
-    def sample(
-        mean: torch.Tensor, var: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """sample.
-
-        Args:
-            mean (torch.Tensor): mean
-            var (torch.Tensor): var
-
-        Returns:
-            tuple[torch.Tensor, torch.Tensor]:
-        """
-        # lower bound sigma and bias it
-        normals = dist.Normal(mean, func.softplus(var) + 1e-6)
-
-        # sample from dist
-        mu_samples = normals.rsample()
-        actions = torch.tanh(mu_samples)
-
-        # calculate log_probs
-        log_probs = normals.log_prob(mu_samples) - torch.log(1 - actions.pow(2) + 1e-6)
-        log_probs = log_probs.sum(dim=-1, keepdim=True)
-
-        return actions, log_probs
+    def sample(*args, **kwargs) -> torch.Tensor | tuple[torch.Tensor, ...]:
+        raise NotImplementedError
 
     @staticmethod
-    def infer(mean: torch.Tensor, var: torch.Tensor) -> torch.Tensor:
-        """infer.
+    def infer(*args, **kwargs) -> torch.Tensor:
+        raise NotImplementedError
+
+
+class CriticConfig(BaseModel):
+    """CriticConfig for creating Critics."""
+
+    _registry: ClassVar[set[str]] = set()
+    variant: StrictStr
+
+    @abstractmethod
+    def instantiate(self) -> "Critic":
+        """instantiate.
 
         Args:
-            mean (torch.Tensor): mean
-            var (torch.Tensor): var
+
+        Returns:
+            Critic:
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        variant = cls.__annotations__.get("variant")
+        assert variant is not None
+        if variant in cls._registry:
+            raise ValueError(f"`variant` {variant} is already in use by another class.")
+        cls._registry.add(variant)
+
+
+class Critic(nn.Module, Generic[Observation, Action]):
+    """Critic."""
+
+    def save(self, filepath: str | Path) -> None:
+        """save."""
+        torch.save(self.state_dict(), filepath)
+
+    def load(self, filepath: str | Path) -> None:
+        """load."""
+        self.load_state_dict(
+            torch.load(
+                filepath,
+                map_location=torch.device(self._device),
+                weights_only=True,
+            )
+        )
+
+    @cached_property
+    def device(self) -> torch.device:
+        """device.
+
+        Args:
+
+        Returns:
+            torch.device:
+        """
+        return next(self.parameters()).device
+
+    def __call__(self, obs: Observation, act: Action) -> torch.Tensor:
+        """__call__.
+
+        Args:
+            obs (Observation): obs
+            act (Action): act
 
         Returns:
             torch.Tensor:
         """
-        return torch.tanh(mean)
+        return self.forward(obs=obs, act=act)
+
+    @abstractmethod
+    def forward(self, obs: Observation, act: Action) -> torch.Tensor:
+        """forward.
+
+        Args:
+            obs (Observation): obs
+            act (Action): act
+
+        Returns:
+            torch.Tensor:
+        """
+        raise NotImplementedError

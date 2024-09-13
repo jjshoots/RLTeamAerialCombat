@@ -4,11 +4,11 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_actor import Actor, ActorConfig
+from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
 from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 
 
-class PreLNDecoderActorConfig(ActorConfig):
+class PreLNDecoderActorConfig(GaussianActorConfig):
     """PreLNDecoderActorConfig."""
 
     variant: Literal["pre_ln_decoder"]  # pyright: ignore
@@ -31,7 +31,7 @@ class PreLNDecoderActorConfig(ActorConfig):
         return PreLNDecoderActor(self)
 
 
-class PreLNDecoderActor(Actor):
+class PreLNDecoderActor(GaussianActor):
     """A pre-layernorm decoder actor."""
 
     def __init__(self, config: PreLNDecoderActorConfig) -> None:

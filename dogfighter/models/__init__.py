@@ -25,7 +25,7 @@ KnownActorConfigs = Union[
     TransformerActorConfig,
 ]
 
-KnownQUNetworkConfigs = Union[
+KnownCriticConfigs = Union[
     MlpQUNetworkConfig,
     SimbaQUNetworkConfig,
     BasicMergeQUNetworkConfig,

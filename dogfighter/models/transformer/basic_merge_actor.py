@@ -4,10 +4,10 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_actor import Actor, ActorConfig
+from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
 
 
-class BasicMergeActorConfig(ActorConfig):
+class BasicMergeActorConfig(GaussianActorConfig):
     """BasicMergeActorConfig."""
 
     variant: Literal["basic_merge"] = "basic_merge"  # pyright: ignore
@@ -20,7 +20,7 @@ class BasicMergeActorConfig(ActorConfig):
         return BasicMergeActor(self)
 
 
-class BasicMergeActor(Actor):
+class BasicMergeActor(GaussianActor):
     """Actor with Gaussian prediction head."""
 
     def __init__(self, config: BasicMergeActorConfig) -> None:

@@ -4,10 +4,10 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_actor import Actor, ActorConfig
+from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
 
 
-class TransformerActorConfig(ActorConfig):
+class TransformerActorConfig(GaussianActorConfig):
     """TransformerActorConfig."""
 
     variant: Literal["transformer"] = "transformer"  # pyright: ignore
@@ -24,7 +24,7 @@ class TransformerActorConfig(ActorConfig):
         return TransformerActor(self)
 
 
-class TransformerActor(Actor):
+class TransformerActor(GaussianActor):
     """Actor with Gaussian prediction head."""
 
     def __init__(self, config: TransformerActorConfig) -> None:

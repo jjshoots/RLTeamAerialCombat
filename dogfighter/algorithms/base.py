@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, ClassVar, Generic, TypeVar
+from typing import Any, ClassVar, Generic
 
 import torch
 import torch.nn as nn
@@ -8,10 +8,8 @@ from memorial import ReplayBuffer
 from pydantic import BaseModel, StrictBool, StrictStr
 
 from dogfighter.models import KnownActorConfigs
-from dogfighter.models.base.base_actor import Actor
-
-Observation = TypeVar("Observation")
-Action = TypeVar("Action")
+from dogfighter.models.base.actors import GaussianActor
+from dogfighter.models.base.base import Action, Observation
 
 
 class AlgorithmConfig(BaseModel):
@@ -48,7 +46,7 @@ class Algorithm(nn.Module, Generic[Observation, Action]):
     """Algorithm."""
 
     @property
-    def actor(self) -> Actor:
+    def actor(self) -> GaussianActor:
         raise NotImplementedError
 
     def save(self, filepath: str | Path) -> None:

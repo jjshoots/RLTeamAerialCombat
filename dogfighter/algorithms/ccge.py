@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import time
 import warnings
-from typing import Any, Literal, TypeVar
+from typing import Any, Generic, Literal
 
 import torch
 import torch.nn as nn
@@ -10,13 +10,12 @@ from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr
 from torch.optim.adamw import AdamW
 from tqdm import tqdm
 
-from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
-from dogfighter.models import KnownActorConfigs, KnownQUNetworkConfigs
-from dogfighter.models.base.base_actor import Actor
-from dogfighter.models.base.qu_ensemble import QUEnsemble
-
-Observation = TypeVar("Observation")
-Action = TypeVar("Action")
+from dogfighter.algorithms.base import (Action, Algorithm, AlgorithmConfig,
+                                        Observation)
+from dogfighter.models import KnownActorConfigs, KnownCriticConfigs
+from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
+from dogfighter.models.base.critic_ensemble import CriticEnsemble
+from dogfighter.models.base.critics import UncertaintyAwareCriticConfig
 
 
 class CCGEConfig(AlgorithmConfig):
@@ -26,7 +25,7 @@ class CCGEConfig(AlgorithmConfig):
     compile: StrictBool
     device: StrictStr
     actor_config: KnownActorConfigs
-    qu_config: KnownQUNetworkConfigs
+    qu_config: KnownCriticConfigs
     qu_num_ensemble: StrictInt
     batch_size: StrictInt
     grad_steps_per_update: StrictInt
@@ -49,13 +48,15 @@ class CCGEConfig(AlgorithmConfig):
         Returns:
             "CCGE":
         """
+        assert isinstance(self.qu_config, UncertaintyAwareCriticConfig)
+        assert isinstance(self.actor_config, GaussianActorConfig)
         algorithm = CCGE(self)
         if self.compile:
             torch.compile(algorithm)
         return algorithm
 
 
-class CCGE(Algorithm):
+class CCGE(Algorithm, Generic[Observation, Action]):
     """Critic Confidence Guided Exploration."""
 
     def __init__(self, config: CCGEConfig):
@@ -72,11 +73,11 @@ class CCGE(Algorithm):
         self._actor = config.actor_config.instantiate()
 
         # twin delayed Q networks
-        self._critic = QUEnsemble(
+        self._critic = CriticEnsemble(
             config.qu_config,
             num_ensemble=config.qu_num_ensemble,
         )
-        self._critic_target = QUEnsemble(
+        self._critic_target = CriticEnsemble(
             config.qu_config,
             num_ensemble=config.qu_num_ensemble,
         )
@@ -112,7 +113,7 @@ class CCGE(Algorithm):
         )
 
     @property
-    def actor(self) -> Actor:
+    def actor(self) -> GaussianActor:
         """actor.
 
         Args:
@@ -123,7 +124,7 @@ class CCGE(Algorithm):
         return self._actor
 
     @property
-    def qu_ensemble_critic(self) -> QUEnsemble:
+    def qu_ensemble_critic(self) -> CriticEnsemble:
         """qu_ensemble_critic.
 
         Args:

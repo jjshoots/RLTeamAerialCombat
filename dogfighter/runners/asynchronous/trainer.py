@@ -94,4 +94,5 @@ def run_train(
 
         # update the actor weights for workers, use a rename to prevent race
         with AtomicFileWriter(task_dispatcher.actor_weights_path) as f:
+            print(algorithm.actor.state_dict())
             algorithm.actor.save(f)

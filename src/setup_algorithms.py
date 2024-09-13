@@ -14,64 +14,98 @@ from dogfighter.models.transformer.prelndecoder_actor import \
     PreLNDecoderActorConfig
 from dogfighter.models.transformer.prelndecoder_qu_network import \
     PreLNDecoderQUNetworkConfig
+from dogfighter.models.transformer.transformer_actor import \
+    TransformerActorConfig
+from dogfighter.models.transformer.transformer_qu_network import \
+    TransformerQUNetworkConfig
 
 
 def get_algorithm_config(wm: Wingman) -> KnownAlgorithmConfigs:
-    if wm.cfg.algorithm.variant == "mlp":
+    if wm.cfg.algorithm.actor.variant == "mlp":
         actor_config = MlpActorConfig(
             obs_size=wm.cfg.algorithm.obs_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.actor.embed_dim,
         )
-        qu_config = MlpQUNetworkConfig(
-            obs_size=wm.cfg.algorithm.obs_size,
-            act_size=wm.cfg.algorithm.act_size,
-            embed_dim=wm.cfg.algorithm.critic.embed_dim,
-        )
-    elif wm.cfg.algorithm.variant == "simba":
+    elif wm.cfg.algorithm.actor.variant == "simba":
         actor_config = SimbaActorConfig(
             obs_size=wm.cfg.algorithm.obs_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.actor.embed_dim,
             num_blocks=wm.cfg.algorithm.actor.num_blocks,
         )
-        qu_config = SimbaQUNetworkConfig(
-            obs_size=wm.cfg.algorithm.obs_size,
-            act_size=wm.cfg.algorithm.act_size,
-            embed_dim=wm.cfg.algorithm.critic.embed_dim,
-            num_blocks=wm.cfg.algorithm.critic.num_blocks,
-        )
-    elif wm.cfg.algorithm.variant == "transformer":
+    elif wm.cfg.algorithm.actor.variant == "basic_merge":
         actor_config = BasicMergeActorConfig(
             src_size=wm.cfg.algorithm.src_size,
             tgt_size=wm.cfg.algorithm.tgt_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.actor.embed_dim,
         )
+    elif wm.cfg.algorithm.actor.variant == "pre_ln_decoder":
+        actor_config = PreLNDecoderActorConfig(
+            src_size=wm.cfg.algorithm.src_size,
+            tgt_size=wm.cfg.algorithm.tgt_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.actor.embed_dim,
+            ff_dim=wm.cfg.algorithm.actor.ff_dim,
+            num_att_heads=wm.cfg.algorithm.actor.num_att_head,
+            num_layers=wm.cfg.algorithm.critic.num_layers,
+        )
+    elif wm.cfg.algorithm.actor.variant == "transformer":
+        actor_config = TransformerActorConfig(
+            src_size=wm.cfg.algorithm.src_size,
+            tgt_size=wm.cfg.algorithm.tgt_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.actor.embed_dim,
+            ff_dim=wm.cfg.algorithm.actor.ff_dim,
+            num_att_heads=wm.cfg.algorithm.actor.num_att_head,
+            num_encode_layers=wm.cfg.algorithm.critic.num_encode_layers,
+            num_decode_layers=wm.cfg.algorithm.critic.num_decode_layers,
+        )
+    else:
+        raise NotImplementedError
+
+    if wm.cfg.algorithm.critic.variant == "mlp":
+        qu_config = MlpQUNetworkConfig(
+            obs_size=wm.cfg.algorithm.obs_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.critic.embed_dim,
+        )
+    elif wm.cfg.algorithm.critic.variant == "simba":
+        qu_config = SimbaQUNetworkConfig(
+            obs_size=wm.cfg.algorithm.obs_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.critic.embed_dim,
+            num_blocks=wm.cfg.algorithm.critic.num_blocks,
+        )
+    elif wm.cfg.algorithm.critic.variant == "basic_merge":
         qu_config = BasicMergeQUNetworkConfig(
             src_size=wm.cfg.algorithm.src_size,
             tgt_size=wm.cfg.algorithm.tgt_size,
             act_size=wm.cfg.algorithm.act_size,
             embed_dim=wm.cfg.algorithm.critic.embed_dim,
         )
-        # actor_config = PreLNDecoderActorConfig(
-        #     src_size=wm.cfg.algorithm.src_size,
-        #     tgt_size=wm.cfg.algorithm.tgt_size,
-        #     act_size=wm.cfg.algorithm.act_size,
-        #     embed_dim=wm.cfg.algorithm.actor.embed_dim,
-        #     ff_dim=wm.cfg.algorithm.actor.ff_dim,
-        #     num_att_heads=wm.cfg.algorithm.actor.num_att_head,
-        #     num_layers=wm.cfg.algorithm.critic.num_layers,
-        # )
-        # qu_config = PreLNDecoderQUNetworkConfig(
-        #     src_size=wm.cfg.algorithm.src_size,
-        #     tgt_size=wm.cfg.algorithm.tgt_size,
-        #     act_size=wm.cfg.algorithm.act_size,
-        #     embed_dim=wm.cfg.algorithm.critic.embed_dim,
-        #     ff_dim=wm.cfg.algorithm.critic.ff_dim,
-        #     num_att_heads=wm.cfg.algorithm.critic.num_att_head,
-        #     num_layers=wm.cfg.algorithm.critic.num_layers,
-        # )
+    elif wm.cfg.algorithm.critic.variant == "pre_ln_decoder":
+        qu_config = PreLNDecoderQUNetworkConfig(
+            src_size=wm.cfg.algorithm.src_size,
+            tgt_size=wm.cfg.algorithm.tgt_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.critic.embed_dim,
+            ff_dim=wm.cfg.algorithm.critic.ff_dim,
+            num_att_heads=wm.cfg.algorithm.critic.num_att_head,
+            num_layers=wm.cfg.algorithm.critic.num_layers,
+        )
+    elif wm.cfg.algorithm.actor.variant == "transformer":
+        qu_config = TransformerQUNetworkConfig(
+            src_size=wm.cfg.algorithm.src_size,
+            tgt_size=wm.cfg.algorithm.tgt_size,
+            act_size=wm.cfg.algorithm.act_size,
+            embed_dim=wm.cfg.algorithm.actor.embed_dim,
+            ff_dim=wm.cfg.algorithm.actor.ff_dim,
+            num_att_heads=wm.cfg.algorithm.actor.num_att_head,
+            num_encode_layers=wm.cfg.algorithm.critic.num_encode_layers,
+            num_decode_layers=wm.cfg.algorithm.critic.num_decode_layers,
+        )
     else:
         raise NotImplementedError
 

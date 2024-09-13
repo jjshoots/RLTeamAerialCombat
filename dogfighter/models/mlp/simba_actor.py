@@ -4,11 +4,11 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_actor import Actor, ActorConfig
+from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
 from dogfighter.models.mlp.blocks.simba_block import SimbaBlock
 
 
-class SimbaActorConfig(ActorConfig):
+class SimbaActorConfig(GaussianActorConfig):
     """SimbaActorConfig."""
 
     variant: Literal["simba"] = "simba"  # pyright: ignore
@@ -21,7 +21,7 @@ class SimbaActorConfig(ActorConfig):
         return SimbaActor(self)
 
 
-class SimbaActor(Actor):
+class SimbaActor(GaussianActor):
     """Actor with Gaussian prediction head."""
 
     def __init__(self, config: SimbaActorConfig) -> None:

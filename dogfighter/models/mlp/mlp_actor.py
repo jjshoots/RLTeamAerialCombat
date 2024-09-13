@@ -5,10 +5,10 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_actor import Actor, ActorConfig
+from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
 
 
-class MlpActorConfig(ActorConfig):
+class MlpActorConfig(GaussianActorConfig):
     """MlpActorConfig."""
 
     variant: Literal["mlp"] = "mlp"  # pyright: ignore
@@ -27,7 +27,7 @@ class MlpActorConfig(ActorConfig):
         return MlpActor(self)
 
 
-class MlpActor(Actor):
+class MlpActor(GaussianActor):
     """Actor with Gaussian prediction head."""
 
     def __init__(self, config: MlpActorConfig) -> None:

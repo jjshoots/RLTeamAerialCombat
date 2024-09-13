@@ -5,10 +5,11 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.base_critic import QUNetwork, QUNetworkConfig
+from dogfighter.models.base.critics import (UncertaintyAwareCritic,
+                                            UncertaintyAwareCriticConfig)
 
 
-class MlpQUNetworkConfig(QUNetworkConfig):
+class MlpQUNetworkConfig(UncertaintyAwareCriticConfig):
     """MlpQUNetworkConfig."""
 
     variant: Literal["mlp"] = "mlp"  # pyright: ignore
@@ -20,7 +21,7 @@ class MlpQUNetworkConfig(QUNetworkConfig):
         return MlpQUNetwork(self)
 
 
-class MlpQUNetwork(QUNetwork):
+class MlpQUNetwork(UncertaintyAwareCritic):
     """A classic Q network that uses a transformer backbone."""
 
     def __init__(self, config: MlpQUNetworkConfig) -> None:

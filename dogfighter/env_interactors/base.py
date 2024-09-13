@@ -6,7 +6,7 @@ from memorial import ReplayBuffer
 from pettingzoo import ParallelEnv
 from pydantic import BaseModel, StrictStr
 
-from dogfighter.models.base.base_actor import Actor
+from dogfighter.models.base.base import Actor
 
 SupportedEnvTypes = ParallelEnv | VectorEnv | Env
 
