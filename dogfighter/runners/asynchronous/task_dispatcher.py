@@ -75,14 +75,6 @@ class TaskDispatcher:
             while self._completed_tasks:
                 yield self._completed_tasks.pop(0)
 
-    @property
-    def _active_actor_weights_path(self) -> str:
-        """This may be '' or an actual path, depending on whether the weights exist."""
-        if os.path.exists(self.actor_weights_path):
-            return self.actor_weights_path
-        else:
-            return ""
-
     def queue_eval(self) -> None:
         """Queues an eval task."""
         with self._manager.Lock():
