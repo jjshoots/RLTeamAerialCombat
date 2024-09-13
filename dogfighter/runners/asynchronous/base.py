@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
 
+from dogfighter.env_interactors.base import UpdateInfos
+
 #############################################################
 # RESULTS
 #############################################################
@@ -11,12 +13,12 @@ from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
 
 class CollectionResult(BaseModel):
     memory_path: StrictStr
-    info: dict[StrictStr, StrictFloat | StrictInt | StrictStr]
+    info: UpdateInfos
 
 
 class EvaluationResult(BaseModel):
     score: StrictFloat
-    info: dict[StrictStr, StrictFloat | StrictInt | StrictStr]
+    info: UpdateInfos
 
 
 #############################################################

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Mapping
 
 import torch
 import torch.nn as nn
@@ -22,17 +22,12 @@ class AlgorithmConfig(BaseModel):
 
     @abstractmethod
     def instantiate(self) -> "Algorithm":
-        """instantiate.
-
-        Args:
-
-        Returns:
-            Algorithm:
-        """
+        """instantiate."""
         raise NotImplementedError
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
+        """__init_subclass__."""
         super().__init_subclass__(**kwargs)
         variant = cls.__annotations__.get("variant")
         assert variant is not None
@@ -46,6 +41,7 @@ class Algorithm(nn.Module):
 
     @property
     def actor(self) -> GaussianActor:
+        """actor."""
         raise NotImplementedError
 
     def save(self, filepath: str | Path) -> None:
@@ -66,13 +62,6 @@ class Algorithm(nn.Module):
     def update(
         self,
         memory: ReplayBuffer,
-    ) -> dict[str, int | float | bool | str]:
-        """update.
-
-        Args:
-            memory (ReplayBuffer): memory
-
-        Returns:
-            dict[str, Any]:
-        """
+    ) -> Mapping[str, int | float | bool]:
+        """update."""
         raise NotImplementedError

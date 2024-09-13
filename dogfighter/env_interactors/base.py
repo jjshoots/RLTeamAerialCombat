@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, Protocol, runtime_checkable
+from typing import ClassVar, Mapping, Protocol, runtime_checkable
 
 from gymnasium import Env
 from gymnasium.vector import VectorEnv
@@ -9,6 +9,7 @@ from pydantic import BaseModel, StrictStr
 from dogfighter.models.base import Actor
 
 SupportedEnvTypes = ParallelEnv | VectorEnv | Env
+UpdateInfos = Mapping[str, int | float | bool]
 
 
 @runtime_checkable
@@ -21,7 +22,7 @@ class CollectionFunctionProtocol(Protocol):
         memory: ReplayBuffer,
         num_transitions: int,
         use_random_actions: bool,
-    ) -> tuple[ReplayBuffer, dict[str, Any]]:
+    ) -> tuple[ReplayBuffer, UpdateInfos]:
         raise NotImplementedError
 
 
@@ -33,7 +34,7 @@ class EvaluationFunctionProtocol(Protocol):
         actor: Actor,
         env: SupportedEnvTypes,
         num_episodes: int,
-    ) -> tuple[float, dict[str, Any]]:
+    ) -> tuple[float, UpdateInfos]:
         raise NotImplementedError
 
 

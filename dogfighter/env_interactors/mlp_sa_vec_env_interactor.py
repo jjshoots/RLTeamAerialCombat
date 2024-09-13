@@ -1,5 +1,5 @@
 import time
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 import torch
@@ -15,6 +15,7 @@ from dogfighter.env_interactors.base import (
     EnvInteractorConfig,
     EvaluationFunctionProtocol,
     SupportedEnvTypes,
+    UpdateInfos,
 )
 from dogfighter.models.base import Actor
 
@@ -47,7 +48,7 @@ def mlp_sa_vec_env_collect(
     memory: ReplayBuffer,
     num_transitions: int,
     use_random_actions: bool,
-) -> tuple[ReplayBuffer, dict[str, Any]]:
+) -> tuple[ReplayBuffer, UpdateInfos]:
     """Runs the actor in the vector environment and collects transitions.
 
     This collects `num_transitions` transitions using `num_transitions // vev_env.num_envs` steps.
@@ -66,7 +67,7 @@ def mlp_sa_vec_env_collect(
         use_random_actions (bool): use_random_actions
 
     Returns:
-        tuple[FlatReplayBuffer, dict[Literal["interactions_per_second"], float]]:
+        tuple[FlatReplayBuffer, UpdateInfos]:
     """
     assert isinstance(env, VectorEnv)
     assert isinstance(memory, FlatReplayBuffer)
@@ -135,7 +136,7 @@ def mlp_sa_vec_env_evaluate(
     actor: Actor,
     env: SupportedEnvTypes,
     num_episodes: int,
-) -> tuple[float, dict[str, Any]]:
+) -> tuple[float, UpdateInfos]:
     """mlp_sa_vec_env_evaluate.
 
     Args:
@@ -144,7 +145,7 @@ def mlp_sa_vec_env_evaluate(
         num_episodes (int): num_episodes
 
     Returns:
-        tuple[float, dict[str, Any]]:
+        tuple[float, UpdateInfos]:
     """
     assert isinstance(env, VectorEnv)
     assert (

@@ -1,5 +1,5 @@
 import time
-from typing import Any, Literal
+from typing import Literal
 
 import numpy as np
 import torch
@@ -14,6 +14,7 @@ from dogfighter.env_interactors.base import (
     EnvInteractorConfig,
     EvaluationFunctionProtocol,
     SupportedEnvTypes,
+    UpdateInfos,
 )
 from dogfighter.models.base import Actor
 
@@ -27,33 +28,15 @@ class TransformerMAEnvInteractorConfig(EnvInteractorConfig):
     variant: Literal["transformer_ma"] = "transformer_ma"  # pyright: ignore
 
     def get_collection_fn(self) -> CollectionFunctionProtocol:
-        """get_collection_fn.
-
-        Args:
-
-        Returns:
-            CollectionFunctionProtocol:
-        """
+        """get_collection_fn."""
         return transformer_ma_env_collect
 
     def get_evaluation_fn(self) -> EvaluationFunctionProtocol:
-        """get_evaluation_fn.
-
-        Args:
-
-        Returns:
-            EvaluationFunctionProtocol:
-        """
+        """get_evaluation_fn."""
         return transformer_ma_env_evaluate
 
     def get_display_fn(self) -> DisplayFunctionProtocol:
-        """get_display_fn.
-
-        Args:
-
-        Returns:
-            DisplayFunctionProtocol:
-        """
+        """get_display_fn."""
         return transformer_ma_env_display
 
 
@@ -64,7 +47,7 @@ def transformer_ma_env_collect(
     memory: ReplayBuffer,
     num_transitions: int,
     use_random_actions: bool,
-) -> tuple[ReplayBuffer, dict[str, Any]]:
+) -> tuple[ReplayBuffer, UpdateInfos]:
     """Runs the actor in the multiagent parallel environment and collects transitions.
 
     This collects `num_transitions` transitions using `num_transitions // env.num_agent` steps.
@@ -83,7 +66,7 @@ def transformer_ma_env_collect(
         use_random_actions (bool): use_random_actions
 
     Returns:
-        tuple[DictReplayBufferWrapper, dict[Literal["interactions_per_second"], float]]:
+        tuple[DictReplayBufferWrapper, UpdateInfos]:
     """
     assert isinstance(env, ParallelEnv)
     assert isinstance(memory, DictReplayBufferWrapper)
@@ -195,7 +178,7 @@ def transformer_ma_env_evaluate(
     actor: Actor,
     env: SupportedEnvTypes,
     num_episodes: int,
-) -> tuple[float, dict[str, Any]]:
+) -> tuple[float, UpdateInfos]:
     """transformer_ma_env_evaluate.
 
     Args:
@@ -204,7 +187,7 @@ def transformer_ma_env_evaluate(
         num_episodes (int): num_episodes
 
     Returns:
-        tuple[float, dict[str, Any]]:
+        tuple[float, UpdateInfos]:
     """
     assert isinstance(env, ParallelEnv)
 

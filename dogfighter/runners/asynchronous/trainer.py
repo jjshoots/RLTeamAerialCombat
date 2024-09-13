@@ -1,6 +1,7 @@
 import math
 import os
 import time
+from collections import defaultdict
 
 from wingman import Wingman
 
@@ -51,25 +52,34 @@ def run_train(
             ) * settings.transitions_eval_frequency
 
         """RESULTS COLLECTION"""
-        # check all futures for done tasks
         for result in task_dispatcher.completed_tasks:
-            # collect memory
+            collect_infos = defaultdict(list)
+            eval_infos = defaultdict(list)
+            eval_scores = []
+
+            # collect results
             if isinstance(result, CollectionResult):
                 with open(result.memory_path, "r+b") as f:
                     memory.merge(type(memory).load(f))
                 os.remove(result.memory_path)
-                wm.log.update({f"collect/{k}": v for k, v in result.info.items()})
-
-            # collect eval
+                for key, value in result.info.items():
+                    collect_infos[key].append(value)
             elif isinstance(result, EvaluationResult):
-                eval_score = result.score
-                max_eval_score = max(max_eval_score, eval_score)
-                wm.log["eval/score"] = eval_score
-                wm.log["eval/max_score"] = max_eval_score
-                wm.log.update({f"eval/{k}": v for k, v in result.info.items()})
-
+                eval_scores.append(result.score)
+                for key, value in result.info.items():
+                    eval_infos[key].append(value)
             else:
                 raise NotImplementedError
+
+            # aggregate results
+            wm.log["eval/score"] = eval_score = sum(eval_scores) / len(eval_scores)
+            wm.log["eval/max_score"] = max_eval_score = max(max_eval_score, eval_score)
+            wm.log.update(
+                {f"collect/{k}": (sum(v) / len(v)) for k, v in collect_infos.items()}
+            )
+            wm.log.update(
+                {f"eval/{k}": (sum(v) / len(v)) for k, v in eval_infos.items()}
+            )
 
         """TRAINING RUN"""
         # don't proceed with training until we have a minimum number of transitions

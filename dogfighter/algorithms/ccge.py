@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 import warnings
+from collections import defaultdict
 from typing import Any, Literal
 
 import torch
@@ -11,6 +12,7 @@ from torch.optim.adamw import AdamW
 from tqdm import tqdm
 
 from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
+from dogfighter.env_interactors.base import UpdateInfos
 from dogfighter.models import KnownActorConfigs, KnownCriticConfigs
 from dogfighter.models.actors import GaussianActor, GaussianActorConfig
 from dogfighter.models.critic_ensemble import CriticEnsemble
@@ -137,7 +139,7 @@ class CCGE(Algorithm):
     def update(
         self,
         memory: ReplayBuffer,
-    ) -> dict[str, int | float | bool | str]:
+    ) -> UpdateInfos:
         """Updates the model using the replay buffer.
 
         Note that this expects that `memory` has:
@@ -151,12 +153,12 @@ class CCGE(Algorithm):
             memory (ReplayBuffer): memory
 
         Returns:
-            dict[str, int | float | bool | str]:
+            Mapping[str, int | float | bool]:
         """
         start_time = time.time()
 
         # initialise the update infos
-        update_info = {}
+        update_info = defaultdict(lambda: 0.0)
 
         # start the training!
         self.train()
@@ -169,12 +171,8 @@ class CCGE(Algorithm):
                 term=term,
                 next_obs=next_obs,
             )
-
             for key, value in info.items():
-                update_info[key] = (
-                    update_info.get(key, 0.0)
-                    + value / self.config.grad_steps_per_update
-                )
+                update_info[key] += value / self.config.grad_steps_per_update
 
         update_info["steps_per_second"] = self.config.grad_steps_per_update / (
             time.time() - start_time
