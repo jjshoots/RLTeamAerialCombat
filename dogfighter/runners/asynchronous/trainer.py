@@ -38,13 +38,12 @@ def run_train(
 
     # task dispatcher
     task_dispatcher = TaskDispatcher(config_stack=configs)
-    actor_weights_path = task_dispatcher.actor_weights_path
 
     # start main loop
     while memory.count <= settings.transitions_max:
         """CONDITIONALLY EVAL"""
+        task_dispatcher.queue_eval()
         if memory.count >= next_eval_step:
-            task_dispatcher.queue_eval()
             next_eval_step = (
                 int(memory.count / settings.transitions_eval_frequency) + 1
             ) * settings.transitions_eval_frequency
@@ -94,5 +93,5 @@ def run_train(
             algorithm.save(ckpt_dir / "weights.pth")
 
         # update the actor weights for workers, use a rename to prevent race
-        with AtomicFileWriter(actor_weights_path) as f:
+        with AtomicFileWriter(task_dispatcher.actor_weights_path) as f:
             algorithm.actor.save(f)

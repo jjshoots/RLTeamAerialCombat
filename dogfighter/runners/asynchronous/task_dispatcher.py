@@ -93,11 +93,11 @@ class TaskDispatcher:
         while True:
             self._query_processes()
 
-            while len(self._running_processes) < self._max_workers:
-                if self._num_requested_evals.value > 0:
-                    self._submit_process(mode=WorkerTaskType.EVAL)
-                    with self._manager.Lock():
-                        self._num_requested_evals.value -= 1
+            # while len(self._running_processes) < self._max_workers:
+            if self._num_requested_evals.value > 0:
+                self._submit_process(mode=WorkerTaskType.EVAL)
+                with self._manager.Lock():
+                    self._num_requested_evals.value -= 1
 
                 self._submit_process(mode=WorkerTaskType.COLLECT)
 
@@ -139,8 +139,8 @@ class TaskDispatcher:
         self._running_processes[
             subprocess.Popen(
                 command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                # stdout=subprocess.PIPE,
+                # stderr=subprocess.PIPE,
             )
         ] = _RunningTask(
             task_type=mode,
