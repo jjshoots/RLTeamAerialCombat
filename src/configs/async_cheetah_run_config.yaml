@@ -14,12 +14,13 @@ replay_buffer:
 
 # algorithm params
 algorithm:
+  variant: ccge
   actor:
-    variant: "simba"
+    variant: "mlp"
     embed_dim: 256
     num_blocks: 1
   critic:
-    variant: "simba"
+    variant: "mlp"
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2

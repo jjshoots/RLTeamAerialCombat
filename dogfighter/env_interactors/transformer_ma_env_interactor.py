@@ -14,7 +14,7 @@ from dogfighter.env_interactors.base import (CollectionFunctionProtocol,
                                              EnvInteractorConfig,
                                              EvaluationFunctionProtocol,
                                              SupportedEnvTypes)
-from dogfighter.models.base.base import Actor
+from dogfighter.models.base import Actor
 
 
 class TransformerMAEnvInteractorConfig(EnvInteractorConfig):

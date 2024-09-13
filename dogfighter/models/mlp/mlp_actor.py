@@ -5,7 +5,7 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
+from dogfighter.models.actors import GaussianActor, GaussianActorConfig
 
 
 class MlpActorConfig(GaussianActorConfig):

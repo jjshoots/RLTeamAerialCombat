@@ -8,8 +8,8 @@ from memorial import ReplayBuffer
 from pydantic import BaseModel, StrictBool, StrictStr
 
 from dogfighter.models import KnownActorConfigs
-from dogfighter.models.base.actors import GaussianActor
-from dogfighter.models.base.base import Action, Observation
+from dogfighter.models.actors import GaussianActor
+from dogfighter.models.mdp_types import Action, Observation
 
 
 class AlgorithmConfig(BaseModel):

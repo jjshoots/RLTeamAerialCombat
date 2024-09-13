@@ -114,6 +114,8 @@ def run_evaluation(
     evaluation_fn = interactor_config.get_evaluation_fn()
     actor.to(algorithm_config.device)
 
+    print(actor.state_dict().__hash__)
+
     # load the weights file and clean up
     if settings.worker.io.actor_weights_path:
         actor.load(settings.worker.io.actor_weights_path)

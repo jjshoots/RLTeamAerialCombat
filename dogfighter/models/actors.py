@@ -1,15 +1,17 @@
-from typing import Generic
+from typing import Generic, Literal
 
 import torch
 import torch.distributions as dist
 import torch.nn.functional as func
 
-from dogfighter.algorithms.base import Action, Observation
-from dogfighter.models.base.base import Actor, ActorConfig
+from dogfighter.models.base import Actor, ActorConfig
+from dogfighter.models.mdp_types import Action, Observation
 
 
 class GaussianActorConfig(ActorConfig):
     """GaussianActorConfig."""
+
+    variant: Literal["gaussian_actor"] = "gaussian_actor"  # pyright: ignore
 
 
 class GaussianActor(Actor, Generic[Observation, Action]):

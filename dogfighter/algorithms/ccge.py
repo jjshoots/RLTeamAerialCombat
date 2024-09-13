@@ -10,12 +10,12 @@ from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr
 from torch.optim.adamw import AdamW
 from tqdm import tqdm
 
-from dogfighter.algorithms.base import (Action, Algorithm, AlgorithmConfig,
-                                        Observation)
+from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
 from dogfighter.models import KnownActorConfigs, KnownCriticConfigs
-from dogfighter.models.base.actors import GaussianActor, GaussianActorConfig
-from dogfighter.models.base.critic_ensemble import CriticEnsemble
-from dogfighter.models.base.critics import UncertaintyAwareCriticConfig
+from dogfighter.models.actors import GaussianActor, GaussianActorConfig
+from dogfighter.models.critic_ensemble import CriticEnsemble
+from dogfighter.models.critics import UncertaintyAwareCriticConfig
+from dogfighter.models.mdp_types import Action, Observation
 
 
 class CCGEConfig(AlgorithmConfig):

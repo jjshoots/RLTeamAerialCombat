@@ -4,8 +4,8 @@ import torch
 from pydantic import StrictInt
 from torch import nn
 
-from dogfighter.models.base.critics import (UncertaintyAwareCritic,
-                                            UncertaintyAwareCriticConfig)
+from dogfighter.models.critics import (UncertaintyAwareCritic,
+                                       UncertaintyAwareCriticConfig)
 
 
 class TransformerQUNetworkConfig(UncertaintyAwareCriticConfig):

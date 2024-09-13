@@ -3,8 +3,8 @@ from typing import Generic
 import torch
 import torch.nn as nn
 
-from dogfighter.algorithms.base import Action, Observation
-from dogfighter.models.base.base import CriticConfig
+from dogfighter.models.base import CriticConfig
+from dogfighter.models.mdp_types import Action, Observation
 
 
 class CriticEnsemble(nn.Module, Generic[Observation, Action]):

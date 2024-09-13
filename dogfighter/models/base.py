@@ -7,14 +7,14 @@ import torch
 import torch.nn as nn
 from pydantic import BaseModel, StrictStr
 
-from dogfighter.models.base import Action, Observation
+from dogfighter.models.mdp_types import Action, Observation
 
 
 class ActorConfig(BaseModel):
     """ActorConfig for creating actors."""
 
     _registry: ClassVar[set[str]] = set()
-    variant: StrictStr = "hi"
+    variant: StrictStr = "null"
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
