@@ -141,8 +141,8 @@ class TaskDispatcher:
         self._running_processes[
             subprocess.Popen(
                 command,
-                # stdout=subprocess.PIPE,
-                # stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
         ] = _RunningTask(
             task_type=mode,
@@ -178,6 +178,7 @@ class TaskDispatcher:
                         self._completed_tasks.append(EvaluationResult(**json.load(f)))
                     else:
                         raise NotImplementedError
+
 
                 # cleanup
                 os.remove(task.task_file)
