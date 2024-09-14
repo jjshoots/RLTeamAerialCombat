@@ -37,21 +37,16 @@ def run_train(
     num_epochs = 0
     eval_score = -math.inf
     max_eval_score = -math.inf
-    next_eval_step = 0
 
     # task dispatcher
     task_dispatcher = TaskDispatcher(config_stack=configs)
 
     # start main loop
     while memory.count <= settings.transitions_max:
-        """CONDITIONALLY EVAL"""
+        """SEND EVAL"""
         task_dispatcher.queue_eval()
-        if memory.count >= next_eval_step:
-            next_eval_step = (
-                int(memory.count / settings.transitions_eval_frequency) + 1
-            ) * settings.transitions_eval_frequency
 
-        """RESULTS COLLECTION"""
+        """COLLECT RESULTS"""
         for result in task_dispatcher.completed_tasks:
             collect_infos = defaultdict(list)
             eval_infos = defaultdict(list)
@@ -84,7 +79,7 @@ def run_train(
                 {f"eval/{k}": (sum(v) / len(v)) for k, v in eval_infos.items()}
             )
 
-        """TRAINING RUN"""
+        """UPDATE MODEL"""
         # don't proceed with training until we have a minimum number of transitions
         if memory.count < settings.transitions_min_for_train:
             time.sleep(5)
@@ -102,7 +97,7 @@ def run_train(
         info = algorithm.update(memory=memory)
         wm.log.update({f"train/{k}": v for k, v in info.items()})
 
-        # save weights
+        """SAVE WEIGHTS"""
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
         if to_update:
             algorithm.save(ckpt_dir / "weights.pth")

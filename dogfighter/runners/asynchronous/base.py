@@ -42,7 +42,6 @@ class TrainerSettings(BaseModel):
     transitions_max: StrictInt
     transitions_num_exploration: StrictInt
     transitions_min_for_train: StrictInt
-    transitions_eval_frequency: StrictInt
 
 
 class AsynchronousRunnerSettings(BaseModel):

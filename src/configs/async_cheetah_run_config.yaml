@@ -47,7 +47,6 @@ runner:
     transitions_max: 5000000
     transitions_num_exploration: 10000
     transitions_min_for_train: 10000
-    transitions_eval_frequency: 10000
 
   worker:
     task: "null" # collect, eval
