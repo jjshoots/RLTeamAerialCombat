@@ -53,7 +53,7 @@ def run_collection(
     ).instantiate()
 
     # load the weights file
-    if settings.worker.io.actor_weights_path:
+    if settings.worker.io.actor_weights_path is not None:
         actor.load(settings.worker.io.actor_weights_path)
 
     # send to gpu and compile
@@ -82,6 +82,7 @@ def run_collection(
     )
 
     # dump the pointer to disk
+    assert settings.worker.io.result_output_path is not None
     with AtomicFileWriter(settings.worker.io.result_output_path) as f:
         with open(f, "w") as fw:
             json.dump(result.model_dump(), fw)
@@ -122,7 +123,7 @@ def run_evaluation(
     evaluation_fn = interactor_config.get_evaluation_fn()
 
     # load the weights file
-    if settings.worker.io.actor_weights_path:
+    if settings.worker.io.actor_weights_path is not None:
         actor.load(settings.worker.io.actor_weights_path)
 
     # send to gpu and compile
@@ -143,6 +144,7 @@ def run_evaluation(
     )
 
     # dump the pointer to disk
+    assert settings.worker.io.result_output_path is not None
     with AtomicFileWriter(settings.worker.io.result_output_path) as f:
         with open(f, "w") as fw:
             json.dump(result.model_dump(), fw)

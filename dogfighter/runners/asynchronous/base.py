@@ -27,8 +27,8 @@ class EvaluationResult(BaseModel):
 
 
 class IOSettings(BaseModel):
-    actor_weights_path: StrictStr = ""
-    result_output_path: StrictStr = "/dev/null"
+    actor_weights_path: StrictStr | None = None
+    result_output_path: StrictStr | None = None
 
 
 class WorkerSettings(BaseModel):

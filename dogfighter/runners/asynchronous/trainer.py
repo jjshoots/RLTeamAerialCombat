@@ -74,7 +74,9 @@ def run_train(
             # aggregate results
             if eval_scores:
                 wm.log["eval/score"] = eval_score = sum(eval_scores) / len(eval_scores)
-                wm.log["eval/max_score"] = max_eval_score = max(max_eval_score, eval_score)
+                wm.log["eval/max_score"] = max_eval_score = max(
+                    max_eval_score, eval_score
+                )
             wm.log.update(
                 {f"collect/{k}": (sum(v) / len(v)) for k, v in collect_infos.items()}
             )
