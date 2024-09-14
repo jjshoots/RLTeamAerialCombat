@@ -115,7 +115,7 @@ class TaskDispatcher:
         task_config = self._config_stack.model_dump()
         task_config["runner_settings"]["mode"] = "worker"
         task_config["runner_settings"]["worker"]["io"]["actor_weights_path"] = (
-            self.actor_weights_path if os.path.exists(self.actor_weights_path) else ""
+            self.actor_weights_path if os.path.exists(self.actor_weights_path) else None
         )
         task_config["runner_settings"]["worker"]["io"]["result_output_path"] = (
             result_output_path

@@ -47,7 +47,6 @@ def run_collection(
     env = train_env_config.instantiate()
     actor = algorithm_config.actor_config.instantiate()
     collection_fn = interactor_config.get_collection_fn()
-    actor.to(algorithm_config.device)
     memory = memory_config.model_copy(
         update={"mem_size": int(settings.worker.collect_num_transitions * 1.2)}
     ).instantiate()
