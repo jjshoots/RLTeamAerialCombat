@@ -35,7 +35,7 @@ class TaskDispatcher:
     def __init__(
         self,
         config_stack: ConfigStack,
-        kill_on_error: bool = True,
+        kill_on_error: bool = False,
         loop_interval_seconds: float = 1.0,
     ) -> None:
         """A dispatcher that handles submitting collect and eval jobs asynchronously."""

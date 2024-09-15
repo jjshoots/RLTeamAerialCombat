@@ -18,13 +18,13 @@ replay_buffer:
 algorithm:
   variant: "ccge"
   actor:
-    variant: "basic_merge"
+    variant: "pre_ln_decoder"
     embed_dim: 32
     ff_dim: 128
     num_att_head: 4
     num_layers: 1
   critic:
-    variant: "basic_merge"
+    variant: "pre_ln_decoder"
     embed_dim: 64
     ff_dim: 256
     num_att_head: 8
@@ -47,7 +47,7 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
-  max_workers: 4
+  max_workers: 16
 
   trainer:
     transitions_max: 3000000
@@ -56,7 +56,7 @@ runner:
 
   worker:
     task: "null" # collect, eval
-    collect_num_transitions: 1800
+    collect_num_transitions: 3000
     eval_num_episodes: 10
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
