@@ -68,7 +68,7 @@ model:
   increment_ckpt: false
 
 logging:
-  interval: 10
+  interval: 1
   max_skips: 5
   greater_than: 0.0
   filename: ""
