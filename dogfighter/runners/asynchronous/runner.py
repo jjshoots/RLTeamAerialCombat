@@ -5,7 +5,10 @@ from signal import SIGINT, signal
 from wingman import Wingman
 from wingman.utils import shutdown_handler
 
-from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
+from dogfighter.runners.asynchronous.base import (
+    AsynchronousRunnerSettings,
+    WorkerTaskType,
+)
 from dogfighter.runners.asynchronous.trainer import run_train
 from dogfighter.runners.asynchronous.workers import run_collection, run_evaluation
 from dogfighter.runners.base import ConfigStack
@@ -45,9 +48,16 @@ if __name__ == "__main__":
     assert isinstance(configs.runner_settings, AsynchronousRunnerSettings)
 
     if configs.runner_settings.mode == "worker":
-        if configs.runner_settings.worker.task == "collect":
+        print(configs.runner_settings.worker.task)
+        print(configs.runner_settings.worker.task)
+        print(configs.runner_settings.worker.task)
+        print(configs.runner_settings.worker.task)
+        print(configs.runner_settings.worker.task)
+        if configs.runner_settings.worker.task == WorkerTaskType.COLLECT:
             run_collection(configs=configs)
-        elif configs.runner_settings.worker.task == "eval":
+        elif configs.runner_settings.worker.task == WorkerTaskType.EVAL:
             run_evaluation(configs=configs)
+        elif configs.runner_settings.worker.task == WorkerTaskType.NULL:
+            print("Got `null` as `task_type`, did you forget to set task?")
         else:
             raise NotImplementedError

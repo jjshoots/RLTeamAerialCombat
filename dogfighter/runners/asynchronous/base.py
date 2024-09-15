@@ -1,5 +1,5 @@
 from dataclasses import field
-from enum import Enum
+from enum import IntEnum
 from typing import Literal
 
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
@@ -31,12 +31,18 @@ class IOSettings(BaseModel):
     result_output_path: StrictStr | None = None
 
 
+class WorkerTaskType(IntEnum):
+    NULL = 0
+    COLLECT = 1
+    EVAL = 2
+
+
 class WorkerSettings(BaseModel):
-    task: Literal["collect", "eval", "null"]
+    io: IOSettings = field(default_factory=IOSettings)
+    task: WorkerTaskType = WorkerTaskType.NULL
     collect_min_transitions: StrictInt
     collect_buffer_size: StrictInt
     eval_num_episodes: StrictInt
-    io: IOSettings = field(default_factory=IOSettings)
 
 
 class TrainerSettings(BaseModel):
@@ -51,15 +57,3 @@ class AsynchronousRunnerSettings(BaseModel):
 
     trainer: TrainerSettings
     worker: WorkerSettings
-
-
-#############################################################
-# TASK DEFINITION
-#############################################################
-
-
-class WorkerTaskType(Enum):
-    """WorkerMode."""
-
-    COLLECT = 1
-    EVAL = 2

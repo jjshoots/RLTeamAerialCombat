@@ -1,3 +1,4 @@
+import io
 from abc import abstractmethod
 from pathlib import Path
 from typing import ClassVar, Mapping
@@ -44,15 +45,15 @@ class Algorithm(nn.Module):
         """actor."""
         raise NotImplementedError
 
-    def save(self, filepath: str | Path) -> None:
+    def save(self, target: str | Path | io.BytesIO) -> None:
         """save."""
-        torch.save(self.state_dict(), filepath)
+        torch.save(self.state_dict(), target)
 
-    def load(self, filepath: str | Path) -> None:
+    def load(self, target: str | Path | io.BytesIO) -> None:
         """load."""
         self.load_state_dict(
             torch.load(
-                filepath,
+                target,
                 map_location=torch.device(self._device),
                 weights_only=True,
             )

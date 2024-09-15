@@ -1,3 +1,4 @@
+import io
 from abc import abstractmethod
 from functools import cached_property
 from pathlib import Path
@@ -40,15 +41,15 @@ class ActorConfig(BaseModel):
 class Actor(nn.Module):
     """A generic actor."""
 
-    def save(self, filepath: str | Path) -> None:
+    def save(self, target: str | Path | io.BytesIO) -> None:
         """save."""
-        torch.save(self.state_dict(), filepath)
+        torch.save(self.state_dict(), target)
 
-    def load(self, filepath: str | Path) -> None:
+    def load(self, target: str | Path | io.BytesIO) -> None:
         """load."""
         self.load_state_dict(
             torch.load(
-                filepath,
+                target,
                 map_location=torch.device(self.device),
                 weights_only=True,
             )
@@ -132,15 +133,15 @@ class CriticConfig(BaseModel):
 class Critic(nn.Module):
     """A generic critic."""
 
-    def save(self, filepath: str | Path) -> None:
+    def save(self, file_obj: io.BytesIO) -> None:
         """save."""
-        torch.save(self.state_dict(), filepath)
+        torch.save(self.state_dict(), file_obj)
 
-    def load(self, filepath: str | Path) -> None:
+    def load(self, file_obj: io.BytesIO) -> None:
         """load."""
         self.load_state_dict(
             torch.load(
-                filepath,
+                file_obj,
                 map_location=torch.device(self._device),
                 weights_only=True,
             )

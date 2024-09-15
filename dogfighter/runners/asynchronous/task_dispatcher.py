@@ -122,12 +122,7 @@ class TaskDispatcher:
         task_config["runner_settings"]["worker"]["io"]["result_output_path"] = (
             result_output_path
         )
-        if mode == WorkerTaskType.COLLECT:
-            task_config["runner_settings"]["worker"]["task"] = "collect"
-        elif mode == WorkerTaskType.EVAL:
-            task_config["runner_settings"]["worker"]["task"] = "eval"
-        else:
-            raise NotImplementedError
+        task_config["runner_settings"]["worker"]["task"] = mode
 
         # dump the file to disk and run the command
         with open(task_file, "w") as f:

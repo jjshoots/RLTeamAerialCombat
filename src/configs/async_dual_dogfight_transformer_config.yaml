@@ -55,7 +55,6 @@ runner:
     transitions_min_for_train: 50000
 
   worker:
-    task: "null" # collect, eval
     collect_min_transitions: 2000
     collect_buffer_size: 8000
     eval_num_episodes: 10
