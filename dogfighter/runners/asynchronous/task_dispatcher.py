@@ -145,6 +145,7 @@ class TaskDispatcher:
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                text=True,
             )
         ] = _RunningTask(
             task_type=mode,
@@ -165,14 +166,12 @@ class TaskDispatcher:
 
         # iterate through each task and handle done items
         for process, task in self._running_processes.items():
-            result = process.poll()
-
             # if no result, the task is still running
-            if result is None:
+            if process.poll() is None:
                 continue
 
             # if no error, record the output and break
-            if result == 0:
+            if process.returncode == 0:
                 with open(task.result_output_path, "r") as f, self._manager.Lock():
                     if task.task_type == WorkerTaskType.COLLECT:
                         self._completed_tasks.append(CollectionResult(**json.load(f)))
@@ -189,12 +188,7 @@ class TaskDispatcher:
 
             # if error, handle it
             else:
-                stdout = process.stdout
-                stderr = process.stdout
-                if stdout is not None:
-                    stdout = stdout.read().decode()
-                if stderr is not None:
-                    stderr = stderr.read().decode()
+                stdout, stderr = process.communicate()
                 printout = "Subprocess has failed!\n\n" f"{stdout}\n\n" f"{stderr}"
 
                 if self._kill_on_error:

@@ -21,13 +21,13 @@ algorithm:
     variant: "pre_ln_decoder"
     embed_dim: 32
     ff_dim: 128
-    num_att_head: 4
+    num_att_heads: 4
     num_layers: 1
   critic:
     variant: "pre_ln_decoder"
     embed_dim: 64
     ff_dim: 256
-    num_att_head: 8
+    num_att_heads: 8
     num_layers: 1
   qu_num_ensemble: 2
   batch_size: 2048
@@ -56,7 +56,8 @@ runner:
 
   worker:
     task: "null" # collect, eval
-    collect_num_transitions: 3000
+    collect_min_transitions: 2000
+    collect_buffer_size: 8000
     eval_num_episodes: 10
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman

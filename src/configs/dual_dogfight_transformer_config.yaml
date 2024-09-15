@@ -18,16 +18,16 @@ replay_buffer:
 algorithm:
   variant: "ccge"
   actor:
-    variant: "basic_merge"
+    variant: "pre_ln_decoder"
     embed_dim: 32
     ff_dim: 128
-    num_att_head: 4
+    num_att_heads: 4
     num_layers: 1
   critic:
-    variant: "basic_merge"
+    variant: "pre_ln_decoder"
     embed_dim: 64
     ff_dim: 256
-    num_att_head: 8
+    num_att_heads: 8
     num_layers: 1
   qu_num_ensemble: 2
   batch_size: 2048

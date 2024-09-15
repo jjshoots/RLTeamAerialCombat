@@ -33,7 +33,8 @@ class IOSettings(BaseModel):
 
 class WorkerSettings(BaseModel):
     task: Literal["collect", "eval", "null"]
-    collect_num_transitions: StrictInt
+    collect_min_transitions: StrictInt
+    collect_buffer_size: StrictInt
     eval_num_episodes: StrictInt
     io: IOSettings = field(default_factory=IOSettings)
 

@@ -12,7 +12,7 @@ from dogfighter.models.transformer.blocks.pre_ln_decoder import PreLNDecoder
 class PreLNDecoderActorConfig(GaussianActorConfig):
     """PreLNDecoderActorConfig."""
 
-    variant: Literal["pre_ln_decoder"]  # pyright: ignore
+    variant: Literal["pre_ln_decoder"] = "pre_ln_decoder"  # pyright: ignore
     src_size: StrictInt
     tgt_size: StrictInt
     act_size: StrictInt

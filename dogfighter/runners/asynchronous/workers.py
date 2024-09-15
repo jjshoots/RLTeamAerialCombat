@@ -48,7 +48,7 @@ def run_collection(
     actor = algorithm_config.actor_config.instantiate()
     collection_fn = interactor_config.get_collection_fn()
     memory = memory_config.model_copy(
-        update={"mem_size": int(settings.worker.collect_num_transitions * 1.2)}
+        update={"mem_size": int(settings.worker.collect_buffer_size)}
     ).instantiate()
 
     # load the weights file
@@ -65,7 +65,7 @@ def run_collection(
         env=env,
         memory=memory,
         use_random_actions=not bool(settings.worker.io.actor_weights_path),
-        num_transitions=settings.worker.collect_num_transitions,
+        num_transitions=settings.worker.collect_min_transitions,
     )
 
     # dump the memory to disk
