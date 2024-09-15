@@ -43,11 +43,10 @@ def run_train(
 
     # start main loop
     while memory.count <= settings.transitions_max:
-        """SEND EVAL"""
+        """UPDATE WORKER WEIGHTS"""
         if memory.count > settings.transitions_num_exploration:
             with AtomicFileWriter(task_dispatcher.actor_weights_path) as f:
                 algorithm.actor.save(f)
-        task_dispatcher.queue_eval()
 
         """COLLECT RESULTS"""
         for result in task_dispatcher.completed_tasks:
@@ -104,3 +103,6 @@ def run_train(
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
         if to_update:
             algorithm.save(ckpt_dir / "weights.pth")
+
+        """SEND EVAL"""
+        task_dispatcher.queue_eval()

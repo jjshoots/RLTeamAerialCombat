@@ -6,7 +6,7 @@ env:
 
 # replay buffer params
 replay_buffer:
-  mem_size: 2000000
+  mem_size: 5000000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -24,10 +24,10 @@ algorithm:
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
-  batch_size: 256
-  grad_steps_per_update: 4000
-  actor_learning_rate: 0.001
-  critic_learning_rate: 0.001
+  batch_size: 2048
+  grad_steps_per_update: 500
+  actor_learning_rate: 0.003
+  critic_learning_rate: 0.003
   alpha_learning_rate: 0.01
   target_smoothing_coefficient: 0.005
   tune_entropy: true
@@ -41,7 +41,7 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
-  max_workers: 2
+  max_workers: 4
 
   trainer:
     transitions_max: 5000000
