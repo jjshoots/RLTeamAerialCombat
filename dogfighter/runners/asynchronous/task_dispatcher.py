@@ -97,6 +97,7 @@ class TaskDispatcher:
 
             # queue as many evals as we need
             with self._manager.Lock():
+                print(self._num_requested_evals.value)
                 while self._num_requested_evals.value > 0:
                     self._submit_process(mode=WorkerTaskType.EVAL)
                     self._num_requested_evals.value -= 1

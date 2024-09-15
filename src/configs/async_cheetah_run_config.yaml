@@ -18,7 +18,7 @@ algorithm:
   actor:
     variant: "mlp"
     embed_dim: 256
-    num_blocks: 1
+    num_blocks: 2
   critic:
     variant: "mlp"
     embed_dim: 256
@@ -41,7 +41,7 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
-  max_workers: 4
+  max_workers: 2
 
   trainer:
     transitions_max: 5000000

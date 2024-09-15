@@ -50,7 +50,6 @@ def run_synchronous(
     eval_score = -math.inf
     max_eval_score = -math.inf
     next_eval_step = 0
-    loop_start_time = time.time()
 
     # start the main training loop
     while memory.count <= settings.transitions_max:
@@ -59,6 +58,7 @@ def run_synchronous(
             f"New epoch @ {memory.count} / {settings.transitions_max} total transitions."
         )
         num_epochs += 1
+        loop_start_time = time.time()
 
         """POLICY ROLLOUT"""
         memory, info = collection_fn(
@@ -105,14 +105,13 @@ def run_synchronous(
         """LOGGING"""
         # record looptimes
         looptime = time.time() - loop_start_time
-        loop_start_time = time.time()
         eta_completion = (settings.transitions_max - memory.count) * (
             looptime / settings.transitions_per_epoch
         )
         print(f"ETA to completion: {eta_completion:.0f} seconds...")
 
         # collect some statistics
-        wm.log["runner/epoch"] = 0
+        wm.log["runner/epoch"] = num_epochs
         wm.log["runner/memory_size"] = memory.__len__()
         wm.log["runner/num_transitions"] = memory.count
         wm.log["runner/looptime"] = looptime
