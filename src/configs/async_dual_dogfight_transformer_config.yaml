@@ -8,7 +8,7 @@ env:
 
 # replay buffer params
 replay_buffer:
-  mem_size: 1000000
+  mem_size: 3000000
   mode: "torch"
   use_dict_wrapper: true
   store_on_device: true
@@ -16,20 +16,22 @@ replay_buffer:
 
 # algorithm params
 algorithm:
-  variant: "transformer"
+  variant: "ccge"
   actor:
+    variant: "basic_merge"
     embed_dim: 32
     ff_dim: 128
     num_att_head: 4
     num_layers: 1
   critic:
+    variant: "basic_merge"
     embed_dim: 64
     ff_dim: 256
     num_att_head: 8
     num_layers: 1
   qu_num_ensemble: 2
   batch_size: 2048
-  grad_steps_per_update: 1000
+  grad_steps_per_update: 500
   actor_learning_rate: 0.003
   critic_learning_rate: 0.003
   alpha_learning_rate: 0.01
@@ -45,22 +47,17 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
-  num_parallel_workers: 8
-  max_tasks_in_queue: 32
-
-  transitions_eval_frequency: 10000
-  transitions_num_exploration: 10000
-  transitions_min_for_train: 10000
-  transitions_max: 10000000
+  max_workers: 4
 
   trainer:
-    steps_per_epoch: 2000
+    transitions_max: 3000000
+    transitions_num_exploration: 25000
+    transitions_min_for_train: 50000
+
   worker:
     task: "null" # collect, eval
-    actor_weights_path: ""
-    result_output_path: "/dev/null"
-    collect_num_transitions: 10000
-    eval_num_episodes: 16
+    collect_num_transitions: 1800
+    eval_num_episodes: 10
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:
@@ -77,8 +74,8 @@ model:
   increment_ckpt: false
 
 logging:
-  interval: 10
-  max_skips: 5
+  interval: 1
+  max_skips: 50
   greater_than: 0.0
   filename: ""
 

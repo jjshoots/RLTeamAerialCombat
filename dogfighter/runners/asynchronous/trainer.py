@@ -86,7 +86,7 @@ def run_train(
         """MODEL TRAINING"""
         # don't proceed with training until we have a minimum number of transitions
         if memory.count < settings.transitions_min_for_train:
-            time.sleep(1)
+            time.sleep(3)
             print(
                 "Haven't reached minimum number of transitions "
                 f"({memory.count} / {settings.transitions_min_for_train}) "
