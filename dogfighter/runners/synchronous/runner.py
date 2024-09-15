@@ -110,7 +110,9 @@ def run_synchronous(
         wm.log["runner/num_transitions"] = memory.count
         wm.log["runner/looptime"] = time.time() - loop_start_time
         wm.log["runner/eta_completion"] = (
-            (time.time() - train_start_time) / memory.count * settings.transitions_max
+            (time.time() - train_start_time)
+            / memory.count
+            * (settings.transitions_max - memory.count)
         )
 
         # print things
