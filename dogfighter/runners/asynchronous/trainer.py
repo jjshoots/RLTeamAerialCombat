@@ -37,11 +37,10 @@ def run_train(
     num_epochs = 0
     eval_score = -math.inf
     max_eval_score = -math.inf
+    train_start_time = time.time()
 
-    # task dispatcher, this automatically starts it
+    # start main loop and dispatcher
     task_dispatcher = TaskDispatcher(config_stack=configs)
-
-    # start main loop
     while memory.count <= settings.transitions_max:
         loop_start_time = time.time()
         num_epochs += 1
@@ -106,15 +105,17 @@ def run_train(
         task_dispatcher.queue_eval()
 
         """LOGGING"""
-        # record looptimes
-        looptime = time.time() - loop_start_time
-
         # collect some statistics
         wm.log["runner/epoch"] = num_epochs
         wm.log["runner/memory_size"] = memory.__len__()
         wm.log["runner/num_transitions"] = memory.count
-        wm.log["runner/looptime"] = looptime
-        wm.log["runner/eta_completion"] = 0.0
+        wm.log["runner/looptime"] = time.time() - loop_start_time
+        wm.log["runner/eta_completion"] = (
+            time.time() - train_start_time / memory.count
+        ) * settings.transitions_max
+
+        # print things
+        print(f"ETA to completion: {wm.log['runner/eta_completion']:.0f} seconds...")
 
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=num_epochs)
         if to_update:

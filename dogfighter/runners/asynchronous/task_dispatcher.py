@@ -181,7 +181,6 @@ class TaskDispatcher:
                     else:
                         raise NotImplementedError
 
-
                 # cleanup
                 os.remove(task.task_file)
                 os.remove(task.result_output_path)

@@ -50,6 +50,7 @@ def run_synchronous(
     eval_score = -math.inf
     max_eval_score = -math.inf
     next_eval_step = 0
+    train_start_time = time.time()
 
     # start the main training loop
     while memory.count <= settings.transitions_max:
@@ -103,19 +104,17 @@ def run_synchronous(
         wm.log["eval/max_score"] = max_eval_score
 
         """LOGGING"""
-        # record looptimes
-        looptime = time.time() - loop_start_time
-        eta_completion = (settings.transitions_max - memory.count) * (
-            looptime / settings.transitions_per_epoch
-        )
-        print(f"ETA to completion: {eta_completion:.0f} seconds...")
-
         # collect some statistics
         wm.log["runner/epoch"] = num_epochs
         wm.log["runner/memory_size"] = memory.__len__()
         wm.log["runner/num_transitions"] = memory.count
-        wm.log["runner/looptime"] = looptime
-        wm.log["runner/eta_completion"] = eta_completion
+        wm.log["runner/looptime"] = time.time() - loop_start_time
+        wm.log["runner/eta_completion"] = (
+            time.time() - train_start_time / memory.count
+        ) * settings.transitions_max
+
+        # print things
+        print(f"ETA to completion: {wm.log['runner/eta_completion']:.0f} seconds...")
 
         # save weights
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
