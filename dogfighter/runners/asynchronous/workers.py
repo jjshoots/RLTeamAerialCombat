@@ -64,7 +64,7 @@ def run_collection(
         actor=actor,
         env=env,
         memory=memory,
-        use_random_actions=bool(settings.worker.io.actor_weights_path),
+        use_random_actions=not bool(settings.worker.io.actor_weights_path),
         num_transitions=settings.worker.collect_num_transitions,
     )
 
