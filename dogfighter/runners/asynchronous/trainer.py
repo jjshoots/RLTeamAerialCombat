@@ -38,7 +38,7 @@ def run_train(
     eval_score = -math.inf
     max_eval_score = -math.inf
 
-    # task dispatcher
+    # task dispatcher, this automatically starts it
     task_dispatcher = TaskDispatcher(config_stack=configs)
 
     # start main loop
@@ -82,10 +82,10 @@ def run_train(
                 {f"eval/{k}": (sum(v) / len(v)) for k, v in eval_infos.items()}
             )
 
-        """UPDATE MODEL"""
+        """MODEL TRAINING"""
         # don't proceed with training until we have a minimum number of transitions
         if memory.count < settings.transitions_min_for_train:
-            time.sleep(5)
+            time.sleep(1)
             print(
                 "Haven't reached minimum number of transitions "
                 f"({memory.count} / {settings.transitions_min_for_train}) "

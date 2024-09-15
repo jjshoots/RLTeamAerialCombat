@@ -95,12 +95,14 @@ class TaskDispatcher:
         while True:
             self._query_processes()
 
-            # while len(self._running_processes) < self._max_workers:
-            if self._num_requested_evals.value > 0:
-                self._submit_process(mode=WorkerTaskType.EVAL)
-                with self._manager.Lock():
+            # queue as many evals as we need
+            with self._manager.Lock():
+                while self._num_requested_evals.value > 0:
+                    self._submit_process(mode=WorkerTaskType.EVAL)
                     self._num_requested_evals.value -= 1
 
+            # queue collects for the rest of available slots
+            while len(self._running_processes) < self._max_workers:
                 self._submit_process(mode=WorkerTaskType.COLLECT)
 
             time.sleep(self._loop_interval_seconds)
