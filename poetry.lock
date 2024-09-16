@@ -884,13 +884,13 @@ files = [
 
 [[package]]
 name = "memorial"
-version = "0.0.7"
+version = "0.0.8"
 description = "Replay Buffer Implementations for RL"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "memorial-0.0.7-py3-none-any.whl", hash = "sha256:d6030241ff26b4dfb19a3d73ded5208baf387d03eb54ee18fdfdfddfe64dd3aa"},
-    {file = "memorial-0.0.7.tar.gz", hash = "sha256:135eb0bac4fa539a54afce80aa08aa35b159e2507ebfb2097900b3a9e1ef94b3"},
+    {file = "memorial-0.0.8-py3-none-any.whl", hash = "sha256:ac079433403485288b57064b490236af302742b6b13d96769d911b29a65dd608"},
+    {file = "memorial-0.0.8.tar.gz", hash = "sha256:8cd8883393eda9fd63fb48b00ebd56eea5543442a4512819ba1b4b2f5e42d5f0"},
 ]
 
 [package.dependencies]
@@ -1860,13 +1860,13 @@ test = ["pytest"]
 
 [[package]]
 name = "setuptools"
-version = "75.0.0"
+version = "75.1.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-75.0.0-py3-none-any.whl", hash = "sha256:791ae94f04f78c880b5e614e560dd32d4b4af5d151bd9e7483e3377846caf90a"},
-    {file = "setuptools-75.0.0.tar.gz", hash = "sha256:25af69c809d9334cd8e653d385277abeb5a102dca255954005a7092d282575ea"},
+    {file = "setuptools-75.1.0-py3-none-any.whl", hash = "sha256:35ab7fd3bcd95e6b7fd704e4a1539513edad446c097797f2985e0e4b960772f2"},
+    {file = "setuptools-75.1.0.tar.gz", hash = "sha256:d59a21b17a275fb872a9c3dae73963160ae079f1049ed956880cd7c09b120538"},
 ]
 
 [package.extras]
@@ -2149,4 +2149,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1da1753866d1e4323854fcf0e35690ab1fd7d4966ef28c56467fea0e2ddbdda5"
+content-hash = "5e13854062f30f03c12ad10544f36bd5df5e277f036a30923696a631e2a7fc31"

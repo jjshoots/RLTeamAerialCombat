@@ -18,7 +18,7 @@ pettingzoo = "^1.24.3"
 shimmy = "^2.0.0"
 dm-control = "^1.0.22"
 prefetch-generator = "^1.0.3"
-memorial = "^0.0.7"
+memorial = "^0.0.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.2.2"
