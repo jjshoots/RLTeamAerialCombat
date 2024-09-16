@@ -105,7 +105,7 @@ def display(wm: Wingman) -> None:
             alg.load(ckpt_dir / "weights.pth")
         mlp_sa_env_display(env=env, actor=alg.actor)
     elif wm.cfg.env.variant == "mlp_ma_env":
-        env = get_mlp_sa_env_config(wm).instantiate()
+        env = get_mlp_ma_env_config(wm).instantiate()
         alg = get_algorithm_config(wm).instantiate()
         has_weights, _, ckpt_dir = wm.get_weight_files()
         if has_weights:
@@ -129,10 +129,10 @@ if __name__ == "__main__":
     # config_yaml = Path(__file__).parent / "configs/quadx_waypoints_config.yaml"
     # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_transformer_config.yaml")
-    config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_mlp_config.yaml")
+    # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_mlp_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
-    # config_yaml = (Path(__file__).parent / "configs/async_cheetah_run_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/async_cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # fmt: on
 
