@@ -54,6 +54,7 @@ class TrainerSettings(BaseModel):
 class AsynchronousRunnerSettings(BaseModel):
     mode: Literal["trainer", "worker"]
     max_workers: StrictInt
+    max_queued_evals: StrictInt
 
     trainer: TrainerSettings
     worker: WorkerSettings

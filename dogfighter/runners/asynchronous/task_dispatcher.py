@@ -50,6 +50,7 @@ class TaskDispatcher:
         self._config_stack = config_stack
         self._kill_on_error = kill_on_error
         self._max_workers = config_stack.runner_settings.max_workers
+        self._max_queued_evals = config_stack.runner_settings.max_queued_evals
         self._loop_interval_seconds = loop_interval_seconds
 
         # runtime variables
@@ -57,7 +58,7 @@ class TaskDispatcher:
 
         # special case for variables that must be shared within the process
         self._manager = Manager()
-        self._num_requested_evals = self._manager.Value("i", 0)
+        self._num_queued_evals = self._manager.Value("i", 0)
         self._completed_tasks: ListProxy[CollectionResult | EvaluationResult] = (
             self._manager.list()
         )
@@ -80,7 +81,10 @@ class TaskDispatcher:
     def queue_eval(self) -> None:
         """Queues an eval task."""
         with self._manager.Lock():
-            self._num_requested_evals.value += 1
+            self._num_queued_evals.value = max(
+                self._max_queued_evals,
+                self._num_queued_evals.value + 1,
+            )
 
     def _start(self) -> None:
         """Starts the task dispatcher in an infinite loop.
@@ -97,9 +101,9 @@ class TaskDispatcher:
 
             # queue as many evals as we need
             with self._manager.Lock():
-                while self._num_requested_evals.value > 0:
+                while self._num_queued_evals.value > 0:
                     self._submit_process(mode=WorkerTaskType.EVAL)
-                    self._num_requested_evals.value -= 1
+                    self._num_queued_evals.value -= 1
 
             # queue collects for the rest of available slots
             while len(self._running_processes) < self._max_workers:
@@ -175,12 +179,6 @@ class TaskDispatcher:
                     else:
                         raise NotImplementedError
 
-                # cleanup
-                os.remove(task.task_file)
-                os.remove(task.result_output_path)
-                done_tasks.append(process)
-                continue
-
             # if error, handle it
             else:
                 stdout, stderr = process.communicate()
@@ -190,6 +188,11 @@ class TaskDispatcher:
                     raise subprocess.SubprocessError(printout)
                 else:
                     print(printout)
+
+            # cleanup
+            os.remove(task.task_file)
+            os.remove(task.result_output_path)
+            done_tasks.append(process)
 
         # cleanup done items
         for task in done_tasks:
