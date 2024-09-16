@@ -1,16 +1,16 @@
 # env params
 env:
   id: "dogfight"
-  variant: "transformer_ma_env"
+  variant: "mlp_ma_env"
   kwargs:
     team_size: 1
-    flatten_observation: false
+    flatten_observation: true
 
 # replay buffer params
 replay_buffer:
   mem_size: 3000000
   mode: "torch"
-  use_dict_wrapper: true
+  use_dict_wrapper: false
   store_on_device: true
   random_rollover: true
 
