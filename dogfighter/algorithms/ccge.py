@@ -20,6 +20,10 @@ from dogfighter.models.critics import UncertaintyAwareCriticConfig
 from dogfighter.models.mdp_types import Action, Observation
 
 
+def _mean_numpy_float(x: torch.Tensor) -> float:
+    return x.mean().detach().cpu().numpy().item()
+
+
 class CCGEConfig(AlgorithmConfig):
     """Critic Confidence Guided Exploration."""
 
@@ -325,11 +329,11 @@ class CCGE(Algorithm):
 
         # some logging parameters
         log = dict()
-        log["target_q"] = self._mean_numpy_float(target_q)
-        log["q_loss"] = self._mean_numpy_float(q_loss)
-        log["target_u"] = self._mean_numpy_float(target_u)
-        log["u_loss"] = self._mean_numpy_float(u_loss)
-        log["critic_loss"] = self._mean_numpy_float(critic_loss)
+        log["target_q"] = _mean_numpy_float(target_q)
+        log["q_loss"] = _mean_numpy_float(q_loss)
+        log["target_u"] = _mean_numpy_float(target_u)
+        log["u_loss"] = _mean_numpy_float(u_loss)
+        log["critic_loss"] = _mean_numpy_float(critic_loss)
 
         return critic_loss, log
 
@@ -376,7 +380,7 @@ class CCGE(Algorithm):
         actor_loss = rnf_loss + ent_loss
 
         log = dict()
-        log["actor_loss"] = self._mean_numpy_float(actor_loss)
+        log["actor_loss"] = _mean_numpy_float(actor_loss)
 
         return actor_loss, log
 
@@ -406,13 +410,10 @@ class CCGE(Algorithm):
 
         log = dict()
         log["log_alpha"] = self._log_alpha.item()
-        log["mean_entropy"] = self._mean_numpy_float(-log_probs)
-        log["entropy_loss"] = self._mean_numpy_float(entropy_loss)
+        log["mean_entropy"] = _mean_numpy_float(-log_probs)
+        log["entropy_loss"] = _mean_numpy_float(entropy_loss)
 
         return entropy_loss, log
-
-    def _mean_numpy_float(self, x: torch.Tensor) -> float:
-        return x.mean().detach().cpu().numpy().item()
 
     def pick_best_action(
         self,
