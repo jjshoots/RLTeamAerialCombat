@@ -40,17 +40,20 @@ algorithm:
 # training config
 runner:
   variant: "async"
-  mode: "trainer"  # trainer, worker
   max_workers: 2
+  max_queued_evals: 1
 
   trainer:
     transitions_max: 1000000
     transitions_num_exploration: 25000
     transitions_min_for_train: 50000
 
-  worker:
-    collect_num_transitions: 8000
-    eval_num_episodes: 16
+  collect:
+    min_transitions: 8000
+    buffer_size: 12000
+
+  evaluate:
+    num_episodes: 16
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:

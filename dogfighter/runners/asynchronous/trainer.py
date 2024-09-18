@@ -68,6 +68,8 @@ def run_train(
                 for key, value in result.info.items():
                     eval_infos[key].append(value)
             else:
+                print(result)
+                print(type(result))
                 raise NotImplementedError
 
             # aggregate results

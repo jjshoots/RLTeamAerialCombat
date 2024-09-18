@@ -16,7 +16,8 @@ from dogfighter.runners.asynchronous.base import (
     AsynchronousRunnerSettings,
     CollectionResult,
     EvaluationResult,
-    WorkerTaskType,
+    ResultDefinition,
+    TaskType,
 )
 from dogfighter.runners.base import ConfigStack
 
@@ -24,8 +25,7 @@ from dogfighter.runners.base import ConfigStack
 class _RunningTask(BaseModel):
     """_RunningTask."""
 
-    task_type: WorkerTaskType
-    task_file: StrictStr
+    task_type: TaskType
     result_output_path: StrictStr
 
 
@@ -41,11 +41,6 @@ class TaskDispatcher:
         """A dispatcher that handles submitting collect and eval jobs asynchronously."""
         assert isinstance(config_stack.runner_settings, AsynchronousRunnerSettings)
 
-        # handle directories
-        self._work_dir_reference = tempfile.TemporaryDirectory()
-        self._work_dir = self._work_dir_reference.name
-        self.actor_weights_path = f"{self._work_dir}/actor_weights_path.pth"
-
         # some constants
         self._config_stack = config_stack
         self._kill_on_error = kill_on_error
@@ -53,16 +48,23 @@ class TaskDispatcher:
         self._max_queued_evals = config_stack.runner_settings.max_queued_evals
         self._loop_interval_seconds = loop_interval_seconds
 
+        # runtime paths
+        self._work_dir_reference = tempfile.TemporaryDirectory()
+        self._work_dir = self._work_dir_reference.name
+        self._config_stack_path = f"{self._work_dir}/config_stack.json"
+        with open(self._config_stack_path, "w") as f:
+            f.write(self._config_stack.model_dump_json())
+        self._actor_weights_path = f"{self._work_dir}/actor_weights.pth"
+
         # runtime variables
         self._running_processes: dict[subprocess.Popen, _RunningTask] = dict()
 
-        # special case for variables that must be shared within the process
+        # special case for variables that must be shared between processes
         self._manager = Manager()
         self._num_queued_evals = self._manager.Value("i", 0)
-        self._completed_tasks: ListProxy[CollectionResult | EvaluationResult] = (
-            self._manager.list()
-        )
+        self._completed_tasks: ListProxy[ResultDefinition] = self._manager.list()
 
+        # start the main loop
         Process(target=self._start).start()
 
     def __del__(self) -> None:
@@ -70,9 +72,13 @@ class TaskDispatcher:
         self._work_dir_reference.cleanup()
 
     @property
+    def actor_weights_path(self) -> str:
+        return self._actor_weights_path
+
+    @property
     def completed_tasks(
         self,
-    ) -> Generator[CollectionResult | EvaluationResult, None, None]:
+    ) -> Generator[ResultDefinition, None, None]:
         """List of completed tasks. Once the task is queried, it is deleted."""
         with self._manager.Lock():
             while self._completed_tasks:
@@ -102,40 +108,29 @@ class TaskDispatcher:
                 # queue as many evals as we need
                 with self._manager.Lock():
                     if self._num_queued_evals.value > 0:
-                        self._submit_process(mode=WorkerTaskType.EVAL)
+                        self._submit_process(mode=TaskType.EVAL)
                         self._num_queued_evals.value -= 1
 
                 # queue collects for the rest of available slots
-                self._submit_process(mode=WorkerTaskType.COLLECT)
+                self._submit_process(mode=TaskType.COLLECT)
 
             time.sleep(self._loop_interval_seconds)
 
-    def _submit_process(self, mode: WorkerTaskType) -> None:
+    def _submit_process(self, mode: TaskType) -> None:
         """Submits a collect or eval task and appends the task to `self._running_tasks`."""
-        # define the place we define the task and submit results
-        task_file = f"{self._work_dir}/{uuid4()}_task.json"
         result_output_path = f"{self._work_dir}/{uuid4()}_result.json"
-
-        # patch the config
-        task_config = self._config_stack.model_dump()
-        task_config["runner_settings"]["mode"] = "worker"
-        task_config["runner_settings"]["worker"]["io"]["actor_weights_path"] = (
-            self.actor_weights_path if os.path.exists(self.actor_weights_path) else None
-        )
-        task_config["runner_settings"]["worker"]["io"]["result_output_path"] = (
-            result_output_path
-        )
-        task_config["runner_settings"]["worker"]["task"] = mode
-
-        # dump the file to disk and run the command
-        with open(task_file, "w") as f:
-            f.write(json.dumps(task_config))
 
         command = []
         command.append(f"{sys.executable}")
         command.append(str(Path(__file__).parent / "runner.py"))
-        command.append("--task_file")
-        command.append(task_file)
+        command.append("--config_file")
+        command.append(self._config_stack_path)
+        command.append("--task_type")
+        command.append("collect" if mode == TaskType.COLLECT else "eval")
+        command.append("--actor_weights_path")
+        command.append(self._actor_weights_path)
+        command.append("--result_output_path")
+        command.append(result_output_path)
 
         # Run the command and add to our queue
         self._running_processes[
@@ -147,7 +142,6 @@ class TaskDispatcher:
             )
         ] = _RunningTask(
             task_type=mode,
-            task_file=task_file,
             result_output_path=result_output_path,
         )
 
@@ -171,9 +165,9 @@ class TaskDispatcher:
             # if no error, record the output and break
             if process.returncode == 0:
                 with open(task.result_output_path, "r") as f, self._manager.Lock():
-                    if task.task_type == WorkerTaskType.COLLECT:
+                    if task.task_type == TaskType.COLLECT:
                         self._completed_tasks.append(CollectionResult(**json.load(f)))
-                    elif task.task_type == WorkerTaskType.EVAL:
+                    elif task.task_type == TaskType.EVAL:
                         self._completed_tasks.append(EvaluationResult(**json.load(f)))
                     else:
                         raise NotImplementedError
@@ -189,7 +183,6 @@ class TaskDispatcher:
                     print(printout)
 
             # cleanup
-            os.remove(task.task_file)
             os.remove(task.result_output_path)
             done_tasks.append(process)
 

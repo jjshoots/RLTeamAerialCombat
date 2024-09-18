@@ -1,48 +1,86 @@
-from dataclasses import field
 from enum import IntEnum
-from typing import Literal
+from typing import ClassVar, Literal, Union
 
 from pydantic import BaseModel, StrictFloat, StrictInt, StrictStr
 
 from dogfighter.env_interactors.base import UpdateInfos
 
 #############################################################
+# TASKS
+#############################################################
+
+
+class TaskDefinition(BaseModel):
+    _registry: ClassVar[set[str]] = set()
+    variant: StrictStr = "null"
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        variant = cls.__annotations__.get("variant")
+        assert variant is not None
+        if variant in cls._registry:
+            raise ValueError(f"`variant` {variant} is already in use by another class.")
+        cls._registry.add(variant)
+
+
+class CollectionTask(TaskDefinition):
+    variant: Literal["collection"] = "collection"  # pyright: ignore
+
+    min_transitions: StrictInt
+    buffer_size: StrictInt
+
+
+class EvaluationTask(TaskDefinition):
+    variant: Literal["evaluation"] = "evaluation"  # pyright: ignore
+
+    num_episodes: StrictInt
+
+
+#############################################################
 # RESULTS
 #############################################################
 
 
-class CollectionResult(BaseModel):
+class ResultDefinition(BaseModel):
+    _registry: ClassVar[set[str]] = set()
+    variant: StrictStr = "null"
+
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        variant = cls.__annotations__.get("variant")
+        assert variant is not None
+        if variant in cls._registry:
+            raise ValueError(f"`variant` {variant} is already in use by another class.")
+        cls._registry.add(variant)
+
+
+class CollectionResult(ResultDefinition):
+    variant: Literal["collection"] = "collection"  # pyright: ignore
+
     memory_path: StrictStr
     info: UpdateInfos
 
 
-class EvaluationResult(BaseModel):
+class EvaluationResult(ResultDefinition):
+    variant: Literal["evaluation"] = "evaluation"  # pyright: ignore
+
     score: StrictFloat
     info: UpdateInfos
 
+
+Result = Union[CollectionResult, EvaluationResult]
 
 #############################################################
 # SETTINGS
 #############################################################
 
 
-class IOSettings(BaseModel):
-    actor_weights_path: StrictStr | None = None
-    result_output_path: StrictStr | None = None
-
-
-class WorkerTaskType(IntEnum):
+class TaskType(IntEnum):
     NULL = 0
     COLLECT = 1
     EVAL = 2
-
-
-class WorkerSettings(BaseModel):
-    io: IOSettings = field(default_factory=IOSettings)
-    task: WorkerTaskType = WorkerTaskType.NULL
-    collect_min_transitions: StrictInt
-    collect_buffer_size: StrictInt
-    eval_num_episodes: StrictInt
 
 
 class TrainerSettings(BaseModel):
@@ -52,9 +90,13 @@ class TrainerSettings(BaseModel):
 
 
 class AsynchronousRunnerSettings(BaseModel):
-    mode: Literal["trainer", "worker"]
     max_workers: StrictInt
     max_queued_evals: StrictInt
 
     trainer: TrainerSettings
-    worker: WorkerSettings
+
+    # TODO: change this to:
+    # task_definitions: list[TaskDefinition]
+    # and implement a sampler
+    collect: CollectionTask
+    evaluate: EvaluationTask
