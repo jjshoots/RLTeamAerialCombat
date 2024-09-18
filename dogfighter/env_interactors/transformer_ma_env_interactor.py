@@ -247,7 +247,7 @@ def transformer_ma_env_evaluate(
     return_info["mean_hits_per_agent"] = float(num_received_hits / num_episodes)
     eval_score = (
         return_info["mean_episode_interactions"] * 0.05
-        + return_info["mean_hits_per_agent"] * 10.0
+        + return_info["mean_hits_per_agent"] * 15.0
     ) / (return_info["num_collisions"] + return_info["num_out_of_bounds"] + 1)
     return eval_score, return_info
 

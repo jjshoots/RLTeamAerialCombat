@@ -8,7 +8,7 @@ env:
 
 # replay buffer params
 replay_buffer:
-  mem_size: 3000000
+  mem_size: 300000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -23,7 +23,7 @@ algorithm:
     num_blocks: 1
   critic:
     variant: "simba"
-    embed_dim: 256
+    embed_dim: 512
     num_blocks: 2
   qu_num_ensemble: 2
   batch_size: 2048
@@ -31,7 +31,7 @@ algorithm:
   actor_learning_rate: 0.001
   critic_learning_rate: 0.001
   alpha_learning_rate: 0.01
-  target_smoothing_coefficient: 0.005
+  target_smoothing_coefficient: 0.002
   tune_entropy: true
   target_entropy_gain: 1.0
   learn_uncertainty: true
@@ -43,11 +43,11 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
-  max_workers: 12
+  max_workers: 10
   max_queued_evals: 1
 
   trainer:
-    transitions_max: 3000000
+    transitions_max: 5000000
     transitions_num_exploration: 25000
     transitions_min_for_train: 50000
 
