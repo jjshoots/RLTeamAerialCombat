@@ -43,7 +43,7 @@ algorithm:
 runner:
   variant: "async"
   mode: "trainer"  # trainer, worker
-  max_workers: 10
+  max_workers: 6
   max_queued_evals: 1
 
   trainer:
