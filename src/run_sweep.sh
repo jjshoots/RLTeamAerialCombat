@@ -4,13 +4,13 @@ source venv/bin/activate
 
 declare -a pids=()
 
-wandb agent jjshoots/obs_norm/ytg6s7md &
+wandb agent jjshoots/obs_norm/u3gli8q4 &
 pids+=($!)
-wandb agent jjshoots/obs_norm/ytg6s7md &
+wandb agent jjshoots/obs_norm/u3gli8q4 &
 pids+=($!)
-wandb agent jjshoots/obs_norm/ytg6s7md &
+wandb agent jjshoots/obs_norm/u3gli8q4 &
 pids+=($!)
-wandb agent jjshoots/obs_norm/ytg6s7md &
+wandb agent jjshoots/obs_norm/u3gli8q4 &
 pids+=($!)
 
 for pid in ${pids[*]}; do
