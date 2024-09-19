@@ -1,4 +1,5 @@
 program: main.py
+project: obs_norm
 name: dmc_obs_norm_sweep
 method: grid
 metric:
