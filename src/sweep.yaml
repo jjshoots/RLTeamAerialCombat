@@ -64,6 +64,6 @@ parameters:
         ]
 command:
   - python3
-  - /home/jet/Sandboxes/dogfighter/src/main.py
+  - /home/taijunjet/Sandboxes/RLTeamAerialCombat/src/main.py
   - "--mode.train"
   - "--wandb.enable"
