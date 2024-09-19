@@ -27,7 +27,7 @@ def get_mlp_sa_env_config(wm: Wingman) -> KnownSAEnvConfigs:
             env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
         )
     else:
-        raise NotImplementedError(wm.cfg.env.id)
+        raise NotImplementedError(env_id)
 
     # record observation and action space shapes if needed
     _obs = getattr(wm.cfg.algorithm, "obs_size", None)
