@@ -1,8 +1,7 @@
 # env params
-env_id: "null"
 env:
   variant: "mlp_sa_env"
-  id: null
+  id: "null"
   num_envs: 8
 
 # replay buffer params

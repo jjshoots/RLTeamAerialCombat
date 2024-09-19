@@ -8,26 +8,20 @@ from dogfighter.envs.sa_envs.pyflyt_sa_envs import PyFlytSAEnvConfig
 
 
 def get_mlp_sa_env_config(wm: Wingman) -> KnownSAEnvConfigs:
-    # TODO: hacky bit
-    if wm.cfg.env.id is not None:
-        env_id = wm.cfg.env.id
-    else:
-        env_id = wm.cfg.env_id
-
-    if env_id.startswith("PyFlyt"):
+    if wm.cfg.env.id.startswith("PyFlyt"):
         env_config = PyFlytSAEnvConfig(
-            env_id=env_id,
+            env_id=wm.cfg.env.id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
             env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
         )
-    elif env_id.startswith("dm_control"):
+    elif wm.cfg.env.id.startswith("dm_control"):
         env_config = DMCSAEnvConfig(
-            env_id=env_id,
+            env_id=wm.cfg.env.id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
             env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
         )
     else:
-        raise NotImplementedError(env_id)
+        raise NotImplementedError(wm.cfg.env.id)
 
     # record observation and action space shapes if needed
     _obs = getattr(wm.cfg.algorithm, "obs_size", None)
