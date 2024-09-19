@@ -1,14 +1,15 @@
 # env params
 env:
-  name: "dogfight"
+  id: "dogfight"
   variant: "mlp_ma_env"
+  num_envs: 1
   kwargs:
     team_size: 1
     flatten_observation: true
 
 # replay buffer params
 replay_buffer:
-  mem_size: 1500000
+  mem_size: 300000
   mode: "torch"
   use_dict_wrapper: false
   store_on_device: true
@@ -16,34 +17,38 @@ replay_buffer:
 
 # algorithm params
 algorithm:
-  variant: "mlp"
+  variant: "ccge"
   actor:
-    embed_dim: 64
+    variant: "simba"
+    embed_dim: 256
     num_blocks: 1
   critic:
-    embed_dim: 256
+    variant: "simba"
+    embed_dim: 512
     num_blocks: 2
   qu_num_ensemble: 2
   batch_size: 2048
-  grad_steps_per_update: 2000
-  actor_learning_rate: 0.003
-  critic_learning_rate: 0.003
+  grad_steps_per_update: 500
+  actor_learning_rate: 0.001
+  critic_learning_rate: 0.001
   alpha_learning_rate: 0.01
+  target_smoothing_coefficient: 0.002
   tune_entropy: true
   target_entropy_gain: 1.0
   learn_uncertainty: true
-  discount_factor: 0.99
+  discount_factor: 0.98
   actor_update_ratio: 1
   critic_update_ratio: 1
 
 # training config
 runner:
-  max_transitions: 2500000
-  transitions_per_epoch: 10000
-  transitions_num_exploration: 10000
-  train_min_transitions: 20000
-  eval_num_episodes: 10
-  eval_transitions_frequency: 10000
+  variant: "sync"
+  transitions_max: 3000000
+  transitions_per_epoch: 8000
+  transitions_num_exploration: 25000
+  transitions_min_for_train: 50000
+  transitions_eval_frequency: 8000
+  eval_num_episodes: 16
 
 # wingman required params
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
