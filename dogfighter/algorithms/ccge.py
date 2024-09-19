@@ -4,6 +4,7 @@ import warnings
 from collections import defaultdict
 from typing import Any, Literal
 
+import numpy as np
 import torch
 import torch.nn as nn
 from memorial import ReplayBuffer
@@ -18,10 +19,70 @@ from dogfighter.models.actors import GaussianActor, GaussianActorConfig
 from dogfighter.models.critic_ensemble import CriticEnsemble
 from dogfighter.models.critics import UncertaintyAwareCriticConfig
 from dogfighter.models.mdp_types import Action, Observation
+from dogfighter.models.mlp.mlp_actor import MlpActor
 
 
 def _mean_numpy_float(x: torch.Tensor) -> float:
     return x.mean().detach().cpu().numpy().item()
+
+
+class ObsNormalizer(nn.Module):
+    def __init__(self, obs_size: int) -> None:
+        super().__init__()
+        self._count = nn.Parameter(
+            torch.tensor(0, dtype=torch.int64),
+            requires_grad=False,
+        )
+        self._mean = nn.Parameter(
+            torch.zeros(
+                size=(obs_size,),
+                dtype=torch.float32,
+            ),
+            requires_grad=False,
+        )
+        self._var = nn.Parameter(
+            torch.ones(
+                size=(obs_size,),
+                dtype=torch.float32,
+            ),
+            requires_grad=False,
+        )
+
+    @property
+    def mean(self) -> np.ndarray:
+        return self._mean.detach().cpu().numpy()
+
+    @property
+    def var(self) -> np.ndarray:
+        return self._var.detach().cpu().numpy()
+
+    def normalize(self, obs: torch.Tensor) -> torch.Tensor:
+        return (obs - self._mean) / (self._var + 1e-3).sqrt()
+
+    def update(self, obs: torch.Tensor) -> None:
+        if len(obs.shape) == 1:
+            obs = obs.unsqueeze(0)
+
+        batch_count = obs.size(0)
+        new_count = self._count + batch_count
+
+        # compute new mean
+        batch_mean = obs.mean(dim=0)
+        delta = batch_mean - self._mean
+        new_mean = self._mean + delta * batch_count / new_count
+
+        # compute new variance
+        batch_var = obs.var(dim=0, unbiased=False)
+        new_var = (
+            self._var * (self._count / new_count)
+            + batch_var * (batch_count / new_count)
+            + delta.pow(2) * (self._count / new_count) * (batch_count / new_count)
+        )
+
+        # update parameters
+        self._mean.copy_(new_mean)
+        self._var.copy_(new_var)
+        self._count.copy_(new_count)
 
 
 class CCGEConfig(AlgorithmConfig):
@@ -87,6 +148,9 @@ class CCGE(Algorithm):
             config.qu_config,
             num_ensemble=config.qu_num_ensemble,
         )
+
+        # HACK: Observation Normalizer
+        self._obs_normalizer = ObsNormalizer(obs_size=config.actor_config.obs_size)
 
         # move the models to the right device
         self._actor.to(self._device)
@@ -168,6 +232,9 @@ class CCGE(Algorithm):
         self.train()
         for _ in tqdm(range(self.config.grad_steps_per_update)):
             obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
+            obs = self._obs_normalizer.normalize(obs)
+            next_obs = self._obs_normalizer.normalize(next_obs)
+
             info = self.forward(
                 obs=obs,
                 act=act,

@@ -1,7 +1,10 @@
+import tempfile
 import math
 import time
 from signal import SIGINT, signal
 
+import matplotlib.pyplot as plt
+import wandb
 from wingman import Wingman
 from wingman.utils import shutdown_handler
 
@@ -64,6 +67,7 @@ def run_synchronous(
         """POLICY ROLLOUT"""
         memory, info = collection_fn(
             actor=algorithm.actor,
+            obs_normalizer=algorithm._obs_normalizer,
             env=train_env,
             memory=memory,
             use_random_actions=memory.count < settings.transitions_num_exploration,
@@ -92,6 +96,7 @@ def run_synchronous(
         if memory.count >= next_eval_step:
             eval_score, info = evaluation_fn(
                 actor=algorithm.actor,
+                obs_normalizer=algorithm._obs_normalizer,
                 env=eval_env,
                 num_episodes=settings.eval_num_episodes,
             )
@@ -122,3 +127,31 @@ def run_synchronous(
         to_update, _, ckpt_dir = wm.checkpoint(loss=-eval_score, step=memory.count)
         if to_update:
             algorithm.save(ckpt_dir / "weights.pth")
+
+    algorithm._obs_normalizer
+    with tempfile.NamedTemporaryFile() as mean_f, tempfile.NamedTemporaryFile() as var_f:
+        # plot and save mean
+        plt.bar(
+            range(algorithm_config.actor_config.obs_size),
+            algorithm._obs_normalizer.mean,
+        )
+        plt.title("Mean")
+        plt.savefig(mean_f)
+        plt.close()
+
+        # plot and save var
+        plt.bar(
+            range(algorithm_config.actor_config.obs_size),
+            algorithm._obs_normalizer.var,
+        )
+        plt.title("Var")
+        plt.savefig(var_f)
+        plt.close()
+
+        # log to wandb
+        wandb.log(
+            {
+                "obs_mean": wandb.Image(mean_f),
+                "obs_var": wandb.Image(var_f),
+            }
+        )

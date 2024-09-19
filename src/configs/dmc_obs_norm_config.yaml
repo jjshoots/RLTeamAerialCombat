@@ -1,8 +1,8 @@
 # env params
 env:
   variant: "mlp_sa_env"
-  id: "dm_control/cheetah-run-v0"
-  num_envs: 8
+  id: "null"
+  num_envs: 1
 
 # replay buffer params
 replay_buffer:
@@ -24,15 +24,15 @@ algorithm:
     embed_dim: 256
     num_blocks: 2
   qu_num_ensemble: 2
-  batch_size: 256
-  grad_steps_per_update: 8000
-  actor_learning_rate: 0.001
-  critic_learning_rate: 0.001
+  batch_size: 2048
+  grad_steps_per_update: 4000
+  actor_learning_rate: 0.003
+  critic_learning_rate: 0.003
   alpha_learning_rate: 0.01
   target_smoothing_coefficient: 0.005
   tune_entropy: true
   target_entropy_gain: 1.0
-  learn_uncertainty: true
+  learn_uncertainty: false
   discount_factor: 0.99
   actor_update_ratio: 1
   critic_update_ratio: 1
@@ -40,12 +40,12 @@ algorithm:
 # training config
 runner:
   variant: "sync"
-  transitions_max: 1000000
+  transitions_max: 200000
   transitions_per_epoch: 8000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000
   transitions_eval_frequency: 8000
-  eval_num_episodes: 16
+  eval_num_episodes: 40
 
 # https://github.com/jjshoots/Wingman?tab=readme-ov-file#from-wingman-import-wingman
 mode:
@@ -71,8 +71,8 @@ wandb:
   enable: false
   save_code: false
   run:
-    name: "half_cheetah"
+    name: "dmc"
     notes: ""
   project:
-    name: "dogfighter"
+    name: "obs_norm"
     entity: "jjshoots"

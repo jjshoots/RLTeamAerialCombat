@@ -9,6 +9,7 @@ from memorial import ReplayBuffer
 from memorial.replay_buffers import FlatReplayBuffer
 from wingman.utils import cpuize, gpuize
 
+from dogfighter.algorithms.ccge import ObsNormalizer
 from dogfighter.env_interactors.base import (
     CollectionFunctionProtocol,
     DisplayFunctionProtocol,
@@ -44,6 +45,7 @@ class MLPSAEnvInteractorConfig(EnvInteractorConfig):
 @torch.no_grad()
 def mlp_sa_vec_env_collect(
     actor: Actor,
+    obs_normalizer: ObsNormalizer,
     env: SupportedEnvTypes,
     memory: ReplayBuffer,
     num_transitions: int,
@@ -93,7 +95,13 @@ def mlp_sa_vec_env_collect(
             act = env.action_space.sample()
         else:
             # get an action from the actor, convert to CPU
-            act, _ = actor.sample(*actor(gpuize(obs, actor.device)))
+            act, _ = actor.sample(
+                *actor(
+                    obs_normalizer(
+                        gpuize(obs, actor.device)
+                    )
+                )
+            )
             act = cpuize(act)
 
         # step the transition
@@ -134,6 +142,7 @@ def mlp_sa_vec_env_collect(
 @torch.no_grad()
 def mlp_sa_vec_env_evaluate(
     actor: Actor,
+    obs_normalizer: ObsNormalizer,
     env: SupportedEnvTypes,
     num_episodes: int,
 ) -> tuple[float, UpdateInfos]:
@@ -169,7 +178,15 @@ def mlp_sa_vec_env_evaluate(
         while not np.all(done_envs):
             # get an action from the actor and convert to CPU
             # this is a tensor
-            act = cpuize(actor.infer(*actor(gpuize(obs, actor.device))))
+            act = cpuize(
+                actor.infer(
+                    *actor(
+                        obs_normalizer.normalize(
+                            gpuize(obs, actor.device)
+                        )
+                    )
+                )
+            )
 
             # step the transition
             next_obs, rew, term, trunc, _ = env.step(act)

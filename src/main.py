@@ -30,8 +30,10 @@ from setup_envs import (
     get_transformer_ma_env_config,
 )
 
-
 def train(wm: Wingman) -> None:
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning, module="google.protobuf.internal.well_known_types")
+
     # get env and interactors
     if wm.cfg.env.variant == "mlp_sa_env":
         train_env_config = SAVecEnvConfig(
@@ -129,12 +131,16 @@ if __name__ == "__main__":
     # config_yaml = Path(__file__).parent / "configs/quadx_waypoints_config.yaml"
     # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_transformer_config.yaml")
-    config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_mlp_config.yaml")
+    # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_mlp_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/dmc_obs_norm_config.yaml")
     # fmt: on
+
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     wm = Wingman(config_yaml=config_yaml)
 
