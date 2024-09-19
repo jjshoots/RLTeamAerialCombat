@@ -8,15 +8,21 @@ from dogfighter.envs.sa_envs.pyflyt_sa_envs import PyFlytSAEnvConfig
 
 
 def get_mlp_sa_env_config(wm: Wingman) -> KnownSAEnvConfigs:
-    if wm.cfg.env.id.startswith("PyFlyt"):
+    # TODO: hacky bit
+    if wm.cfg.env.id is not None:
+        env_id = wm.cfg.env.id
+    else:
+        env_id = wm.cfg.env_id
+
+    if env_id.startswith("PyFlyt"):
         env_config = PyFlytSAEnvConfig(
-            env_id=wm.cfg.env.id,
+            env_id=env_id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
             env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
         )
-    elif wm.cfg.env.id.startswith("dm_control"):
+    elif env_id.startswith("dm_control"):
         env_config = DMCSAEnvConfig(
-            env_id=wm.cfg.env.id,
+            env_id=env_id,
             render_mode="human" if wm.cfg.mode.display or wm.cfg.mode.render else None,
             env_kwargs=vars(wm.cfg.env.kwargs) if hasattr(wm.cfg.env, "kwargs") else {},
         )
