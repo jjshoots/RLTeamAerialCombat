@@ -66,7 +66,7 @@ class ObsNormalizer(nn.Module):
         if len(obs.shape) == 1:
             obs = obs.unsqueeze(0)
 
-        batch_count = obs.size(0)
+        batch_count = obs.shape[0]
         new_count = self._count + batch_count
 
         # compute new mean
@@ -159,7 +159,7 @@ class CCGE(Algorithm):
         self._actor.to(self._device)
         self._critic.to(self._device)
         self._critic_target.to(self._device)
-        self._obs_normalizer.to(self.device)
+        self._obs_normalizer.to(self._device)
 
         # copy weights and disable gradients for the target network
         self._critic_target.load_state_dict(self._critic.state_dict())
@@ -236,8 +236,8 @@ class CCGE(Algorithm):
         self.train()
         for _ in tqdm(range(self.config.grad_steps_per_update)):
             obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
-            obs = self._obs_normalizer(obs)
-            next_obs = self._obs_normalizer(next_obs)
+            obs = self._obs_normalizer.normalize(obs)
+            next_obs = self._obs_normalizer.normalize(next_obs)
 
             info = self.forward(
                 obs=obs,

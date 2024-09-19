@@ -129,14 +129,14 @@ def run_synchronous(
             algorithm.save(ckpt_dir / "weights.pth")
 
     algorithm._obs_normalizer
-    with tempfile.NamedTemporaryFile() as mean_f, tempfile.NamedTemporaryFile() as var_f:
+    with tempfile.NamedTemporaryFile(suffix=".png") as mean_f, tempfile.NamedTemporaryFile(suffix=".png") as var_f:
         # plot and save mean
         plt.bar(
             range(algorithm_config.actor_config.obs_size),
             algorithm._obs_normalizer.mean,
         )
         plt.title("Mean")
-        plt.savefig(mean_f)
+        plt.savefig(mean_f.name)
         plt.close()
 
         # plot and save var
@@ -145,13 +145,13 @@ def run_synchronous(
             algorithm._obs_normalizer.var,
         )
         plt.title("Var")
-        plt.savefig(var_f)
+        plt.savefig(var_f.name)
         plt.close()
 
         # log to wandb
         wandb.log(
             {
-                "obs_mean": wandb.Image(mean_f),
-                "obs_var": wandb.Image(var_f),
+                "obs_mean": wandb.Image(mean_f.name),
+                "obs_var": wandb.Image(var_f.name),
             }
         )

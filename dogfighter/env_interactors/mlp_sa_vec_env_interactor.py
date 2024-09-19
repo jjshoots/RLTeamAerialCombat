@@ -88,6 +88,9 @@ def mlp_sa_vec_env_collect(
     obs, _ = env.reset()
     non_reset_envs = np.ones(env.num_envs, dtype=bool)
 
+    # update the normalizer
+    obs_normalizer.update(gpuize(obs))
+
     for _ in range(num_transitions // env.num_envs):
         # compute an action depending on whether we're exploring or not
         if use_random_actions:
@@ -97,7 +100,7 @@ def mlp_sa_vec_env_collect(
             # get an action from the actor, convert to CPU
             act, _ = actor.sample(
                 *actor(
-                    obs_normalizer(
+                    obs_normalizer.normalize(
                         gpuize(obs, actor.device)
                     )
                 )
@@ -106,6 +109,9 @@ def mlp_sa_vec_env_collect(
 
         # step the transition
         next_obs, rew, term, trunc, _ = env.step(act)
+
+        # update the normalizer
+        obs_normalizer.update(gpuize(next_obs))
 
         # store stuff in mem
         transitions.append(

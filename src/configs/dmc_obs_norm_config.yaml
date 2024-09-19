@@ -2,7 +2,7 @@
 env:
   variant: "mlp_sa_env"
   id: "null"
-  num_envs: 1
+  num_envs: 8
 
 # replay buffer params
 replay_buffer:
@@ -18,7 +18,7 @@ algorithm:
   actor:
     variant: "mlp"
     embed_dim: 256
-    num_blocks: 1
+    num_blocks: 2
   critic:
     variant: "mlp"
     embed_dim: 256
@@ -40,7 +40,7 @@ algorithm:
 # training config
 runner:
   variant: "sync"
-  transitions_max: 200000
+  transitions_max: 60000
   transitions_per_epoch: 8000
   transitions_num_exploration: 25000
   transitions_min_for_train: 50000
