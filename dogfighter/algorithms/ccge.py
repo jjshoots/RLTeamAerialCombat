@@ -20,10 +20,6 @@ from dogfighter.models.critics import UncertaintyAwareCriticConfig
 from dogfighter.models.mdp_types import Action, Observation
 
 
-def _mean_numpy_float(x: torch.Tensor) -> float:
-    return x.mean().detach().cpu().numpy().item()
-
-
 class CCGEConfig(AlgorithmConfig):
     """Critic Confidence Guided Exploration."""
 
@@ -105,17 +101,26 @@ class CCGE(Algorithm):
                           currently it is {config.target_entropy},\
                           I hope you know what you're doing..."
             )
-        self._log_alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True))
+        self._log_alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True, device=self._device))
 
         # define the optimizers
         self._actor_optim = AdamW(
-            self._actor.parameters(), lr=config.actor_learning_rate, amsgrad=True
+            self._actor.parameters(),
+            lr=config.actor_learning_rate,
+            amsgrad=True,
+            capturable=True,
         )
         self._critic_optim = AdamW(
-            self._critic.parameters(), lr=config.critic_learning_rate, amsgrad=True
+            self._critic.parameters(),
+            lr=config.critic_learning_rate,
+            amsgrad=True,
+            capturable=True,
         )
         self._alpha_optim = AdamW(
-            [self._log_alpha], lr=config.alpha_learning_rate, amsgrad=True
+            [self._log_alpha],
+            lr=config.alpha_learning_rate,
+            amsgrad=True,
+            capturable=True,
         )
 
     @property
@@ -161,22 +166,69 @@ class CCGE(Algorithm):
         """
         start_time = time.time()
 
+        x=torch.empty([32, 32]).cuda()
+        torch.matmul(x,x)
+        torch.cuda.synchronize()
+
         # initialise the update infos
         update_info = defaultdict(lambda: 0.0)
+
+        # static references for preallocated tensors
+        obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
+        obs_static_ref = torch.empty_like(obs).cuda()
+        act_static_ref = torch.empty_like(act).cuda()
+        rew_static_ref = torch.empty_like(rew).cuda()
+        term_static_ref = torch.empty_like(term).cuda()
+        next_obs_static_ref = torch.empty_like(next_obs).cuda()
+
+        # copy data to preallocated tensors
+        obs_static_ref.copy_(obs)
+        act_static_ref.copy_(act)
+        rew_static_ref.copy_(rew)
+        term_static_ref.copy_(term)
+        next_obs_static_ref.copy_(next_obs)
+
+        # warmup??
+        infos = self.forward(
+            obs=obs_static_ref,
+            act=act_static_ref,
+            rew=rew_static_ref,
+            term=term_static_ref,
+            next_obs=next_obs_static_ref,
+        )
+
+        # create a CUDA graph
+        torch.cuda.synchronize()
+        g = torch.cuda.CUDAGraph()
+        self._actor_optim.zero_grad(set_to_none=True)
+        self._critic_optim.zero_grad(set_to_none=True)
+        self._alpha_optim.zero_grad(set_to_none=True)
+        with torch.cuda.graph(g):
+            infos = self.forward(
+                obs=obs_static_ref,
+                act=act_static_ref,
+                rew=rew_static_ref,
+                term=term_static_ref,
+                next_obs=next_obs_static_ref,
+            )
 
         # start the training!
         self.train()
         for _ in tqdm(range(self.config.grad_steps_per_update)):
             obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
-            info = self.forward(
-                obs=obs,
-                act=act,
-                rew=rew,
-                term=term,
-                next_obs=next_obs,
-            )
-            for key, value in info.items():
+
+            # copy data to preallocated tensors, and graph run
+            obs_static_ref.copy_(obs)
+            act_static_ref.copy_(act)
+            rew_static_ref.copy_(rew)
+            term_static_ref.copy_(term)
+            next_obs_static_ref.copy_(next_obs)
+            g.replay()
+
+            for key, value in infos.items():
                 update_info[key] += value / self.config.grad_steps_per_update
+
+        torch.cuda.synchronize()
 
         update_info["steps_per_second"] = self.config.grad_steps_per_update / (
             time.time() - start_time
@@ -329,11 +381,11 @@ class CCGE(Algorithm):
 
         # some logging parameters
         log = dict()
-        log["target_q"] = _mean_numpy_float(target_q)
-        log["q_loss"] = _mean_numpy_float(q_loss)
-        log["target_u"] = _mean_numpy_float(target_u)
-        log["u_loss"] = _mean_numpy_float(u_loss)
-        log["critic_loss"] = _mean_numpy_float(critic_loss)
+        log["target_q"] = target_q.mean().detach()
+        log["q_loss"] = q_loss.mean().detach()
+        log["target_u"] = target_u.mean().detach()
+        log["u_loss"] = u_loss.mean().detach()
+        log["critic_loss"] = critic_loss.mean().detach()
 
         return critic_loss, log
 
@@ -380,7 +432,7 @@ class CCGE(Algorithm):
         actor_loss = rnf_loss + ent_loss
 
         log = dict()
-        log["actor_loss"] = _mean_numpy_float(actor_loss)
+        log["actor_loss"] = actor_loss.mean().detach()
 
         return actor_loss, log
 
@@ -409,9 +461,9 @@ class CCGE(Algorithm):
         ).mean()
 
         log = dict()
-        log["log_alpha"] = self._log_alpha.item()
-        log["mean_entropy"] = _mean_numpy_float(-log_probs)
-        log["entropy_loss"] = _mean_numpy_float(entropy_loss)
+        log["log_alpha"] = self._log_alpha
+        log["mean_entropy"] = -log_probs.mean().detach()
+        log["entropy_loss"] = entropy_loss.mean().detach()
 
         return entropy_loss, log
 
