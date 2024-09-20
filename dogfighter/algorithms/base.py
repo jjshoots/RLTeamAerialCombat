@@ -1,7 +1,7 @@
 import io
 from abc import abstractmethod
 from pathlib import Path
-from typing import ClassVar, Mapping
+from typing import ClassVar
 
 import torch
 import torch.nn as nn

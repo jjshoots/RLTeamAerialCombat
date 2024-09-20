@@ -75,22 +75,17 @@ class CCGE(Algorithm):
         self._device = torch.device(config.device)
 
         # actor head
-        self._actor = config.actor_config.instantiate()
+        self._actor = config.actor_config.instantiate().to(self._device)
 
         # twin delayed Q networks
         self._critic = CriticEnsemble(
             config.qu_config,
             num_ensemble=config.qu_num_ensemble,
-        )
+        ).to(self._device)
         self._critic_target = CriticEnsemble(
             config.qu_config,
             num_ensemble=config.qu_num_ensemble,
-        )
-
-        # move the models to the right device
-        self._actor.to(self._device)
-        self._critic.to(self._device)
-        self._critic_target.to(self._device)
+        ).to(self._device)
 
         # copy weights and disable gradients for the target network
         self._critic_target.load_state_dict(self._critic.state_dict())
