@@ -166,10 +166,6 @@ class CCGE(Algorithm):
         """
         start_time = time.time()
 
-        x=torch.empty([32, 32]).cuda()
-        torch.matmul(x,x)
-        torch.cuda.synchronize()
-
         # initialise the update infos
         update_info = defaultdict(lambda: 0.0)
 
@@ -188,7 +184,7 @@ class CCGE(Algorithm):
         term_static_ref.copy_(term)
         next_obs_static_ref.copy_(next_obs)
 
-        # warmup??
+        # warmup
         infos = self.forward(
             obs=obs_static_ref,
             act=act_static_ref,
