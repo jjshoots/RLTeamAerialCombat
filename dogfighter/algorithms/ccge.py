@@ -461,7 +461,7 @@ class CCGE(Algorithm):
         ).mean()
 
         log = dict()
-        log["log_alpha"] = self._log_alpha
+        log["log_alpha"] = self._log_alpha.detach()
         log["mean_entropy"] = -log_probs.mean().detach()
         log["entropy_loss"] = entropy_loss.mean().detach()
 
