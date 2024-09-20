@@ -63,6 +63,6 @@ class Algorithm(nn.Module):
     def update(
         self,
         memory: ReplayBuffer,
-    ) -> Mapping[str, int | float | bool]:
+    ) -> Mapping[str, torch.Tensor]:
         """update."""
         raise NotImplementedError

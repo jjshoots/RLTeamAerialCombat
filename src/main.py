@@ -127,12 +127,12 @@ if __name__ == "__main__":
 
     # fmt: off
     # config_yaml = Path(__file__).parent / "configs/quadx_waypoints_config.yaml"
-    # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/dual_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/dual_dogfight_mlp_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_mlp_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
-    config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
+    # config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/dmc_obs_norm_config.yaml")

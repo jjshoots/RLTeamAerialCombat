@@ -2,9 +2,10 @@
 import time
 import warnings
 from collections import defaultdict
-from typing import Literal
+from typing import Literal, Sequence, cast
 
 import torch
+from torch.cuda import CUDAGraph
 import torch.nn as nn
 from memorial import ReplayBuffer
 from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr
@@ -12,6 +13,7 @@ from torch.optim.adamw import AdamW
 from tqdm import tqdm
 
 from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
+from dogfighter.algorithms.utils import NestedTensor, copy_from_memory, zeros_from_memory
 from dogfighter.env_interactors.base import UpdateInfos
 from dogfighter.models import KnownActorConfigs, KnownCriticConfigs
 from dogfighter.models.actors import GaussianActor, GaussianActorConfig
@@ -52,10 +54,7 @@ class CCGEConfig(AlgorithmConfig):
         """
         assert isinstance(self.qu_config, UncertaintyAwareCriticConfig)
         assert isinstance(self.actor_config, GaussianActorConfig)
-        algorithm = CCGE(self)
-        if self.compile:
-            torch.compile(algorithm)
-        return algorithm
+        return CCGE(self)
 
 
 class CCGE(Algorithm):
@@ -123,6 +122,13 @@ class CCGE(Algorithm):
             capturable=True,
         )
 
+        # for compile
+        self.cuda_graph: None | torch.cuda.CUDAGraph = None
+        self.infos_ref: None | dict[str, torch.Tensor] = None
+        self.batch_ref: None | Sequence[NestedTensor | torch.Tensor] = None
+        if config.compile:
+            self.compile()
+
     @property
     def actor(self) -> GaussianActor:
         """actor.
@@ -167,69 +173,69 @@ class CCGE(Algorithm):
         start_time = time.time()
 
         # initialise the update infos
-        update_info = defaultdict(lambda: 0.0)
+        tensor_update_info = defaultdict(lambda: torch.tensor(0.0, device=self._device))
 
-        # static references for preallocated tensors
-        obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
-        obs_static_ref = torch.empty_like(obs).cuda()
-        act_static_ref = torch.empty_like(act).cuda()
-        rew_static_ref = torch.empty_like(rew).cuda()
-        term_static_ref = torch.empty_like(term).cuda()
-        next_obs_static_ref = torch.empty_like(next_obs).cuda()
+        if not self.compile:
+            # uncompiled train
+            self.train()
+            for _ in tqdm(range(self.config.grad_steps_per_update)):
+                obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
+                info = self.forward(
+                    obs=obs,
+                    act=act,
+                    rew=rew,
+                    term=term,
+                    next_obs=next_obs,
+                )
 
-        # copy data to preallocated tensors
-        obs_static_ref.copy_(obs)
-        act_static_ref.copy_(act)
-        rew_static_ref.copy_(rew)
-        term_static_ref.copy_(term)
-        next_obs_static_ref.copy_(next_obs)
+                # gather infos
+                for key, value in info.items():
+                    tensor_update_info[key] += value / self.config.grad_steps_per_update
 
-        # warmup
-        infos = self.forward(
-            obs=obs_static_ref,
-            act=act_static_ref,
-            rew=rew_static_ref,
-            term=term_static_ref,
-            next_obs=next_obs_static_ref,
-        )
+        else:
+            # compiled train
+            # construct the graph if necessary
+            if self.cuda_graph is None:
+                # sample a batch, make the batch ref, copy to batch ref
+                batch = memory.sample(self.config.batch_size)
+                self.batch_ref = [zeros_from_memory(x) for x in batch]
+                [copy_from_memory(s, t) for s, t in zip(batch, self.batch_ref)]
 
-        # create a CUDA graph
-        torch.cuda.synchronize()
-        g = torch.cuda.CUDAGraph()
-        self._actor_optim.zero_grad(set_to_none=True)
-        self._critic_optim.zero_grad(set_to_none=True)
-        self._alpha_optim.zero_grad(set_to_none=True)
-        with torch.cuda.graph(g):
-            infos = self.forward(
-                obs=obs_static_ref,
-                act=act_static_ref,
-                rew=rew_static_ref,
-                term=term_static_ref,
-                next_obs=next_obs_static_ref,
-            )
+                # warmup teration
+                self.forward(*self.batch_ref)
 
-        # start the training!
-        self.train()
-        for _ in tqdm(range(self.config.grad_steps_per_update)):
-            obs, act, rew, term, next_obs = memory.sample(self.config.batch_size)
+                # construct the graph
+                torch.cuda.synchronize()
+                self.cuda_graph = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(self.cuda_graph):
+                    self.infos_ref = self.forward(*self.batch_ref)
+                torch.cuda.synchronize()
 
-            # copy data to preallocated tensors, and graph run
-            obs_static_ref.copy_(obs)
-            act_static_ref.copy_(act)
-            rew_static_ref.copy_(rew)
-            term_static_ref.copy_(term)
-            next_obs_static_ref.copy_(next_obs)
-            g.replay()
+            # cast some things so pyright doesn't scream
+            self.cuda_graph = cast(CUDAGraph, self.cuda_graph)
+            self.infos_ref = cast(dict[str, torch.Tensor], self.infos_ref)
+            self.batch_ref = cast(Sequence[NestedTensor | torch.Tensor], self.batch_ref)
 
-            for key, value in infos.items():
-                update_info[key] += float(value.cpu().numpy()) / self.config.grad_steps_per_update
+            # start the training!
+            torch.cuda.synchronize()
+            self.train()
+            for _ in tqdm(range(self.config.grad_steps_per_update)):
+                batch = memory.sample(self.config.batch_size)
+                [copy_from_memory(s, t) for s, t in zip(batch, self.batch_ref)]
+                self.cuda_graph.replay()
+            torch.cuda.synchronize()
 
-        torch.cuda.synchronize()
+            # gather infos
+            for key, value in self.infos_ref.items():
+                tensor_update_info[key] += value / self.config.grad_steps_per_update
 
+        # convert the tensor update info into a float update info
+        update_info = dict()
+        for key, value in tensor_update_info.items():
+            update_info[key] = float(value.detach().cpu().numpy())
         update_info["steps_per_second"] = self.config.grad_steps_per_update / (
             time.time() - start_time
         )
-
         return update_info
 
     def forward(
