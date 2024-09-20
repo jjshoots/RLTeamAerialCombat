@@ -8,6 +8,7 @@ import torch.nn as nn
 from memorial import ReplayBuffer
 from pydantic import BaseModel, StrictBool, StrictStr
 
+from dogfighter.env_interactors.base import UpdateInfos
 from dogfighter.models import KnownActorConfigs
 from dogfighter.models.actors import GaussianActor
 
@@ -63,6 +64,6 @@ class Algorithm(nn.Module):
     def update(
         self,
         memory: ReplayBuffer,
-    ) -> Mapping[str, torch.Tensor]:
+    ) -> UpdateInfos:
         """update."""
         raise NotImplementedError

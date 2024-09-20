@@ -5,15 +5,19 @@ from collections import defaultdict
 from typing import Literal, Sequence, cast
 
 import torch
-from torch.cuda import CUDAGraph
 import torch.nn as nn
 from memorial import ReplayBuffer
 from pydantic import StrictBool, StrictFloat, StrictInt, StrictStr
+from torch.cuda import CUDAGraph
 from torch.optim.adamw import AdamW
 from tqdm import tqdm
 
 from dogfighter.algorithms.base import Algorithm, AlgorithmConfig
-from dogfighter.algorithms.utils import NestedTensor, copy_from_memory, zeros_from_memory
+from dogfighter.algorithms.utils import (
+    NestedTensor,
+    copy_from_memory,
+    zeros_from_memory,
+)
 from dogfighter.env_interactors.base import UpdateInfos
 from dogfighter.models import KnownActorConfigs, KnownCriticConfigs
 from dogfighter.models.actors import GaussianActor, GaussianActorConfig
@@ -100,7 +104,9 @@ class CCGE(Algorithm):
                           currently it is {config.target_entropy},\
                           I hope you know what you're doing..."
             )
-        self._log_alpha = nn.Parameter(torch.tensor(0.0, requires_grad=True, device=self._device))
+        self._log_alpha = nn.Parameter(
+            torch.tensor(0.0, requires_grad=True, device=self._device)
+        )
 
         # define the optimizers
         self._actor_optim = AdamW(
@@ -202,13 +208,13 @@ class CCGE(Algorithm):
                 [copy_from_memory(s, t) for s, t in zip(batch, self.batch_ref)]
 
                 # warmup teration
-                self.forward(*self.batch_ref)
+                self.forward(*self.batch_ref)  # pyright: ignore[reportArgumentType]
 
                 # construct the graph
                 torch.cuda.synchronize()
                 self.cuda_graph = torch.cuda.CUDAGraph()
                 with torch.cuda.graph(self.cuda_graph):
-                    self.infos_ref = self.forward(*self.batch_ref)
+                    self.infos_ref = self.forward(*self.batch_ref)  # pyright: ignore[reportArgumentType]
                 torch.cuda.synchronize()
 
             # cast some things so pyright doesn't scream

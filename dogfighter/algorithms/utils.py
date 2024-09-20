@@ -1,7 +1,9 @@
 from typing import Union, cast
+
 import torch
 
 NestedTensor = dict[str, Union[torch.Tensor, "NestedTensor"]]
+
 
 def zeros_from_memory(x: NestedTensor | torch.Tensor) -> NestedTensor | torch.Tensor:
     """Outputs an identical result as the input but zeroed out."""
@@ -14,6 +16,7 @@ def zeros_from_memory(x: NestedTensor | torch.Tensor) -> NestedTensor | torch.Te
         return result
     else:
         raise NotImplementedError
+
 
 def copy_from_memory(
     source: NestedTensor | torch.Tensor,
@@ -30,5 +33,3 @@ def copy_from_memory(
         return
     else:
         raise NotImplementedError
-
-
