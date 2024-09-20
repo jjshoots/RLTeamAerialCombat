@@ -2,7 +2,7 @@
 import time
 import warnings
 from collections import defaultdict
-from typing import Any, Literal
+from typing import Literal
 
 import torch
 import torch.nn as nn
@@ -226,7 +226,7 @@ class CCGE(Algorithm):
             g.replay()
 
             for key, value in infos.items():
-                update_info[key] += value / self.config.grad_steps_per_update
+                update_info[key] += float(value.cpu().numpy()) / self.config.grad_steps_per_update
 
         torch.cuda.synchronize()
 
@@ -243,7 +243,7 @@ class CCGE(Algorithm):
         rew: torch.Tensor,
         term: torch.Tensor,
         next_obs: Observation,
-    ) -> dict[str, Any]:
+    ) -> dict[str, torch.Tensor]:
         """The update step disguised as a forward step.
 
         Args:
@@ -254,7 +254,7 @@ class CCGE(Algorithm):
             next_obs (Observation): next_obs
 
         Returns:
-            dict[str, Any]:
+            dict[str, torch.Tensor]:
         """
         if not self.training:
             raise AssertionError("Model should be in training mode.")
@@ -315,7 +315,7 @@ class CCGE(Algorithm):
         rew: torch.Tensor,
         term: torch.Tensor,
         next_obs: Observation,
-    ) -> tuple[torch.Tensor, dict[str, Any]]:
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """_calc_critic_loss.
 
         Args:
@@ -326,7 +326,7 @@ class CCGE(Algorithm):
             next_obs (Observation): next_obs
 
         Returns:
-            tuple[torch.Tensor, dict[str, Any]]:
+            tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """
         term = 1.0 - term
 
@@ -380,7 +380,7 @@ class CCGE(Algorithm):
         critic_loss = q_loss.mean() + u_loss.mean()
 
         # some logging parameters
-        log = dict()
+        log: dict[str, torch.Tensor] = dict()
         log["target_q"] = target_q.mean().detach()
         log["q_loss"] = q_loss.mean().detach()
         log["target_u"] = target_u.mean().detach()
@@ -393,7 +393,7 @@ class CCGE(Algorithm):
         self,
         obs: Observation,
         term: torch.Tensor,
-    ) -> tuple[torch.Tensor, dict[str, Any]]:
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """_calc_actor_loss.
 
         Args:
@@ -401,7 +401,7 @@ class CCGE(Algorithm):
             term (torch.Tensor): term
 
         Returns:
-            tuple[torch.Tensor, dict[str, Any]]:
+            tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """
         term = 1.0 - term
 
@@ -431,7 +431,7 @@ class CCGE(Algorithm):
         # sum the losses
         actor_loss = rnf_loss + ent_loss
 
-        log = dict()
+        log: dict[str, torch.Tensor] = dict()
         log["actor_loss"] = actor_loss.mean().detach()
 
         return actor_loss, log
@@ -439,14 +439,14 @@ class CCGE(Algorithm):
     def _calc_alpha_loss(
         self,
         obs: Observation,
-    ) -> tuple[torch.Tensor, dict[str, Any]]:
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """_calc_alpha_loss.
 
         Args:
             obs (Observation): obs
 
         Returns:
-            tuple[torch.Tensor, dict[str, Any]]:
+            tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """
         if not self.config.tune_entropy:
             return torch.zeros(1), {}
@@ -460,7 +460,7 @@ class CCGE(Algorithm):
             self._log_alpha * (self.config.target_entropy + log_probs).detach()
         ).mean()
 
-        log = dict()
+        log: dict[str, torch.Tensor] = dict()
         log["log_alpha"] = self._log_alpha.detach()
         log["mean_entropy"] = -log_probs.mean().detach()
         log["entropy_loss"] = entropy_loss.mean().detach()
