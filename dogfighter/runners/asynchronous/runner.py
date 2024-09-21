@@ -9,6 +9,7 @@ from dogfighter.runners.asynchronous.base import AsynchronousRunnerSettings
 from dogfighter.runners.asynchronous.trainer import run_train
 from dogfighter.runners.asynchronous.workers import run_collection, run_evaluation
 from dogfighter.runners.base import ConfigStack
+from dogfighter.runners.utils import AtomicFileWriter
 
 signal(SIGINT, shutdown_handler)
 
@@ -38,16 +39,20 @@ if __name__ == "__main__":
     assert isinstance(configs.runner_settings, AsynchronousRunnerSettings)
 
     if args.task_type == "collect":
-        run_collection(
+        result =run_collection(
             configs=configs,
             actor_weights_path=args.actor_weights_path,
-            result_output_path=args.result_output_path,
         )
     elif args.task_type == "eval":
-        run_evaluation(
+        result = run_evaluation(
             configs=configs,
             actor_weights_path=args.actor_weights_path,
-            result_output_path=args.result_output_path,
         )
     else:
         raise NotImplementedError
+
+    # dump the pointer to disk
+    assert args.result_output_path is not None
+    with AtomicFileWriter(args.result_output_path) as f:
+        with open(f, "w") as fw:
+            json.dump(result.model_dump(), fw)

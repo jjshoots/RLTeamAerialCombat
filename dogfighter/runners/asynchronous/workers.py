@@ -1,4 +1,3 @@
-import json
 import os
 import tempfile
 
@@ -10,14 +9,12 @@ from dogfighter.runners.asynchronous.base import (
     EvaluationResult,
 )
 from dogfighter.runners.base import ConfigStack
-from dogfighter.runners.utils import AtomicFileWriter
 
 
 def run_collection(
     configs: ConfigStack,
     actor_weights_path: str,
-    result_output_path: str,
-) -> None:
+) -> CollectionResult:
     """Collection worker.
 
     The outputs of this function are:
@@ -66,23 +63,16 @@ def run_collection(
     os.close(fd)
 
     # form the results
-    result = CollectionResult(
+    return CollectionResult(
         memory_path=memory_path,
         info=info,
     )
-
-    # dump the pointer to disk
-    assert result_output_path is not None
-    with AtomicFileWriter(result_output_path) as f:
-        with open(f, "w") as fw:
-            json.dump(result.model_dump(), fw)
 
 
 def run_evaluation(
     configs: ConfigStack,
     actor_weights_path: str,
-    result_output_path: str,
-) -> None:
+) -> EvaluationResult:
     """Evaluation worker.
 
     To run this, need to provide:
@@ -123,13 +113,7 @@ def run_evaluation(
     )
 
     # form the results
-    result = EvaluationResult(
+    return EvaluationResult(
         score=eval_score,
         info=info,
     )
-
-    # dump the pointer to disk
-    assert result_output_path is not None
-    with AtomicFileWriter(result_output_path) as f:
-        with open(f, "w") as fw:
-            json.dump(result.model_dump(), fw)
