@@ -27,7 +27,7 @@ algorithm:
     embed_dim: 512
     num_blocks: 2
   qu_num_ensemble: 2
-  batch_size: 2048
+  batch_size: 512
   grad_steps_per_update: 500
   actor_learning_rate: 0.0003
   critic_learning_rate: 0.001
