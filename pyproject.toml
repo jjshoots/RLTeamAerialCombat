@@ -6,7 +6,6 @@ authors = ["Jet <taijunjet@hotmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-python-dotenv = "^1.0.1"
 torch = "^2.3.1"
 jj-wingman = "^0.22.0"
 gymnasium = "^1.0.0a2"
@@ -17,7 +16,6 @@ imageio = {extras = ["ffmpeg"], version = "^2.34.2"}
 pettingzoo = "^1.24.3"
 shimmy = "^2.0.0"
 dm-control = "^1.0.22"
-prefetch-generator = "^1.0.3"
 memorial = "^0.0.8"
 
 [tool.poetry.dev-dependencies]

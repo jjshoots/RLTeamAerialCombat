@@ -58,7 +58,6 @@ init: curl_check poetry_check
 	# we need to manual update
 	$(POETRY) remove --dev pytest
 	$(POETRY) add --dev pytest
-	$(POETRY) add python-dotenv
 	# run the install
 	$(MAKE) install
 	# test precommit

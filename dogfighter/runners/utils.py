@@ -14,8 +14,8 @@ class AtomicFileWriter:
         self.temp_name = f"{suffix}_tmp{prefix}"
         self.name = name
 
-    def __enter__(self):
+    def __enter__(self) -> str:
         return self.temp_name
 
-    def __exit__(self, *_):
+    def __exit__(self, *_) -> None:
         shutil.move(self.temp_name, self.name)
