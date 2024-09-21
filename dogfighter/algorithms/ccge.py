@@ -224,11 +224,12 @@ class CCGE(Algorithm):
                 batch = memory.sample(self.config.batch_size)
                 [copy_from_memory(s, t) for s, t in zip(batch, self.batch_ref)]
                 self.cuda_graph.replay()
-            torch.cuda.synchronize()
 
-            # gather infos
-            for key, value in self.infos_ref.items():
-                tensor_update_info[key] += value / self.config.grad_steps_per_update
+                # gather infos
+                for key, value in self.infos_ref.items():
+                    tensor_update_info[key] += value / self.config.grad_steps_per_update
+
+            torch.cuda.synchronize()
 
         # convert the tensor update info into a float update info
         update_info = dict()
