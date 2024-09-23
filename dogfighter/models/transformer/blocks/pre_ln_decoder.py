@@ -11,43 +11,40 @@ class PreLNDecoder(nn.Module):
 
     def __init__(
         self,
-        dim_model: int,
-        dim_feedforward: int,
+        embed_dim: int,
+        ff_dim: int,
         num_heads: int,
-        num_layers: int,
     ) -> None:
         """__init__.
 
         Args:
-            dim_model (int): dim_model
-            dim_feedforward (int): dim_feedforward
+            embed_dim (int): embed_dim
+            ff_dim (int): ff_dim
             num_heads (int): num_heads
-            num_layers (int): num_layers
 
         Returns:
             None:
         """
         super().__init__()
-        self._num_layers = num_layers
 
-        # construct the layer norms,
-        # we have n `q`s, but only 1 `kv`
-        self._q_lns = nn.ModuleList(
-            [nn.LayerNorm(dim_model) for _ in range(num_layers)]
-        )
-        self._k_ln = nn.LayerNorm(dim_model)
-        self._v_ln = nn.LayerNorm(dim_model)
+        # construct the layernorms
+        self._q_ln = nn.LayerNorm(embed_dim)
+        self._k_ln = nn.LayerNorm(embed_dim)
+        self._v_ln = nn.LayerNorm(embed_dim)
 
         # construct the mha layers
-        self._mha_layers = nn.ModuleList(
-            [
-                nn.MultiheadAttention(
-                    embed_dim=dim_model,
-                    num_heads=num_heads,
-                    batch_first=True,
-                )
-                for _ in range(num_layers)
-            ]
+        self._mha = nn.MultiheadAttention(
+            embed_dim=embed_dim,
+            num_heads=num_heads,
+            batch_first=True,
+        )
+
+        # output layernorm and ff
+        self._ff_ln = nn.LayerNorm(embed_dim)
+        self._ff = nn.Sequential(
+            nn.Linear(embed_dim, ff_dim),
+            nn.ReLU(),
+            nn.Linear(ff_dim, embed_dim),
         )
 
     def forward(
@@ -60,33 +57,23 @@ class PreLNDecoder(nn.Module):
         """forward.
 
         Args:
-            q (torch.Tensor): a [batch_dim, q_len, dim_model] tensor.
-            k (torch.Tensor): a [batch_dim, kv_len, dim_model] tensor.
-            v (torch.Tensor): a [batch_dim, kv_len, dim_model] tensor.
+            q (torch.Tensor): a [batch_dim, q_len, embed_dim] tensor.
+            k (torch.Tensor): a [batch_dim, kv_len, embed_dim] tensor.
+            v (torch.Tensor): a [batch_dim, kv_len, embed_dim] tensor.
             k_mask (torch.Tensor): a [batch_dim, kv_len] boolean tensor with False elements indicating unmasked positions.
 
         Returns:
-            torch.Tensor: a [batch_dim, q_len, dim_model] tensor.
+            torch.Tensor: a [batch_dim, q_len, embed_dim] tensor.
         """
+        # perform layernorm then decode
+        q = q + self._mha(
+            query=self._q_ln(q),
+            key=self._k_ln(k),
+            value=self._v_ln(v),
+            key_padding_mask=k_mask,
+        )[0]
 
-        # perform layernorm on kv
-        k = self._k_ln(k)
-        v = self._v_ln(v)
-
-        # perform decoding
-        for (
-            q_ln,
-            mha,
-        ) in zip(self._q_lns, self._mha_layers):
-            # residual(prelayernorm + mha)
-            q = (
-                q
-                + mha(
-                    query=q_ln(q),
-                    key=k,
-                    value=v,
-                    key_padding_mask=k_mask,
-                )[0]
-            )
+        # feedforward layers
+        q = q + self._ff(self._ff_ln(q))
 
         return q

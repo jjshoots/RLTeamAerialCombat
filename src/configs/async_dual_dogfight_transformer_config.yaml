@@ -19,14 +19,14 @@ algorithm:
   variant: "ccge"
   actor:
     variant: "pre_ln_decoder"
-    embed_dim: 32
-    ff_dim: 128
+    embed_dim: 128
+    ff_dim: 512
     num_att_heads: 4
     num_layers: 1
   critic:
     variant: "pre_ln_decoder"
-    embed_dim: 64
-    ff_dim: 256
+    embed_dim: 256
+    ff_dim: 1024
     num_att_heads: 8
     num_layers: 1
   qu_num_ensemble: 2
@@ -35,7 +35,7 @@ algorithm:
   actor_learning_rate: 0.0002
   critic_learning_rate: 0.001
   alpha_learning_rate: 0.01
-  target_smoothing_coefficient: 0.002
+  target_smoothing_coefficient: 0.001
   tune_entropy: true
   target_entropy_gain: 1.0
   learn_uncertainty: true

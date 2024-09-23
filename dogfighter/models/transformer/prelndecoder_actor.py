@@ -46,32 +46,24 @@ class PreLNDecoderActor(GaussianActor):
         """
         super().__init__()
 
-        # the pre layernorm decoder
-        self.decoder = PreLNDecoder(
-            dim_model=config.embed_dim,
-            dim_feedforward=config.ff_dim,
-            num_heads=config.num_att_heads,
-            num_layers=config.num_layers,
-        )
-
         # network to go from src, tgt -> embed
-        self.src_network = nn.Sequential(
-            nn.Linear(config.src_size, config.ff_dim),
-            nn.ReLU(),
-            nn.Linear(config.ff_dim, config.embed_dim),
-        )
-        self.tgt_network = nn.Sequential(
-            nn.Linear(config.tgt_size, config.ff_dim),
-            nn.ReLU(),
-            nn.Linear(config.ff_dim, config.embed_dim),
+        self.src_projection = nn.Linear(config.src_size, config.embed_dim)
+        self.tgt_projection = nn.Linear(config.tgt_size, config.embed_dim)
+
+        # pre layernorm decoder to go from embed -> embed
+        self.decoders = nn.ModuleList(
+            [
+                PreLNDecoder(
+                    embed_dim=config.embed_dim,
+                    ff_dim=config.ff_dim,
+                    num_heads=config.num_att_heads,
+                )
+                for _ in range(config.num_layers)
+            ]
         )
 
         # outputs the action after all the compute before it
-        self.head = nn.Sequential(
-            nn.Linear(config.embed_dim, config.ff_dim),
-            nn.ReLU(),
-            nn.Linear(config.ff_dim, config.act_size * 2),
-        )
+        self.head = nn.Linear(config.embed_dim, config.act_size * 2)
 
     def forward(
         self,
@@ -81,8 +73,8 @@ class PreLNDecoderActor(GaussianActor):
 
         Args:
             obs (dict[Literal["src", "tgt", "src_mask", "tgt_mask"], torch.Tensor]):
-                - "src": [batch_size, src_seq_len, obs_size] tensor
-                - "tgt": [batch_size, tgt_seq_len, obs_size] tensor
+                - "src": [batch_size, src_seq_len, obs_size] tensor, in most cases, this is number of other entities in the environment
+                - "tgt": [batch_size, tgt_seq_len, obs_size] tensor, in most cases, this is 1
                 - "src_mask": [batch_size, src_seq_len] tensor with False elements indicating unmasked positions
                 - "tgt_mask": [batch_size, tgt_seq_len] tensor with False elements indicating unmasked positions
 
@@ -92,14 +84,15 @@ class PreLNDecoderActor(GaussianActor):
         obs = cast(TransformerObservation, obs)
 
         # generate qkv tensors [B, N, embed_dim] for qkv
-        q = self.tgt_network(obs["tgt"])
-        kv = self.src_network(obs["src"])
+        q = self.tgt_projection(obs["tgt"])
+        kv = self.src_projection(obs["src"])
 
         # pass the tensors into the decoder
         # the result here is [B, N, embed_dim]
         # take the last element over the tgt output
-        obs_embed = self.decoder(q=q, k=kv, v=kv, k_mask=obs["src_mask"].bool())
-        obs_embed = obs_embed[..., -1, :]
+        for f in self.decoders:
+            obs_embed = f(q=q, k=kv, v=kv, k_mask=obs["src_mask"].bool())
+        obs_embed = obs_embed[..., -1, :]  # pyright: ignore[reportPossiblyUnboundVariable]
 
         # output here is shape [B, act_size * 2]
         output = self.head(obs_embed)

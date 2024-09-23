@@ -47,7 +47,7 @@ runner:
   max_queued_evals: 1
 
   trainer:
-    transitions_max: 6000000
+    transitions_max: 3000000
     transitions_num_exploration: 25000
     transitions_min_for_train: 50000
 
