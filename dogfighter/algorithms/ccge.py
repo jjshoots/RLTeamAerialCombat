@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import time
 import warnings
 from collections import defaultdict
