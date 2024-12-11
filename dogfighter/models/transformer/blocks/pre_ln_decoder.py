@@ -66,12 +66,15 @@ class PreLNDecoder(nn.Module):
             torch.Tensor: a [batch_dim, q_len, embed_dim] tensor.
         """
         # perform layernorm then decode
-        q = q + self._mha(
-            query=self._q_ln(q),
-            key=self._k_ln(k),
-            value=self._v_ln(v),
-            key_padding_mask=k_mask,
-        )[0]
+        q = (
+            q
+            + self._mha(
+                query=self._q_ln(q),
+                key=self._k_ln(k),
+                value=self._v_ln(v),
+                key_padding_mask=k_mask,
+            )[0]
+        )
 
         # feedforward layers
         q = q + self._ff(self._ff_ln(q))

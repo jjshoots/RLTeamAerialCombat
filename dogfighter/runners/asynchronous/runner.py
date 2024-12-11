@@ -39,7 +39,7 @@ if __name__ == "__main__":
     assert isinstance(configs.runner_settings, AsynchronousRunnerSettings)
 
     if args.task_type == "collect":
-        result =run_collection(
+        result = run_collection(
             configs=configs,
             actor_weights_path=args.actor_weights_path,
         )

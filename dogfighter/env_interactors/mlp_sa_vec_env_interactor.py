@@ -17,6 +17,7 @@ from dogfighter.env_interactors.base import (
     SupportedEnvTypes,
     UpdateInfos,
 )
+from dogfighter.env_interactors.utils import VecEnvInfoAggregator
 from dogfighter.models.base import Actor
 
 
@@ -159,11 +160,13 @@ def mlp_sa_vec_env_evaluate(
     # start the evaluation loops
     num_valid_steps = 0
     cumulative_rewards = 0.0
+    info_aggregator = VecEnvInfoAggregator()
 
     for _ in range(num_episodes // env.num_envs):
         # reset things
-        obs, _ = env.reset()
+        obs, info = env.reset()
         done_envs = np.zeros(env.num_envs, dtype=bool)
+        info_aggregator.add_info(info)
 
         # step for one episode
         while not np.all(done_envs):
@@ -172,7 +175,8 @@ def mlp_sa_vec_env_evaluate(
             act = cpuize(actor.infer(*actor(gpuize(obs, actor.device))))
 
             # step the transition
-            next_obs, rew, term, trunc, _ = env.step(act)
+            next_obs, rew, term, trunc, info = env.step(act)
+            info_aggregator.add_info(info)
 
             # roll observation and record the done envs
             obs = next_obs
@@ -186,6 +190,14 @@ def mlp_sa_vec_env_evaluate(
     return_info = dict()
     return_info["mean_episode_length"] = float(num_valid_steps / num_episodes)
     mean_cumulative_reward = float(cumulative_rewards / num_episodes)
+
+    # accumulate the env infos
+    info_averages, info_counts = info_aggregator.aggregate_info()
+    for k, v in info_averages.items():
+        return_info[f"env_info/avg/{k}"] = v
+    for k, v in info_counts.items():
+        return_info[f"env_info/counts/{k}"] = v
+
     return mean_cumulative_reward, return_info
 
 
