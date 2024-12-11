@@ -138,7 +138,7 @@ class CCGE(Algorithm):
         Returns:
             BaseActor:
         """
-        return self._actor
+        return cast(GaussianActor, self._actor)
 
     @property
     def qu_ensemble_critic(self) -> CriticEnsemble:
@@ -201,7 +201,7 @@ class CCGE(Algorithm):
                 self.batch_ref = [zeros_from_memory(x) for x in batch]
                 [copy_from_memory(s, t) for s, t in zip(batch, self.batch_ref)]
 
-                # warmup teration
+                # warmup iteration
                 self.forward(*self.batch_ref)  # pyright: ignore[reportArgumentType]
 
                 # construct the graph
