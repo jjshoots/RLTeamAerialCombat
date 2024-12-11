@@ -132,11 +132,12 @@ if __name__ == "__main__":
     # config_yaml = (Path(__file__).parent / "configs/async_quad_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_transformer_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_dual_dogfight_mlp_config.yaml")
-    config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
+    # config_yaml = (Path(__file__).parent / "configs/quadx_ball_in_cup_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/async_cheetah_run_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/quadx_waypoints_config.yaml")
     # config_yaml = (Path(__file__).parent / "configs/dmc_obs_norm_config.yaml")
+    config_yaml = (Path(__file__).parent / "configs/rocket_landing.yaml")
     # fmt: on
 
     wm = Wingman(config_yaml=config_yaml)
