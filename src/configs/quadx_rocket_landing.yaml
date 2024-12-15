@@ -1,6 +1,6 @@
 # env params
 env:
-  id: "PyFlyt/Rocket-Landing-v3"
+  id: "PyFlyt/Rocket-Landing-v4"
   variant: "mlp_sa_env"
   num_envs: 4
 
